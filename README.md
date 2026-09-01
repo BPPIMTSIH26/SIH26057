@@ -1,6 +1,14 @@
-# S.A.G.A.R. Command
+# SIH26057: S.A.G.A.R. Command
 
 **Seabed Anomaly Grid & Analysis Repository**
+
+## Problem Statement Details
+
+| Attribute | Details |
+| :--- | :--- |
+| **Problem Statement ID** | 26057 |
+| **Problem Statement Title** | AI-assisted seabed survey analysis for faster detection, classification, and human verification of underwater anomalies |
+
 
 S.A.G.A.R. Command is a comprehensive, modern dashboard application built for seabed survey analysis and real-time anomaly detection. It visualizes map-based marine data, tracks temporal comparisons of geographical metrics, and supports human-in-the-loop review for machine learning-detected subsea anomalies.
 
