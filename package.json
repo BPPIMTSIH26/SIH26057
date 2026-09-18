@@ -1,0 +1,14 @@
+{
+  "name": "netrasonar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SagarNetra / NetraSonar Autonomous Undersea Anomaly & Mine Detection System",
+  "scripts": {
+    "start": "./start.sh",
+    "stop": "./stop.sh",
+    "dev": "./start.sh",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
+    "build": "npm --prefix frontend run build"
+  }
+}

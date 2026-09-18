@@ -13,5 +13,12 @@ dist/
 
 # SAGAR Specific
 backend/data/*.db
+backend/*.db
 backend/data/uploads/*
 !backend/data/uploads/.gitkeep
+backend/data/processed/*
+!backend/data/processed/.gitkeep
+backend/data/uploads/processing_results/*
+.pytest_cache/
+*.pyc
+
