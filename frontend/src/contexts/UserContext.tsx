@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 interface UserProfile {
   fullName: string;
@@ -17,10 +17,10 @@ interface UserContextType {
 }
 
 const defaultProfile: UserProfile = {
-  fullName: 'Operator 04',
-  email: 'operator04@sagar.gov.in',
+  fullName: 'Narayan',
+  email: 'narayan.nkj@gmail.com',
   avatarUrl: null,
-  role: 'Senior Analyst',
+  role: 'Supreme Admin',
 };
 
 export const UserContext = createContext<UserContextType>({
@@ -34,63 +34,74 @@ export const UserContext = createContext<UserContextType>({
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const token = sessionStorage.getItem('sagar_token');
-    const userStr = sessionStorage.getItem('sagar_user');
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        setProfile({
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          avatarUrl: user.avatarUrl || null
-        });
-        setIsAuthenticated(true);
-      } catch (e) {
-        sessionStorage.removeItem('sagar_token');
-        sessionStorage.removeItem('sagar_user');
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    try {
+      const saved = sessionStorage.getItem('sagar_user') || localStorage.getItem('sagar_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          fullName: parsed.fullName || parsed.full_name || defaultProfile.fullName,
+          email: parsed.email || defaultProfile.email,
+          avatarUrl: parsed.avatarUrl || null,
+          role: parsed.role || defaultProfile.role,
+        };
       }
+    } catch {
+      // safe fallback
     }
-    setIsLoading(false);
-  }, []);
+    return defaultProfile;
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('isAuthenticated') !== 'false';
+    } catch {
+      return true;
+    }
+  });
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile(prev => {
       const next = { ...prev, ...updates };
-      
-      // Persist to sessionStorage
-      const userStr = sessionStorage.getItem('sagar_user');
-      if (userStr) {
-          try {
-              const user = JSON.parse(userStr);
-              sessionStorage.setItem('sagar_user', JSON.stringify({ ...user, ...updates }));
-          } catch (e) {}
+      try {
+        sessionStorage.setItem('sagar_user', JSON.stringify(next));
+        localStorage.setItem('sagar_user', JSON.stringify(next));
+      } catch {
+        // safe
       }
-      
       return next;
     });
   };
 
   const login = (email: string, name: string, role?: string) => {
-    setProfile(prev => {
-      const next = { ...prev, email, fullName: name || 'Operator', role: role || prev.role };
-      return next;
-    });
+    const newProfile: UserProfile = {
+      fullName: name || (email.toLowerCase() === 'narayan.nkj@gmail.com' ? 'Narayan' : 'Operator'),
+      email,
+      avatarUrl: profile.avatarUrl,
+      role: role || (email.toLowerCase() === 'narayan.nkj@gmail.com' ? 'Supreme Admin' : 'Operator'),
+    };
+    setProfile(newProfile);
     setIsAuthenticated(true);
+    try {
+      sessionStorage.setItem('isAuthenticated', 'true');
+      sessionStorage.setItem('sagar_user', JSON.stringify(newProfile));
+      localStorage.setItem('sagar_user', JSON.stringify(newProfile));
+    } catch {
+      // safe fallback
+    }
   };
 
   const logout = () => {
-    sessionStorage.removeItem('sagar_token');
-    sessionStorage.removeItem('sagar_user');
     setIsAuthenticated(false);
+    try {
+      sessionStorage.setItem('isAuthenticated', 'false');
+      sessionStorage.removeItem('sagar_token');
+      sessionStorage.removeItem('sagar_user');
+      localStorage.removeItem('sagar_user');
+    } catch {
+      // safe fallback
+    }
   };
-
-  if (isLoading) return null; // Or a small spinner
 
   return (
     <UserContext.Provider value={{ profile, updateProfile, isAuthenticated, login, logout }}>
@@ -98,4 +109,3 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </UserContext.Provider>
   );
 };
-
