@@ -15,6 +15,7 @@ import {
 import { DashboardMetrics, Anomaly, TemporalPoint, ModelFeedback, HARBOURS } from '../data/mockData';
 import { useHarbour, useRealTimeAnomalies } from '../contexts/AppContext';
 import { Map, Marker } from '../components/RawMap';
+import { getHarbourViewport, fitMapToHarbourAndPoints } from '../utils/mapUtils';
 
 export default function Dashboard() {
   const { activeHarbour, setActiveHarbour } = useHarbour();
@@ -37,37 +38,19 @@ export default function Dashboard() {
   const selectedAnomaly = liveAnomalies.find(a => a.id === selectedAnomalyId);
   const harborConfig = HARBOURS[activeHarbour] || HARBOURS['Mumbai Harbor Q3'];
 
-  const selectedAnomalyLat = selectedAnomaly?.latitude;
-  const selectedAnomalyLng = selectedAnomaly?.longitude;
-  const harborLat = harborConfig?.lat;
-  const harborLng = harborConfig?.lng;
+  const initialVp = React.useMemo(() => getHarbourViewport(harborConfig, selectedAnomaly), [harborConfig, selectedAnomaly]);
 
-  // Map flyTo logic
+  // Frame both harbor port and anomaly simultaneously on map
   useEffect(() => {
-    if (mapRef.current) {
-      if (selectedAnomalyLat && selectedAnomalyLng && harborLat && harborLng) {
-        mapRef.current.fitBounds(
-          [
-            [Math.min(harborLng, selectedAnomalyLng), Math.min(harborLat, selectedAnomalyLat)],
-            [Math.max(harborLng, selectedAnomalyLng), Math.max(harborLat, selectedAnomalyLat)]
-          ],
-          { padding: 100, duration: 2500, maxZoom: 13, essential: true }
-        );
-      } else {
-        const midLng = (harborConfig.lng + harborConfig.waterCenter.lng) / 2;
-        const midLat = (harborConfig.lat + harborConfig.waterCenter.lat) / 2;
-        mapRef.current.flyTo({
-          center: [midLng, midLat],
-          zoom: 11,
-          pitch: 0,
-          bearing: 0,
-          speed: 0.8,
-          curve: 1.42,
-          essential: true
-        });
-      }
+    if (mapRef.current && harborConfig) {
+      fitMapToHarbourAndPoints(
+        mapRef.current,
+        harborConfig,
+        selectedAnomaly || liveAnomalies,
+        { padding: 45, maxZoom: 11.4, duration: 1800 }
+      );
     }
-  }, [selectedAnomalyLat, selectedAnomalyLng, harborLat, harborLng, harborConfig]);
+  }, [selectedAnomaly?.id, harborConfig, activeHarbour, liveAnomalies.length]);
 
   const isFirstLoad = useRef(true);
   const patrolIndicesRef = useRef<Record<string, number>>({});
@@ -121,7 +104,7 @@ export default function Dashboard() {
       }
       
       setActiveHarbour(nextHarbour);
-    }, 12000); // 12s wait (3.5s animation + 8.5s stay)
+    }, 5000); // 5s wait (2.5s animation + 2.5s stay)
 
     return () => clearInterval(interval);
   }, [isAutoPatrol, activeHarbour, setActiveHarbour]);
@@ -137,6 +120,11 @@ export default function Dashboard() {
       {/* ── FULL SCREEN DARK TECH BACKGROUND ── */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-glass-strong)_0%,_var(--color-void)_50%)]">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50 mix-blend-overlay" />
+        {isLoading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-void/60 backdrop-blur-sm">
+            <div className="w-8 h-8 border-2 border-glass-border border-t-cyan rounded-full animate-spin" />
+          </div>
+        )}
       </div>
 
       {/* ── BENTO BOX LAYOUT ── */}
@@ -148,14 +136,14 @@ export default function Dashboard() {
             
             {/* Top Ribbons (KPIs) - Responsive Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 shrink-0">
-              <div className="bg-glass backdrop-blur-md rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Normal Regions" value={metrics?.normalRegions ?? '--'} icon={CheckCircle} colorClass="text-text-primary" /></div>
-              <div className="bg-glass backdrop-blur-md rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Known Anomalies" value={metrics?.knownAnomalies ?? '--'} icon={AlertTriangle} colorClass="text-warning" /></div>
-              <div className="bg-glass backdrop-blur-md rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Unknown Anomalies" value={metrics?.unknownAnomalies ?? '--'} icon={AlertCircle} colorClass="text-danger" trend="+2 since last run" trendDirection="up" /></div>
-              <div className="bg-glass backdrop-blur-md rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="New Changes" value={metrics?.newChanges ?? '--'} icon={TrendingUp} colorClass="text-cyan" trend="-1 since last run" trendDirection="down" /></div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Normal Regions" value={metrics?.normalRegions ?? '--'} icon={CheckCircle} colorClass="text-text-primary" isLoading={isLoading} /></div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Known Anomalies" value={metrics?.knownAnomalies ?? '--'} icon={AlertTriangle} colorClass="text-warning" isLoading={isLoading} /></div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Unknown Anomalies" value={metrics?.unknownAnomalies ?? '--'} icon={AlertCircle} colorClass="text-danger" trend="+2 since last run" trendDirection="up" isLoading={isLoading} /></div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="New Changes" value={metrics?.newChanges ?? '--'} icon={TrendingUp} colorClass="text-cyan" trend="-1 since last run" trendDirection="down" isLoading={isLoading} /></div>
             </div>
 
             {/* Minimap Section */}
-            <div className="flex-1 bg-glass backdrop-blur-md rounded-2xl border border-glass-border p-1 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.4)] min-h-[300px] md:min-h-[400px] overflow-hidden relative group">
+            <div className="flex-1 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-1 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.4)] min-h-[300px] md:min-h-[400px] overflow-hidden relative group">
               <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
                 <h3 className="font-display font-bold text-sm uppercase tracking-[0.12em] text-text-primary px-3 py-1.5 bg-void/80 backdrop-blur-md border border-glass-border rounded-lg shadow-lg pointer-events-none hidden sm:block">Sector Minimap</h3>
                 <button 
@@ -174,47 +162,75 @@ export default function Dashboard() {
                 <Map
                   ref={mapRef}
                   initialViewState={{
-                    longitude: harborConfig.lng,
-                    latitude: harborConfig.lat,
-                    zoom: 11.5,
+                    longitude: initialVp.longitude,
+                    latitude: initialVp.latitude,
+                    zoom: initialVp.zoom,
                     pitch: 0,
                     bearing: 0,
                   }}
                   interactive={true}
                 >
+                  {/* Port marker */}
                   <Marker longitude={harborConfig.lng} latitude={harborConfig.lat}>
-                    <div className="flex flex-col items-center">
-                      <div className="w-3 h-3 bg-accent rounded-full border border-void shadow-[var(--glow-accent)] animate-pulse z-10 relative" />
-                      <div className="mt-1 px-1.5 py-0.5 bg-void/80 backdrop-blur border border-glass-border text-[9px] text-text-primary uppercase tracking-[0.2em] font-light whitespace-nowrap rounded-sm">
-                        {activeHarbour}
+                    <div className="flex flex-col items-center group cursor-pointer">
+                      <div className="w-3.5 h-3.5 bg-accent rounded-sm border border-void shadow-[var(--glow-accent)] relative z-10 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-void rounded-xs" />
+                      </div>
+                      <div className="mt-1 px-1.5 py-0.5 bg-void/90 backdrop-blur border border-glass-border text-[9px] text-text-primary uppercase tracking-[0.15em] font-medium whitespace-nowrap rounded-sm shadow-lg">
+                        PORT: {activeHarbour}
                       </div>
                     </div>
                   </Marker>
                   
-                  {/* Live Anomaly Marker (Only Selected) */}
-                  {selectedAnomaly && (
-                    <Marker
-                      longitude={selectedAnomaly.longitude}
-                      latitude={selectedAnomaly.latitude}
-                    >
-                      <div className="w-2.5 h-2.5 rounded-full border border-void shadow-lg transition-all duration-500 bg-accent scale-125 animate-pulse ring-2 ring-accent/20 shadow-[var(--glow-accent)]" />
-                    </Marker>
-                  )}
+                  {/* Anomaly Markers */}
+                  {liveAnomalies.map(a => {
+                    const isSelected = a.id === selectedAnomalyId;
+                    return (
+                      <Marker
+                        key={a.id}
+                        longitude={a.longitude}
+                        latitude={a.latitude}
+                      >
+                        <div
+                          onClick={() => {
+                            setSelectedAnomalyId(a.id);
+                            setIsAutoPatrol(false);
+                          }}
+                          className="cursor-pointer group flex flex-col items-center justify-center"
+                          title={`${a.label} (${a.priority})`}
+                        >
+                          {isSelected ? (
+                            <div className="relative flex items-center justify-center w-5 h-5">
+                              <div className="absolute -inset-2 rounded-full border border-danger animate-ping opacity-60" style={{ animationDuration: '2.5s' }} />
+                              <div className="w-3 h-3 rounded-full bg-danger border-2 border-void shadow-[var(--glow-accent)] relative z-10" />
+                            </div>
+                          ) : (
+                            <div className={`w-2 h-2 rounded-full border border-void transition-transform group-hover:scale-125 ${
+                              a.severity === 'high' ? 'bg-danger shadow-[0_0_6px_var(--color-danger)]' : 
+                              a.severity === 'unusual' ? 'bg-warning' : 'bg-accent/80'
+                            }`} />
+                          )}
+                        </div>
+                      </Marker>
+                    );
+                  })}
                 </Map>
                 <div className="absolute inset-0 border border-glass-border rounded-xl pointer-events-none" />
               </div>
             </div>
 
             {/* Short Survey Activity Chart */}
-            <div className="h-48 shrink-0 bg-glass backdrop-blur-md rounded-2xl border border-glass-border p-5 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+            <div className="h-48 shrink-0 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-5 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display font-bold text-xs uppercase tracking-[0.12em] text-text-primary">Survey Trends</h3>
                 {isLoading && <div className="w-3 h-3 border-2 border-glass-border border-t-cyan rounded-full animate-spin" />}
               </div>
               <div className="flex-1 w-full relative">
-                {chartData.length === 0 ? (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs text-text-secondary font-mono">No data available</span>
+                {isLoading ? (
+                  <div className="absolute inset-0 flex items-end gap-2 animate-pulse pb-2">
+                    {[...Array(24)].map((_, i) => (
+                      <div key={i} className="flex-1 bg-glass rounded-t-sm" style={{ height: `${(Math.sin(i * 1234.5) * 0.5 + 0.5) * 60 + 20}%` }} />
+                    ))}
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -247,12 +263,18 @@ export default function Dashboard() {
           <div className="flex-[1] flex flex-col gap-4 lg:gap-6 shrink-0 w-full xl:min-w-[340px] xl:w-[400px] xl:min-h-0">
             
             {/* Inspector Node */}
-            <div className="bg-glass backdrop-blur-md rounded-2xl border border-glass-border p-6 flex flex-col shrink-0 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+            <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-6 flex flex-col shrink-0 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
               <h3 className="font-display font-bold text-sm uppercase tracking-[0.12em] text-text-primary flex items-center gap-2 mb-4">
                 <Zap className="w-4 h-4 text-cyan" /> Inspector Node
               </h3>
               <div className="min-h-[120px]">
-                {selectedAnomaly ? (
+                {isLoading ? (
+                  <div className="flex flex-col gap-3 animate-pulse">
+                    <div className="h-3 bg-glass rounded w-3/4"></div>
+                    <div className="h-3 bg-glass rounded w-full"></div>
+                    <div className="h-3 bg-glass rounded w-5/6"></div>
+                  </div>
+                ) : selectedAnomaly ? (
                   <div className="flex flex-col gap-5 animate-in fade-in duration-300">
                     <div className="border-l-2 border-cyan pl-4 py-1">
                       <p className="text-text-primary font-mono text-xs leading-relaxed uppercase opacity-90">{selectedAnomaly.explanation || 'Anomaly requires manual review. Automated analysis pending deeper scanning operations.'}</p>
@@ -278,24 +300,24 @@ export default function Dashboard() {
             </div>
 
             {/* Priority Queue */}
-            <div className="flex-1 min-h-0 bg-glass backdrop-blur-md rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col">
+            <div className="flex-1 min-h-0 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col">
               <PriorityQueue
                 anomalies={priorityAnomalies}
                 selectedId={selectedAnomalyId}
-                isLoading={false}
+                isLoading={isLoading}
                 onSelectAnomaly={id => setSelectedAnomalyId(id)}
                 onViewDetails={id => navigate('/map', { state: { selectedAnomalyId: id } })}
               />
             </div>
 
             {/* Learning Pipeline */}
-            <div className="shrink-0 bg-glass backdrop-blur-md rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+            <div className="shrink-0 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
               <ActiveLearningWidget
                 currentModel={modelFeedback?.currentModel || { name: 'S.A.G.A.R. v1', accuracy: 0, lastUpdated: '' }}
                 feedbackSamples={modelFeedback?.feedbackSamples || 0}
                 potentialRetrainingSet={modelFeedback?.potentialRetrainingSet || 0}
                 nextModel={modelFeedback?.nextModel || { name: 'S.A.G.A.R. v2', accuracy: 0, estimatedTime: '' }}
-                isLoading={false}
+                isLoading={isLoading}
               />
             </div>
 
