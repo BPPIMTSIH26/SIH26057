@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, UploadCloud, Map, History, FileCheck, Bell, User, Menu, X, Anchor, Sun, Moon, Layers } from 'lucide-react';
 import Dashboard from './pages/Dashboard'; // trigger refresh
@@ -8,6 +8,9 @@ import MapWorkspace from './pages/MapWorkspace';
 import TemporalComparison from './pages/TemporalComparison';
 import ReviewReport from './pages/ReviewReport';
 import Settings from './pages/Settings';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import { usePreferences } from './contexts/PreferencesContext';
 import { useTheme } from './contexts/ThemeContext';
 import { useUser, UserProvider } from './contexts/UserContext';
@@ -15,9 +18,6 @@ import { subscribeToRealTimeAnomalies } from './services/api';
 import { HARBOURS } from './data/mockData';
 import type { Anomaly } from './data/mockData';
 import BootScreen from './components/BootScreen';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
 
 import { HarbourContext, RealTimeAnomalyContext } from './contexts/AppContext';
 
@@ -48,21 +48,6 @@ const AvatarBadge: React.FC<{ size?: 'sm' | 'md', showStatus?: boolean }> = ({ s
   );
 };
 
-// Isolated clock component — prevents re-rendering the entire AppShell every second
-const LiveClock = memo(() => {
-  const [time, setTime] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  return (
-    <div className="flex shrink-0 items-center text-[10px] font-mono text-text-muted tracking-wider px-3 py-1.5 bg-glass backdrop-blur-sm border border-glass-border rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.1)]">
-      <div className="w-1 h-1 bg-accent rounded-full mr-2.5 animate-glow-pulse shadow-[var(--glow-accent)]" />
-      {time.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'medium' })} IST
-    </div>
-  );
-});
-
 const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeHarbour, setActiveHarbour] = useState('Mumbai Harbor Q3');
@@ -74,6 +59,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { formatCoordinates } = usePreferences();
   const { profile, logout } = useUser();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [time, setTime] = useState(new Date());
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isHarbourMenuOpen, setIsHarbourMenuOpen] = useState(false);
@@ -101,7 +87,10 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => unsubscribe();
   }, [activeHarbour]);
 
-  // Clock is now in its own memoized component (LiveClock)
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <HarbourContext.Provider value={{ activeHarbour, setActiveHarbour }}>
@@ -119,8 +108,8 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
           {/* ══ SIDEBAR ══ */}
           <aside className={`
-            w-64 bg-glass backdrop-blur-md border-r border-glass-border flex flex-col shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.5)]
-            fixed inset-y-0 left-0 z-40 will-change-transform transition-transform duration-300 ease-in-out
+            w-64 bg-glass backdrop-blur-3xl border-r border-glass-border flex flex-col shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.5)]
+            fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           `}>
             {/* Logo */}
@@ -165,7 +154,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {/* ══ MAIN CONTENT ══ */}
           <main className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative z-10 bg-void">
             {/* ── Top Header ── */}
-            <header className="h-14 shrink-0 bg-glass backdrop-blur-md border-b border-glass-border flex items-center justify-between px-6 z-30 shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+            <header className="h-14 shrink-0 bg-glass backdrop-blur-3xl border-b border-glass-border flex items-center justify-between px-6 z-30 shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
               <div className="flex items-center gap-3 shrink-0">
                 <button
                   className="p-2 -ml-2 text-text-muted hover:text-text-primary rounded transition-colors"
@@ -231,7 +220,10 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <div className="w-px h-6 bg-glass-strong mx-2 shrink-0" />
 
                 {/* Live clock */}
-                <LiveClock />
+                <div className="flex shrink-0 items-center text-[10px] font-mono text-text-muted tracking-wider px-3 py-1.5 bg-glass backdrop-blur-sm border border-glass-border rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.1)]">
+                  <div className="w-1 h-1 bg-accent rounded-full mr-2.5 animate-glow-pulse shadow-[var(--glow-accent)]" />
+                  {time.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'medium' })} IST
+                </div>
 
                 {/* Theme Switcher */}
                 <div className="relative shrink-0">
@@ -353,32 +345,32 @@ const AppRouter = () => {
 
   return (
     <Router>
-      <Routes>
-        {!isAuthenticated ? (
-          <>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/verify/:token" element={<VerifyEmailPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </>
-        ) : (
-          <Route path="*" element={
-            <AppShell>
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/upload" element={<UploadProcess />} />
-                <Route path="/processing" element={<ImageProcessing />} />
-                <Route path="/map" element={<MapWorkspace />} />
-                <Route path="/comparison" element={<TemporalComparison />} />
-                <Route path="/review" element={<ReviewReport />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </AppShell>
-          } />
-        )}
-      </Routes>
+      {!isAuthenticated ? (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      ) : (
+        <AppShell>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/upload" element={<UploadProcess />} />
+            <Route path="/processing" element={<ImageProcessing />} />
+            <Route path="/image-processing" element={<ImageProcessing />} />
+            <Route path="/map" element={<MapWorkspace />} />
+            <Route path="/comparison" element={<TemporalComparison />} />
+            <Route path="/review" element={<ReviewReport />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/verify-email" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </AppShell>
+      )}
     </Router>
   );
 };

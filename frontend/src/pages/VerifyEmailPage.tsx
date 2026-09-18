@@ -67,15 +67,15 @@ export default function VerifyEmailPage() {
             <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mb-6 mx-auto border border-success/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
               <CheckCircle2 className="w-8 h-8 text-success drop-shadow-md" />
             </div>
-            <h2 className="text-xl font-display font-light mb-2 uppercase tracking-widest text-success">Verification Complete</h2>
+            <h2 className="text-xl font-display font-light mb-2 uppercase tracking-widest text-success">Identity Authenticated</h2>
             <p className="text-sm text-text-muted mb-8 leading-relaxed">
-              Your email has been successfully verified. You now have authorization to access the platform.
+              Your email has been verified. Your registration has now been submitted to Supreme Admin (Narayan) for operational clearance. You can log in once authorized.
             </p>
             <Link 
               to="/login"
               className="w-full inline-block text-center bg-success/10 border border-success/30 hover:bg-success/20 text-success font-display font-light uppercase tracking-widest text-xs py-3.5 rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(34,197,94,0.1)]"
             >
-              Proceed to Login
+              Return to Login
             </Link>
           </div>
         )}
@@ -102,3 +102,4 @@ export default function VerifyEmailPage() {
     </div>
   );
 }
+
