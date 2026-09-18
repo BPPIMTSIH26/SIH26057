@@ -1,45 +1,78 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -e
 
-echo "Starting SagaRSonaR Pipeline..."
+# Determine project root directory
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BACKEND_DIR="$PROJECT_ROOT/backend"
+FRONTEND_DIR="$PROJECT_ROOT/frontend"
 
-echo "Closing ports 8000 and 5173 to prevent conflicts..."
-lsof -ti:8000 | xargs kill -9 2>/dev/null || true
-lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+echo "========================================================"
+echo "   S.A.G.A.R. / NetraSonar Autonomous Command Center   "
+echo "========================================================"
 
-echo "Starting Backend (FastAPI)..."
+# Function to clean up lingering processes on ports
+free_port() {
+  local port=$1
+  local pids
+  pids=$(lsof -ti :"$port" 2>/dev/null || true)
+  if [ -n "$pids" ]; then
+    echo "Freeing port $port (PID: $pids)..."
+    kill -9 $pids 2>/dev/null || true
+  fi
+}
 
-# Start the backend in the background
-cd backend
-# Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-else
-    source venv/bin/activate
+# Free ports if previously occupied
+free_port 8000
+free_port 5173
+
+# Trap Ctrl+C (SIGINT), termination (SIGTERM), and normal EXIT
+cleanup() {
+  trap - SIGINT SIGTERM EXIT
+  echo ""
+  echo "🛑 Stopping all S.A.G.A.R. services..."
+  if [ -n "$BACKEND_PID" ]; then
+    kill "$BACKEND_PID" 2>/dev/null || true
+  fi
+  if [ -n "$FRONTEND_PID" ]; then
+    kill "$FRONTEND_PID" 2>/dev/null || true
+  fi
+  # Extra safeguard: ensure processes on ports 8000 and 5173 are released
+  free_port 8000
+  free_port 5173
+  echo "✨ All services stopped cleanly."
+  exit 0
+}
+
+trap cleanup SIGINT SIGTERM EXIT
+
+# 1. Start Backend
+echo "🚀 Starting Backend (FastAPI on http://localhost:8000)..."
+if [ ! -d "$BACKEND_DIR/venv" ]; then
+  echo "Creating Python virtual environment in $BACKEND_DIR/venv..."
+  python3 -m venv "$BACKEND_DIR/venv"
+  "$BACKEND_DIR/venv/bin/pip" install -r "$BACKEND_DIR/requirements.txt"
 fi
 
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
+cd "$BACKEND_DIR"
+"$BACKEND_DIR/venv/bin/uvicorn" app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app &
 BACKEND_PID=$!
-cd ..
 
-echo "Starting Frontend (React/Vite)..."
-
-# Start the frontend in the background
-cd frontend
-npm install
-npm run dev &
+# 2. Start Frontend
+echo "🚀 Starting Frontend (Vite on http://localhost:5173)..."
+cd "$FRONTEND_DIR"
+npm run dev -- --host 0.0.0.0 --port 5173 &
 FRONTEND_PID=$!
-cd ..
 
 echo ""
-echo "Both services are now running!"
-echo "Backend API: http://localhost:8000"
-echo "Frontend UI: http://localhost:5173"
-echo "Press [Ctrl+C] to stop all services."
+echo "========================================================"
+echo "  ✅ Services are running:"
+echo "     • Frontend:     http://localhost:5173"
+echo "     • Backend API:  http://localhost:8000"
+echo "     • Swagger Docs: http://localhost:8000/docs"
+echo ""
+echo "  👉 Press Ctrl+C at any time to stop both servers."
+echo "========================================================"
+echo ""
 
-# Trap SIGINT (Ctrl+C) to gracefully shut down both background processes
-trap "echo 'Shutting down services...'; kill $BACKEND_PID $FRONTEND_PID; exit" SIGINT
-
-# Wait indefinitely so the script doesn't exit immediately
-wait $BACKEND_PID $FRONTEND_PID
+# Wait for background processes
+wait

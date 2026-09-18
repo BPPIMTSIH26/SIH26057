@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     ports:
       - "8000:8000"
     volumes:
@@ -16,16 +18,18 @@ services:
       - MODEL_DIR=./models
       - MODEL_PROVIDER=demo
       - CONFIDENCE_THRESHOLD=0.5
-      - CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
+      - CORS_ORIGINS=["http://localhost:5173", "http://127.0.0.1:5173"]
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - VITE_API_URL=http://localhost:8000/api
+    command: npm run dev -- --host 0.0.0.0
     depends_on:
       - backend
