@@ -1,4 +1,8 @@
-# SagaRSonaR
+# 26057: Ocean-X (S.A.G.A.R. Command - SagaRSonaR)
+
+**Context-Aware Open-World Underwater Anomaly Intelligence**  
+**Problem Statement ID:** 26057  
+**Organization:** BPPIMTSIH26  
 
 > **Note:** This repository represents the **Final Project Submission**. All final changes, features, and fixes have been committed and integrated.
 
