@@ -13,7 +13,6 @@ class DetectionResult(BaseModel):
     bbox: BBox
     mask: Optional[str] = None
     area: Optional[float] = None
-    seabed_nature: Optional[str] = None
 
 class DetectionResponse(BaseModel):
     mission_id: str

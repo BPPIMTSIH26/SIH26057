@@ -5,26 +5,26 @@
         "status": "NEW"
     },
     "statistics": {
-        "total_images": 3,
-        "total_detections": 4,
-        "total_anomalies": 4,
-        "high_risk": 3,
-        "critical": 1,
+        "total_images": 18,
+        "total_detections": 24,
+        "total_anomalies": 24,
+        "high_risk": 18,
+        "critical": 6,
         "average_confidence": 0.8125,
-        "estimated_debris_area": 312500.0,
+        "estimated_debris_area": 1875000.0,
         "detections_by_class": {
-            "metal_debris": 2,
-            "unknown_man_made_object": 1,
-            "ghost_net": 1
+            "metal_debris": 12,
+            "unknown_man_made_object": 6,
+            "ghost_net": 6
         },
         "detections_by_risk": {
-            "CRITICAL": 1,
-            "HIGH": 3
+            "CRITICAL": 6,
+            "HIGH": 18
         }
     },
     "anomalies": [
         {
-            "anomaly_id": "ANOM-B26910B2",
+            "anomaly_id": "ANOM-9A865CA7",
             "type": "metal_debris",
             "confidence": 0.98,
             "risk_level": "CRITICAL",
@@ -32,7 +32,7 @@
             "longitude": 72.81412178136564
         },
         {
-            "anomaly_id": "ANOM-643D89A5",
+            "anomaly_id": "ANOM-40C3A5DA",
             "type": "unknown_man_made_object",
             "confidence": 0.87,
             "risk_level": "HIGH",
@@ -40,7 +40,7 @@
             "longitude": 72.81421
         },
         {
-            "anomaly_id": "ANOM-095836F6",
+            "anomaly_id": "ANOM-770E5AA0",
             "type": "metal_debris",
             "confidence": 0.76,
             "risk_level": "HIGH",
@@ -48,7 +48,167 @@
             "longitude": 72.81379831396632
         },
         {
-            "anomaly_id": "ANOM-94929F6B",
+            "anomaly_id": "ANOM-2735A7A2",
+            "type": "ghost_net",
+            "confidence": 0.64,
+            "risk_level": "HIGH",
+            "latitude": 18.421618798775313,
+            "longitude": 72.81403356283958
+        },
+        {
+            "anomaly_id": "ANOM-FD9E678F",
+            "type": "metal_debris",
+            "confidence": 0.98,
+            "risk_level": "CRITICAL",
+            "latitude": 18.42172439940802,
+            "longitude": 72.81412178136564
+        },
+        {
+            "anomaly_id": "ANOM-203E77D9",
+            "type": "unknown_man_made_object",
+            "confidence": 0.87,
+            "risk_level": "HIGH",
+            "latitude": 18.42183,
+            "longitude": 72.81421
+        },
+        {
+            "anomaly_id": "ANOM-5D7530A7",
+            "type": "metal_debris",
+            "confidence": 0.76,
+            "risk_level": "HIGH",
+            "latitude": 18.421337196889013,
+            "longitude": 72.81379831396632
+        },
+        {
+            "anomaly_id": "ANOM-99893F75",
+            "type": "ghost_net",
+            "confidence": 0.64,
+            "risk_level": "HIGH",
+            "latitude": 18.421618798775313,
+            "longitude": 72.81403356283958
+        },
+        {
+            "anomaly_id": "ANOM-514F7631",
+            "type": "metal_debris",
+            "confidence": 0.98,
+            "risk_level": "CRITICAL",
+            "latitude": 18.42172439940802,
+            "longitude": 72.81412178136564
+        },
+        {
+            "anomaly_id": "ANOM-1702D8D9",
+            "type": "unknown_man_made_object",
+            "confidence": 0.87,
+            "risk_level": "HIGH",
+            "latitude": 18.42183,
+            "longitude": 72.81421
+        },
+        {
+            "anomaly_id": "ANOM-3728F838",
+            "type": "metal_debris",
+            "confidence": 0.76,
+            "risk_level": "HIGH",
+            "latitude": 18.421337196889013,
+            "longitude": 72.81379831396632
+        },
+        {
+            "anomaly_id": "ANOM-BC194E9D",
+            "type": "ghost_net",
+            "confidence": 0.64,
+            "risk_level": "HIGH",
+            "latitude": 18.421618798775313,
+            "longitude": 72.81403356283958
+        },
+        {
+            "anomaly_id": "ANOM-F7744C82",
+            "type": "metal_debris",
+            "confidence": 0.98,
+            "risk_level": "CRITICAL",
+            "latitude": 18.42172439940802,
+            "longitude": 72.81412178136564
+        },
+        {
+            "anomaly_id": "ANOM-2BCB4C73",
+            "type": "unknown_man_made_object",
+            "confidence": 0.87,
+            "risk_level": "HIGH",
+            "latitude": 18.42183,
+            "longitude": 72.81421
+        },
+        {
+            "anomaly_id": "ANOM-D0AE754C",
+            "type": "metal_debris",
+            "confidence": 0.76,
+            "risk_level": "HIGH",
+            "latitude": 18.421337196889013,
+            "longitude": 72.81379831396632
+        },
+        {
+            "anomaly_id": "ANOM-C0F421BD",
+            "type": "ghost_net",
+            "confidence": 0.64,
+            "risk_level": "HIGH",
+            "latitude": 18.421618798775313,
+            "longitude": 72.81403356283958
+        },
+        {
+            "anomaly_id": "ANOM-00541974",
+            "type": "metal_debris",
+            "confidence": 0.98,
+            "risk_level": "CRITICAL",
+            "latitude": 18.42172439940802,
+            "longitude": 72.81412178136564
+        },
+        {
+            "anomaly_id": "ANOM-3A379D72",
+            "type": "unknown_man_made_object",
+            "confidence": 0.87,
+            "risk_level": "HIGH",
+            "latitude": 18.42183,
+            "longitude": 72.81421
+        },
+        {
+            "anomaly_id": "ANOM-AF78E018",
+            "type": "metal_debris",
+            "confidence": 0.76,
+            "risk_level": "HIGH",
+            "latitude": 18.421337196889013,
+            "longitude": 72.81379831396632
+        },
+        {
+            "anomaly_id": "ANOM-2A123F9D",
+            "type": "ghost_net",
+            "confidence": 0.64,
+            "risk_level": "HIGH",
+            "latitude": 18.421618798775313,
+            "longitude": 72.81403356283958
+        },
+        {
+            "anomaly_id": "ANOM-D86AC509",
+            "type": "metal_debris",
+            "confidence": 0.98,
+            "risk_level": "CRITICAL",
+            "latitude": 18.42172439940802,
+            "longitude": 72.81412178136564
+        },
+        {
+            "anomaly_id": "ANOM-CEA50DF0",
+            "type": "unknown_man_made_object",
+            "confidence": 0.87,
+            "risk_level": "HIGH",
+            "latitude": 18.42183,
+            "longitude": 72.81421
+        },
+        {
+            "anomaly_id": "ANOM-2111A154",
+            "type": "metal_debris",
+            "confidence": 0.76,
+            "risk_level": "HIGH",
+            "latitude": 18.421337196889013,
+            "longitude": 72.81379831396632
+        },
+        {
+            "anomaly_id": "ANOM-5E91E989",
             "type": "ghost_net",
             "confidence": 0.64,
             "risk_level": "HIGH",
