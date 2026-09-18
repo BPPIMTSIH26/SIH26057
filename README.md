@@ -109,7 +109,7 @@ flowchart TD
 - **Multi-Factor Gmail OTP Verification**: High-security email dispatch for operator authentication.
 - **Auto-Lookup Personnel Registry**: Instant pre-filling of registered naval and hydrographic personnel details.
 - **Supreme Admin Authorization Gateway**:
-  - Restricts access until new accounts are explicitly approved by the Supreme Admin (`theghost4290@gmail.com`).
+  - Restricts access until new accounts are explicitly approved by the Supreme Admin (`narayan.nkj@gmail.com`).
   - Real-time approval, role upgrade (Analyst, Operator, Supreme Admin), or instant revocation.
 
 ---
@@ -236,13 +236,15 @@ docker-compose up --build
 
 ---
 
-## 🔑 Default Credentials & Access Tiers
+## 🛡️ Personnel Access Governance & Clearance Tiers
 
-| Role | Email | Password | Access Rights |
-| :--- | :--- | :--- | :--- |
-| **Supreme Admin** | `theghost4290@gmail.com` | `Password123!` | Full System Governance, User Approval, Access Revocation, Mission Triage |
-| **Senior Operator** | `admin@sonarnetra.mil` | `Password123!` | Mission Command, 14-Stage Processing, Model Execution, Report Export |
-| **Field Analyst** | `analyst@sonarnetra.mil` | `Password123!` | Sonar Swath View, Anomaly Inspection, Optical Verification |
+| Role | Authorized Identifier | Clearance & Operational Capabilities |
+| :--- | :--- | :--- |
+| **Supreme Admin** | `narayan.nkj@gmail.com` | Full System Governance, Operator Approval & Clearance Delegation, Access Revocation, Mission Triage |
+| **Senior Operator** | `admin@sonarnetra.mil` | Mission Command, 14-Stage Processing, Model Execution, Report Export |
+| **Field Analyst** | `analyst@sonarnetra.mil` | Sonar Swath View, Anomaly Inspection, Optical Verification |
+
+> **Security & Authentication Protocol**: All operator credentials are encrypted with salted hashes (Argon2 / PBKDF2) and validated dynamically via multi-factor Gmail OTP dispatch. Direct plaintext passwords are strictly prohibited across documentation and repositories.
 
 ---
 
@@ -268,7 +270,15 @@ docker-compose up --build
 
 - **Organization**: **BPPIMTSIH26** (B.P. Poddar Institute of Management and Technology)
 - **Smart India Hackathon 2026**: Problem Statement **26057**
-- **Lead Developer & System Architect**: **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj))
+- **Project Title**: Ocean-X (S.A.G.A.R. Command)
+
+### Team Participants:
+- 👑 **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj)) — **Lead Developer & System Architect** *(Supreme Admin)*
+- ⚓ **Sayantan Pachal** ([@sayantan-pachal](https://github.com/sayantan-pachal)) — Team Participant
+- ⚓ **Shivam Gupta** ([@shiv2345king](https://github.com/shiv2345king)) — Team Participant
+- ⚓ **Ishika Chowdhury** ([@i5hika0x](https://github.com/i5hika0x)) — Team Participant
+- ⚓ **Shougata Sikder** ([@Shougata2003](https://github.com/Shougata2003)) — Team Participant
+- ⚓ **Ahana** ([@I-Lawrence](https://github.com/I-Lawrence)) — Team Participant
 
 ---
 
