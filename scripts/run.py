@@ -8,12 +8,13 @@ import sys
 import subprocess
 
 def main():
-    project_root = os.path.dirname(os.path.abspath(__file__))
-    start_sh = os.path.join(project_root, "start.sh")
-    stop_sh = os.path.join(project_root, "stop.sh")
+    scripts_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(scripts_dir)  # one level above scripts/
+    start_sh = os.path.join(scripts_dir, "start.sh")
+    stop_sh = os.path.join(scripts_dir, "stop.sh")
 
     if not os.path.exists(start_sh):
-        print("Error: start.sh not found.")
+        print("Error: scripts/start.sh not found.")
         sys.exit(1)
 
     try:
