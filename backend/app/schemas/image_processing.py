@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
@@ -15,8 +15,7 @@ class QualityAssessment(BaseModel):
     signalQuality: float = Field(..., alias="signalQuality")
     warnings: List[str]
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 class MaskStatistics(BaseModel):
     usablePercentage: float = Field(..., alias="usablePercentage")
@@ -25,8 +24,7 @@ class MaskStatistics(BaseModel):
     missingPercentage: float = Field(..., alias="missingPercentage")
     shadowPercentage: float = Field(..., alias="shadowPercentage")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 class BoundingBox(BaseModel):
     x: float
@@ -41,8 +39,7 @@ class CandidateFeatures(BaseModel):
     textureScore: float = Field(..., alias="textureScore")
     seabedSimilarity: float = Field(..., alias="seabedSimilarity")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 class RegionCandidate(BaseModel):
     id: str
@@ -54,8 +51,7 @@ class RegionCandidate(BaseModel):
     features: CandidateFeatures
     explanation: str
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 class MetadataInfo(BaseModel):
     originalWidth: int = Field(..., alias="originalWidth")
@@ -68,8 +64,7 @@ class MetadataInfo(BaseModel):
     resizeMethod: str = Field(..., alias="resizeMethod")
     processingVersion: str = Field(..., alias="processingVersion")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 class ImageProcessingJobResponse(BaseModel):
     jobId: str = Field(..., alias="jobId")
@@ -89,14 +84,12 @@ class ImageProcessingJobResponse(BaseModel):
     processingDurationMs: Optional[int] = Field(None, alias="processingDurationMs")
     warnings: Optional[List[str]] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 class JobCreateResponse(BaseModel):
     jobId: str = Field(..., alias="jobId")
     status: str
     createdAt: datetime = Field(..., alias="createdAt")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 

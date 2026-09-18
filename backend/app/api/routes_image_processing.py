@@ -58,8 +58,9 @@ async def create_processing_job(
             detail={"code": "EMPTY_FILE", "message": "The uploaded file is empty.", "details": {}}
         )
     
-    # Save the original file immutably
-    file_path = os.path.join(settings.UPLOAD_DIR, f"{uuid.uuid4()}_{file.filename}")
+    # Save the original file immutably and safely
+    safe_name = os.path.basename(file.filename)
+    file_path = os.path.join(settings.UPLOAD_DIR, f"{uuid.uuid4()}_{safe_name}")
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         

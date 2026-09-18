@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -19,8 +19,7 @@ class AnomalyResponse(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AnomalyUpdate(BaseModel):
     status: str # VERIFIED, FALSE_POSITIVE, RECOVERY_REQUIRED

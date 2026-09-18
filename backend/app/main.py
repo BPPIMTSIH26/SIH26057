@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.logging import setup_logging
@@ -15,23 +16,8 @@ logger = logging.getLogger("sonar-x")
 
 settings = get_settings()
 
-app = FastAPI(
-    title="SagarNetra API",
-    description="SagarNetra Autonomous Undersea Anomaly & Mine Detection System",
-    version="1.0.0"
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     logger.info(f"Starting SONAR-X Backend (Env: {settings.APP_ENV})")
     logger.info(f"Using Model Provider: {settings.MODEL_PROVIDER}")
 
@@ -45,6 +31,32 @@ async def startup_event():
         seed_users(db)
     finally:
         db.close()
+    yield
+
+app = FastAPI(
+    title="SagarNetra API",
+    description="SagarNetra Autonomous Undersea Anomaly & Mine Detection System",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 app.mount("/api/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

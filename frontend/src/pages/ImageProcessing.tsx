@@ -11,8 +11,6 @@ import {
   Sliders,
   Columns,
   Sparkles,
-  Maximize2,
-  ZoomIn,
   Eye,
   Activity
 } from 'lucide-react';
@@ -32,7 +30,7 @@ const ImageProcessing: React.FC = () => {
   const [showMaskOverlay, setShowMaskOverlay] = useState<boolean>(false);
   const [isDraggingSlider, setIsDraggingSlider] = useState<boolean>(false);
   const sliderContainerRef = useRef<HTMLDivElement>(null);
-  const [imgKey, setImgKey] = useState<number>(Date.now());
+  const [imgKey, setImgKey] = useState<number>(() => Date.now());
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const fetchHistory = useCallback(async () => {

@@ -165,3 +165,40 @@ def test_lookup_operator():
     assert res2.status_code == 200
     assert res2.json()["exists"] is False
 
+def test_security_headers_present():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.headers.get("X-Content-Type-Options") == "nosniff"
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+
+def test_lookup_operator_does_not_leak_otp_in_production(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+
+    # Create unverified user
+    db = get_test_db()
+    unverified_email = "leak.test@sagar.gov.in"
+    db.query(User).filter(User.email == unverified_email).delete()
+    u = User(
+        email=unverified_email,
+        full_name="Leak Test",
+        hashed_password="hashed_pw_test",
+        is_verified=0,
+        verification_token="999888"
+    )
+    db.add(u)
+    db.commit()
+    db.close()
+
+    res = client.get(f"/api/auth/lookup-operator?email={unverified_email}")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["exists"] is True
+    assert data["verificationToken"] is None
+
+    # Clean up
+    db = get_test_db()
+    db.query(User).filter(User.email == unverified_email).delete()
+    db.commit()
+    db.close()
+

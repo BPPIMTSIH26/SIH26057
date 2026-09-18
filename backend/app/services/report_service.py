@@ -86,7 +86,7 @@ class ReportService:
                 "name": mission.name,
                 "status": mission.status
             },
-            "statistics": stats.dict(),
+            "statistics": stats.model_dump(),
             "anomalies": [
                 {
                     "anomaly_id": a.anomaly_id,

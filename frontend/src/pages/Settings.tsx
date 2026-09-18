@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Settings as SettingsIcon, Bell, Shield, CheckCircle, Camera, Anchor, 
-  Lock, ShieldCheck, UserCheck, UserX, Crown, Clock, Trash2, RefreshCw, 
-  AlertCircle, ShieldAlert, Plus, Search, Check, X
+  Lock, ShieldCheck, UserCheck, UserX, Crown, Trash2, RefreshCw, 
+  AlertCircle, ShieldAlert, Plus, Search, Check
 } from 'lucide-react';
 import { usePreferences } from '../contexts/PreferencesContext';
 import { useUser } from '../contexts/UserContext';

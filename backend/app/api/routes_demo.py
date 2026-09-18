@@ -14,7 +14,10 @@ router = APIRouter()
 
 @router.post("/load")
 def load_demo(db: Session = Depends(get_db)):
-    demo_file = os.path.join("data", "demo", "demo_mission.json")
+    base_demo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "demo"))
+    if not os.path.exists(base_demo_dir):
+        base_demo_dir = os.path.abspath(os.path.join("data", "demo"))
+    demo_file = os.path.join(base_demo_dir, "demo_mission.json")
     if not os.path.exists(demo_file):
         raise HTTPException(status_code=500, detail="Demo data not found")
         
@@ -48,7 +51,7 @@ def load_demo(db: Session = Depends(get_db)):
     import tempfile
     
     for i in range(1, 4):
-        img_path = os.path.join("data", "demo", f"sonar_{i}.jpg")
+        img_path = os.path.join(base_demo_dir, f"sonar_{i}.jpg")
         if os.path.exists(img_path):
             # Create a mock UploadFile
             with open(img_path, "rb") as f:
