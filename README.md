@@ -272,13 +272,17 @@ docker-compose up --build
 - **Smart India Hackathon 2026**: Problem Statement **26057**
 - **Project Title**: Ocean-X (S.A.G.A.R. Command)
 
-### Team Participants:
-- 👑 **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj)) — **Lead Developer & System Architect** *(Supreme Admin)*
-- ⚓ **Sayantan Pachal** ([@sayantan-pachal](https://github.com/sayantan-pachal)) — Team Participant
-- ⚓ **Shivam Gupta** ([@shiv2345king](https://github.com/shiv2345king)) — Team Participant
-- ⚓ **Ishika Chowdhury** ([@i5hika0x](https://github.com/i5hika0x)) — Team Participant
-- ⚓ **Shougata Sikder** ([@Shougata2003](https://github.com/Shougata2003)) — Team Participant
-- ⚓ **Ahana** ([@I-Lawrence](https://github.com/I-Lawrence)) — Team Participant
+### Team Structure & Contributions:
+
+#### 🌟 Core Project Leadership
+- 👑 **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj)) — **Team Lead, System Architect & Full-Stack Intelligence Lead** *(Supreme Admin)*
+- 💡 **Ahana** ([@I-Lawrence](https://github.com/I-Lawrence)) — **Core Lead: Deep Learning & Acoustic Feature Modeling**
+- 🎯 **Ishika Chowdhury** ([@i5hika0x](https://github.com/i5hika0x)) — **Core Lead: Sonar Vision & Geospatial Intelligence**
+
+#### ⚓ Engineering & Domain Specialists
+- 🌐 **Sayantan Pachal** ([@sayantan-pachal](https://github.com/sayantan-pachal)) — **Geospatial Processing & GIS Swath Pipeline Specialist**
+- ⚙️ **Shivam Gupta** ([@shiv2345king](https://github.com/shiv2345king)) — **Backend Infrastructure & Model Optimization Engineer**
+- 🔬 **Shougata Sikder** ([@Shougata2003](https://github.com/Shougata2003)) — **Hydrographic Anomaly Verification & QA Pipeline Specialist**
 
 ---
 
