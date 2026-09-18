@@ -1,6 +1,6 @@
 import logging
 from sqlalchemy.orm import Session
-from app.database.models import Mission, SonarImage, Detection, Anomaly
+from app.database.models import Mission, SonarImage, Detection, Anomaly, User
 from app.database.database import engine
 from datetime import datetime, timedelta
 import random
@@ -123,10 +123,54 @@ def seed_database(db: Session):
     db.commit()
     logger.info("Thunder Bay authentic seeding completed successfully.")
 
+def seed_users(db: Session):
+    import bcrypt
+    def get_password_hash(password: str) -> str:
+        pwd_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(pwd_bytes, salt).decode('utf-8')
+
+    # 1. Supreme Admin
+    supreme = db.query(User).filter(User.email == "narayan.nkj@gmail.com").first()
+    if not supreme:
+        supreme = User(
+            email="narayan.nkj@gmail.com",
+            full_name="Narayan",
+            hashed_password=get_password_hash("supreme123"),
+            role="Supreme Admin",
+            is_verified=1,
+            is_approved=1
+        )
+        db.add(supreme)
+        db.commit()
+        logger.info("Supreme Admin (narayan.nkj@gmail.com) created.")
+    else:
+        supreme.role = "Supreme Admin"
+        supreme.is_verified = 1
+        supreme.is_approved = 1
+        db.commit()
+        logger.info("Supreme Admin (narayan.nkj@gmail.com) verified as Supreme Admin.")
+
+    # 2. Baseline operator
+    op = db.query(User).filter(User.email == "operator04@sagar.gov.in").first()
+    if not op:
+        op = User(
+            email="operator04@sagar.gov.in",
+            full_name="Operator 04",
+            hashed_password=get_password_hash("sagar123"),
+            role="Operator",
+            is_verified=1,
+            is_approved=1
+        )
+        db.add(op)
+        db.commit()
+
 if __name__ == "__main__":
     from app.database.database import SessionLocal
     db = SessionLocal()
     try:
         seed_database(db)
+        seed_users(db)
     finally:
         db.close()
+

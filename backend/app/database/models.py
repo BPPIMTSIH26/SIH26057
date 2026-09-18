@@ -125,10 +125,7 @@ class User(Base):
     role = Column(String, default="Operator")
     is_verified = Column(Integer, default=0) # 0 = false, 1 = true
     is_approved = Column(Integer, default=0) # 0 = false, 1 = true
-    verification_token = Column(String, nullable=True) # Stores bcrypt hash of the verification code
-    verification_expiry = Column(DateTime, nullable=True)
-    verification_attempts = Column(Integer, default=0)
-    verification_last_sent = Column(DateTime, nullable=True)
+    verification_token = Column(String, nullable=True)
     created_at = Column(DateTime, default=get_utc_now)
 
 class ImageProcessingJob(Base):
@@ -154,4 +151,5 @@ class ImageProcessingJob(Base):
     
     processing_duration_ms = Column(Integer, default=0)
     created_at = Column(DateTime, default=get_utc_now)
+
 
