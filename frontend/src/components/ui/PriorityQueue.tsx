@@ -63,10 +63,13 @@ export default function PriorityQueue({ anomalies, onSelectAnomaly, onViewDetail
               const isSelected = selectedId === anomaly.id;
               return (
                 <li key={anomaly.id} className="group/item relative mb-2 last:mb-0">
-                  <button
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => onSelectAnomaly?.(anomaly.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectAnomaly?.(anomaly.id); }}
                     onMouseEnter={() => handleHover(anomaly.id)}
-                    className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between outline-none ${
+                    className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between outline-none cursor-pointer ${
                       isSelected
                         ? 'bg-glass-strong backdrop-blur-3xl border border-glass-border-strong shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
                         : 'border border-transparent hover:bg-glass hover:backdrop-blur-xl hover:border-glass-border'
@@ -84,6 +87,7 @@ export default function PriorityQueue({ anomalies, onSelectAnomaly, onViewDetail
                     </div>
                     {isSelected ? (
                        <button
+                         type="button"
                          onClick={(e) => { e.stopPropagation(); onViewDetails?.(anomaly.id); }}
                          className="p-1.5 bg-glass-strong backdrop-blur-md hover:bg-white/20 border border-glass-border-strong text-accent rounded-lg transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
                          title="View on Map"
@@ -93,7 +97,7 @@ export default function PriorityQueue({ anomalies, onSelectAnomaly, onViewDetail
                     ) : (
                       <ChevronRight className="w-3.5 h-3.5 shrink-0 text-text-muted transition-all duration-500 group-hover/item:text-accent group-hover/item:translate-x-1" />
                     )}
-                  </button>
+                  </div>
                 </li>
               );
             })}
