@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { CheckCircle2, XCircle, Loader2, Anchor } from 'lucide-react';
+import { useParams, Link } from 'react-router-dom';
+import { CheckCircle2, XCircle, Anchor } from 'lucide-react';
 
 export default function VerifyEmailPage() {
   const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
   
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState('');

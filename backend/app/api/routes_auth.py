@@ -4,16 +4,19 @@ import datetime
 import logging
 import random
 import secrets
+import time
+from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
 import smtplib
 from email.mime.text import MIMEText
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.database.models import User
+from app.core.config import get_settings
 import bcrypt
 import jwt
 from dotenv import load_dotenv
@@ -21,11 +24,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger("sonar-x")
+settings = get_settings()
 
 router = APIRouter()
-SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "sagar-dev-secret-key-change-in-prod")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days
+SECRET_KEY = settings.JWT_SECRET_KEY
+ALGORITHM = settings.JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+
+# In-memory sliding window rate limiter
+_rate_limit_store = defaultdict(list)
+
+def check_rate_limit(request: Request, limit: int = 20, window_seconds: int = 60):
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    # Prune old timestamps
+    _rate_limit_store[client_ip] = [t for t in _rate_limit_store[client_ip] if now - t < window_seconds]
+    if len(_rate_limit_store[client_ip]) >= limit:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Rate limit exceeded. Please wait a moment before trying again."
+        )
+    _rate_limit_store[client_ip].append(now)
 
 class SignupRequest(BaseModel):
     fullName: str
@@ -145,10 +164,10 @@ def send_verification_email(email: str, token: str):
     logger.info(f"CODE: {token}")
     logger.info("="*50)
     
-    sender_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-    sender_port = int(os.environ.get("SMTP_PORT", 465))
-    sender_email = os.environ.get("SMTP_USER") or os.environ.get("SMTP_EMAIL")
-    sender_password = os.environ.get("SMTP_PASSWORD")
+    sender_host = settings.SMTP_HOST
+    sender_port = settings.SMTP_PORT
+    sender_email = settings.SMTP_USER
+    sender_password = settings.SMTP_PASSWORD
     
     if sender_email and sender_password:
         try:
@@ -164,10 +183,11 @@ def send_verification_email(email: str, token: str):
         except Exception as e:
             logger.error(f"Failed to send email via SMTP: {e}")
     else:
-        logger.info("SMTP credentials not configured in .env, falling back to console log.")
+        logger.info("SMTP credentials not configured in environment, falling back to secure console log.")
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
-async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+async def signup(request_http: Request, request: SignupRequest, db: Session = Depends(get_db)):
+    check_rate_limit(request_http, limit=settings.RATE_LIMIT_AUTH_PER_MINUTE)
     request.email = request.email.lower()
     
     # Check domain
@@ -202,13 +222,16 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
     
     send_verification_email(new_user.email, new_user.verification_token)
     
-    return {
-        "message": "Account created successfully. Please check your email to verify.",
-        "code": new_user.verification_token
+    resp = {
+        "message": "Account created successfully. Please check your email to verify."
     }
+    if settings.APP_ENV == "development":
+        resp["code"] = new_user.verification_token
+    return resp
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest, db: Session = Depends(get_db)):
+async def login(request_http: Request, request: LoginRequest, db: Session = Depends(get_db)):
+    check_rate_limit(request_http, limit=settings.RATE_LIMIT_AUTH_PER_MINUTE)
     request.email = request.email.lower()
     user = db.query(User).filter(User.email == request.email).first()
     
@@ -295,7 +318,8 @@ async def verify_email(request: VerifyRequest, db: Session = Depends(get_db)):
     return {"message": "Email successfully verified"}
 
 @router.post("/resend-verification")
-async def resend_verification(request: ResendVerifyRequest, db: Session = Depends(get_db)):
+async def resend_verification(request_http: Request, request: ResendVerifyRequest, db: Session = Depends(get_db)):
+    check_rate_limit(request_http, limit=settings.RATE_LIMIT_AUTH_PER_MINUTE)
     request.email = request.email.lower()
     user = db.query(User).filter(User.email == request.email).first()
     if not user:
@@ -309,13 +333,16 @@ async def resend_verification(request: ResendVerifyRequest, db: Session = Depend
     db.commit()
     
     send_verification_email(user.email, user.verification_token)
-    return {
-        "message": "If that email exists and is unverified, a new link has been sent.",
-        "code": user.verification_token
+    resp = {
+        "message": "If that email exists and is unverified, a new link has been sent."
     }
+    if settings.APP_ENV == "development":
+        resp["code"] = user.verification_token
+    return resp
 
 @router.post("/reset-password")
-async def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+async def reset_password(request_http: Request, request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    check_rate_limit(request_http, limit=settings.RATE_LIMIT_AUTH_PER_MINUTE)
     clean_email = request.email.strip().lower()
     user = db.query(User).filter(User.email == clean_email).first()
     if not user:
@@ -331,18 +358,24 @@ async def reset_password(request: ResetPasswordRequest, db: Session = Depends(ge
     return {"message": "Password updated successfully and email verified. You may now authenticate."}
 
 @router.get("/lookup-operator")
-async def lookup_operator(email: str, db: Session = Depends(get_db)):
+async def lookup_operator(request_http: Request, email: str, db: Session = Depends(get_db)):
+    check_rate_limit(request_http, limit=settings.RATE_LIMIT_AUTH_PER_MINUTE)
     clean_email = email.strip().lower()
     user = db.query(User).filter(User.email == clean_email).first()
     if not user:
         return {"exists": False, "fullName": None}
+    
+    token_preview = None
+    if get_settings().APP_ENV == "development" and not user.is_verified:
+        token_preview = user.verification_token
+
     return {
         "exists": True,
         "fullName": user.full_name,
         "role": user.role,
         "isVerified": bool(user.is_verified),
         "isApproved": bool(user.is_approved),
-        "verificationToken": user.verification_token if not user.is_verified else None
+        "verificationToken": token_preview
     }
 
 @router.get("/users")

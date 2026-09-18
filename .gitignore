@@ -1,17 +1,29 @@
-# Python
+# Python & Environment
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 venv/
 .env
+.env.*
+!.env.example
+*.pyc
 
-# Node/React
+# Node & Frontend
 node_modules/
 dist/
 .DS_Store
 
-# SAGAR Specific
+# Test & Cache Artifacts
+.pytest_cache/
+backend/.pytest_cache/
+test.db
+backend/test.db
+backend/sonar_x.db
+backend/*.png
+/data/
+
+# SAGAR Storage & Data
 backend/data/*.db
 backend/*.db
 backend/data/uploads/*
@@ -19,6 +31,4 @@ backend/data/uploads/*
 backend/data/processed/*
 !backend/data/processed/.gitkeep
 backend/data/uploads/processing_results/*
-.pytest_cache/
-*.pyc
 

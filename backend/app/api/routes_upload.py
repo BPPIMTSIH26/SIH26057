@@ -9,22 +9,25 @@ from app.ml.model_manager import model_manager
 from app.database.database import get_db
 from app.database.models import Mission, SonarImage, Detection, Anomaly
 
+from app.core.config import get_settings
+
 router = APIRouter()
-
-UPLOAD_DIR = "./data/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
+settings = get_settings()
 
 @router.post("/")
 async def upload_image(
         file: UploadFile = File(...),
         db: Session = Depends(get_db)):
-    if not file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    safe_filename = os.path.basename(file.filename)
+    if not safe_filename.lower().endswith((".png", ".jpg", ".jpeg")):
         raise HTTPException(status_code=400,
                             detail="Only PNG and JPEG images are allowed")
 
-    # Save uploaded file
-    file_path = os.path.join(UPLOAD_DIR, f"{int(time.time())}_{file.filename}")
+    # Save uploaded file immutably and safely
+    file_path = os.path.join(settings.UPLOAD_DIR, f"{int(time.time())}_{safe_filename}")
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 

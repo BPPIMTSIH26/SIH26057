@@ -10,7 +10,7 @@ import type {
   ModelFeedback
 } from '../data/mockData';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export const getDashboardMetrics = async (harbour?: string): Promise<DashboardMetrics> => {
   // Fetch actual counts from anomalies and missions
