@@ -63,9 +63,10 @@ def process_pipeline(mission_id: str, image_id: str, db: Session = Depends(get_d
         
         # Geolocation
         geo_res = geo_service.locate_detection(mission, det, image.width or 1000)
-        det.latitude = geo_res["latitude"]
-        det.longitude = geo_res["longitude"]
-        det.depth = geo_res["depth"]
+        det.latitude = geo_res.get("latitude")
+        det.longitude = geo_res.get("longitude")
+        det.depth = geo_res.get("depth")
+        det.location_source = geo_res.get("location_source")
         
         # Create Anomaly
         anomaly = Anomaly(
@@ -78,7 +79,10 @@ def process_pipeline(mission_id: str, image_id: str, db: Session = Depends(get_d
             risk_level=det.risk_level,
             latitude=det.latitude,
             longitude=det.longitude,
-            depth=det.depth
+            depth=det.depth,
+            location_source=det.location_source,
+            model_version=det.model_version,
+            dataset_version=det.dataset_version
         )
         new_anomalies.append(anomaly)
     
@@ -98,7 +102,3 @@ def process_pipeline(mission_id: str, image_id: str, db: Session = Depends(get_d
         "accepted_anomalies": len(new_anomalies)
     }
 
-# Live simulation placeholder
-@router.post("/{mission_id}/simulate")
-def simulate_live_mission(mission_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    return {"message": "Simulation started. Check progress via mission status.", "simulation": True}

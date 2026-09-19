@@ -40,7 +40,9 @@ class DetectionService:
                 bbox_x2=r.bbox.x2,
                 bbox_y2=r.bbox.y2,
                 mask=r.mask,
-                area=r.area
+                area=r.area,
+                model_version=f"{provider.provider_name}-v1",
+                dataset_version="AquaScan-1K"
             ))
             
         if db_detections:

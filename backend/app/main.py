@@ -5,9 +5,9 @@ from app.core.config import get_settings
 from app.core.logging import setup_logging
 import logging
 
-from app.api import routes_health, routes_missions, routes_sonar, routes_detection, routes_anomalies, routes_pipeline, routes_reports, routes_demo, routes_upload, routes_auth, routes_image_processing
+from app.api import routes_health, routes_missions, routes_sonar, routes_detection, routes_anomalies, routes_pipeline, routes_reports, routes_upload, routes_auth, routes_image_processing, routes_dashboard
 from app.database.database import engine, Base, SessionLocal
-from app.database.seed import seed_database, seed_users
+from app.database.seed import seed_users
 from fastapi.staticfiles import StaticFiles
 import os
 
@@ -24,10 +24,8 @@ async def lifespan(app: FastAPI):
     # Create tables
     Base.metadata.create_all(bind=engine)
 
-    # Seed database
     db = SessionLocal()
     try:
-        seed_database(db)
         seed_users(db)
     finally:
         db.close()
@@ -84,8 +82,8 @@ app.include_router(
     routes_reports.router,
     prefix="/api/reports",
     tags=["Reports"])
-app.include_router(routes_demo.router, prefix="/api/demo", tags=["Demo"])
 app.include_router(routes_upload.router, prefix="/api/upload", tags=["Upload"])
+app.include_router(routes_dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(routes_image_processing.router, prefix="/api/v1/image-processing", tags=["Image Processing"])
 
 

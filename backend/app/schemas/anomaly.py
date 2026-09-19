@@ -18,8 +18,16 @@ class AnomalyResponse(BaseModel):
     explanation: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
+    updated_at: Optional[datetime] = None
+    location_source: Optional[str] = None
+    model_version: Optional[str] = None
+    dataset_version: Optional[str] = None
+    sonar_image_path: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 class AnomalyUpdate(BaseModel):
-    status: str # VERIFIED, FALSE_POSITIVE, RECOVERY_REQUIRED
+    status: str                           # VERIFIED, FALSE_POSITIVE, confirmed_unknown, known_object, false_positive
+    notes: Optional[str] = None
+    custom_class_name: Optional[str] = None
+

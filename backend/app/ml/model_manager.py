@@ -1,8 +1,8 @@
 import os
 import logging
+from fastapi import HTTPException
 from app.core.config import get_settings
 from app.ml.base_provider import BaseDetectionProvider
-from app.ml.demo_provider import DemoDetectionProvider
 
 logger = logging.getLogger("sonar-x.model_manager")
 settings = get_settings()
@@ -10,6 +10,7 @@ settings = get_settings()
 class ModelManager:
     _instance = None
     _provider: BaseDetectionProvider = None
+    _load_error: str = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -18,47 +19,69 @@ class ModelManager:
         return cls._instance
 
     def _initialize_provider(self):
-        if settings.MODEL_PROVIDER.lower() == "onnx":
-            model_path = os.path.join(settings.MODEL_DIR, "sonar_detector.onnx")
-            try:
+        """
+        Attempt to load the configured model provider.
+        On failure: logs the error and sets _load_error instead of raising.
+        The backend remains operational; inference endpoints return 503.
+        """
+        try:
+            if settings.MODEL_PROVIDER.lower() == "onnx":
+                model_path = os.path.join(settings.MODEL_DIR, "sonar_detector.onnx")
                 from app.ml.onnx_provider import OnnxYOLOProvider
                 self._provider = OnnxYOLOProvider(model_path)
                 logger.info(f"Loaded ONNX model from {model_path}")
-            except Exception as e:
-                logger.error(f"Failed to load ONNX model: {e}. Falling back to demo provider.")
-                self._provider = DemoDetectionProvider()
-        elif settings.MODEL_PROVIDER.lower() == "yolo":
-            model_path = os.path.join(settings.MODEL_DIR, "best.pt")
-            try:
+            else:
+                # Try trained AquaScan model first, fall back to base YOLOv8n
+                model_path = os.path.join(settings.MODEL_DIR, "aquascan_model", "weights", "best.pt")
+                if not os.path.exists(model_path):
+                    model_path = os.path.join(settings.MODEL_DIR, "yolov8n.pt")
+                if not os.path.exists(model_path):
+                    model_path = os.path.join(settings.MODEL_DIR, "best.pt")
+
                 from app.ml.yolo_provider import RealYOLOProvider
                 self._provider = RealYOLOProvider(model_path)
                 logger.info(f"Loaded YOLO model from {model_path}")
-            except Exception as e:
-                logger.error(f"Failed to load YOLO model: {e}. Falling back to demo provider.")
-                self._provider = DemoDetectionProvider()
-        else:
-            self._provider = DemoDetectionProvider()
-            logger.info("Loaded Demo model provider")
+
+            self._load_error = None
+        except Exception as e:
+            self._provider = None
+            self._load_error = str(e)
+            logger.error(
+                f"Model load failed ({settings.MODEL_PROVIDER}): {e}. "
+                "Inference endpoints will return 503 until the model is available."
+            )
 
     def get_provider(self) -> BaseDetectionProvider:
+        if self._provider is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Model not available: {self._load_error}. "
+                    "Ensure the model file exists and restart the backend."
+                )
+            )
         return self._provider
 
     def get_status(self) -> dict:
-        is_demo = isinstance(self._provider, DemoDetectionProvider)
+        if self._provider is None:
+            return {
+                "provider": settings.MODEL_PROVIDER,
+                "model_name": "UNAVAILABLE",
+                "loaded": False,
+                "error": self._load_error,
+                "classes": [],
+            }
         provider_name = self._provider.provider_name
-        if provider_name == "onnx":
-            model_name = "SONAR-X ONNX Model"
-        elif provider_name == "yolo":
-            model_name = "SONAR-X YOLO Model"
-        else:
-            model_name = "SONAR-X Demo Model"
-            
+        model_name = (
+            "SONAR-X ONNX Model" if provider_name == "onnx"
+            else "SONAR-X YOLO Model"
+        )
         return {
             "provider": provider_name,
             "model_name": model_name,
             "version": "1.0",
-            "classes": ["ghost_net", "fishing_gear", "metal_debris", "unknown_man_made_object"],
-            "loaded": True
+            "classes": ["human", "metal_debris", "ghost_net", "unknown_man_made_object"],
+            "loaded": True,
         }
 
 model_manager = ModelManager()
