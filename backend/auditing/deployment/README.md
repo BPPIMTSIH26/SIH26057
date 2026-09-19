@@ -1,4 +1,4 @@
-# deployment/
+# backend/auditing/deployment/
 
 This folder contains all deployment and containerisation configuration for the S.A.G.A.R. / NetraSonar platform.
 
@@ -12,7 +12,7 @@ This folder contains all deployment and containerisation configuration for the S
 From the **project root**, run:
 
 ```bash
-docker compose -f deployment/docker-compose.yml up
+docker compose -f backend/auditing/deployment/docker-compose.yml up
 ```
 
 ## Vercel
