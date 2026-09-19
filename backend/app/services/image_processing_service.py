@@ -66,40 +66,61 @@ class ImageProcessingService:
                     "explanation": f"Detected {det.get('label', 'anomaly')} with {float(det.get('confidence', 0.85))*100:.1f}% confidence."
                 })
         except Exception as e:
-            # Fallback heuristic: Detect acoustic shadow zones and acoustic highlights
+            # HEURISTIC FALLBACK: YOLO model unavailable — use acoustic shadow detection
+            # All results labeled as heuristic; features computed from real pixel data.
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
             _, shadow_thresh = cv2.threshold(gray, 35, 255, cv2.THRESH_BINARY_INV)
             contours, _ = cv2.findContours(shadow_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
+
             min_area = max(40, int(orig_h * orig_w * 0.0003))
             candidates = []
             for cnt in contours:
                 area = cv2.contourArea(cnt)
                 if area > min_area:
                     candidates.append((area, cnt))
-            
+
             candidates.sort(key=lambda c: c[0], reverse=True)
             for i, (area, cnt) in enumerate(candidates[:10]):
                 x, y, w, h = cv2.boundingRect(cnt)
                 roi = gray[y:y+h, x:x+w]
                 roi_brightness = float(np.mean(roi)) if roi.size > 0 else 0.0
+                roi_std        = float(np.std(roi))  if roi.size > 0 else 0.0
+
+                # Compute real contrast ratio between shadow and local background
+                background_brightness = float(np.mean(gray))
+                contrast_ratio = (background_brightness - roi_brightness) / max(background_brightness, 1.0)
+
                 regions.append({
                     "id": f"candidate-{i}",
-                    "label": "likely_shadow",
-                    "objectConfidence": 0.25,
-                    "shadowConfidence": 0.85,
-                    "uncertainty": 0.2,
+                    # 'acoustic_shadow_candidate' — NOT a confirmed object detection
+                    "label": "acoustic_shadow_candidate",
+                    # Confidence values are null for heuristic results — not produced by model
+                    "objectConfidence": None,
+                    "shadowConfidence": round(min(1.0, contrast_ratio), 4),
+                    "uncertainty": None,
+                    "detection_method": "heuristic_acoustic_shadow",
                     "boundingBox": {"x": float(x), "y": float(y), "width": float(w), "height": float(h)},
                     "features": {
+                        # All features computed from real pixel data
                         "brightnessReturn": round(roi_brightness, 2),
-                        "shadowContinuity": 0.92,
-                        "shapeScore": 0.78,
-                        "textureScore": 0.65,
-                        "seabedSimilarity": 0.35
+                        "brightnessStd": round(roi_std, 2),
+                        "contrastRatio": round(contrast_ratio, 4),
+                        "areaPixels": int(area),
+                        # The following require additional analysis not available here
+                        "shadowContinuity": None,
+                        "shapeScore": None,
+                        "textureScore": None,
+                        "seabedSimilarity": None,
                     },
-                    "explanation": f"Acoustic Shadow: Acoustic return void spanning {w}x{h} px with low return ({roi_brightness:.1f})."
+                    "explanation": (
+                        f"Acoustic shadow candidate: low-return region {w}×{h}px "
+                        f"(brightness={roi_brightness:.1f}, contrast_ratio={contrast_ratio:.2f}). "
+                        f"Detected by heuristic analysis — not a model prediction. "
+                        f"YOLO model unavailable: {str(e)}"
+                    )
                 })
         return regions
+
 
     @staticmethod
     def process_job(*args, **kwargs):

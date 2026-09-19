@@ -7,14 +7,14 @@ class GeolocationService:
         Calculates geographical coordinates for a detection based on mission metadata
         and its pixel position in the sonar image.
         """
-        # Default mock coordinates if mission metadata missing
+        # No fallback mock coordinates in production. If missing, return None.
         if not mission.latitude or not mission.longitude:
             return {
-                "latitude": 18.42183 + (detection.bbox_x1 * 0.00001),
-                "longitude": 72.81421 + (detection.bbox_y1 * 0.00001),
-                "depth": mission.depth or 43.7,
+                "latitude": None,
+                "longitude": None,
+                "depth": mission.depth,
                 "range": 0,
-                "location_source": "demo"
+                "location_source": "unmapped"
             }
             
         heading = mission.heading or 0.0

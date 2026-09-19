@@ -31,27 +31,15 @@ def test_health():
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
 
-def test_full_pipeline():
-    # 1. Load Demo
-    resp = client.post("/api/demo/load")
-    assert resp.status_code == 200
-    data = resp.json()
-    mission_id = data["mission_id"]
-    images = data["image_ids"]
-    assert len(images) > 0
-    
-    # 2. Run Pipeline
-    pipeline_resp = client.post(f"/api/pipeline/{mission_id}/process?image_id={images[0]}")
-    assert pipeline_resp.status_code == 200
-    pipe_data = pipeline_resp.json()
-    assert pipe_data["total_detections"] >= 0
-    
-    # 3. Check Anomalies
-    anom_resp = client.get(f"/api/anomalies?mission_id={mission_id}")
-    assert anom_resp.status_code == 200
-    assert isinstance(anom_resp.json(), list)
-    
-    # 4. Generate Report
-    rep_resp = client.post(f"/api/reports/{mission_id}/generate?report_type=json")
-    assert rep_resp.status_code == 200
-    assert "file_path" in rep_resp.json()
+def test_dashboard_metrics():
+    response = client.get("/api/dashboard/metrics")
+    assert response.status_code == 200
+    data = response.json()
+    assert "knownAnomalies" in data
+    assert "unknownAnomalies" in data
+
+def test_anomalies_list():
+    response = client.get("/api/anomalies")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)

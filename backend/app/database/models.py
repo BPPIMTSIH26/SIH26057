@@ -70,6 +70,12 @@ class Detection(Base):
     depth = Column(Float, nullable=True)
     status = Column(String, default="NEW")
     created_at = Column(DateTime, default=get_utc_now)
+    
+    # Provenance fields
+    model_version = Column(String, nullable=True)
+    dataset_version = Column(String, nullable=True)
+    location_source = Column(String, nullable=True)
+    coordinate_uncertainty = Column(Float, nullable=True)
 
     mission = relationship("Mission", back_populates="detections")
     image = relationship("SonarImage", back_populates="detections")
@@ -94,6 +100,12 @@ class Anomaly(Base):
     explanation = Column(String, nullable=True)
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=get_utc_now)
+    
+    # Provenance fields
+    model_version = Column(String, nullable=True)
+    dataset_version = Column(String, nullable=True)
+    location_source = Column(String, nullable=True)
+    coordinate_uncertainty = Column(Float, nullable=True)
 
     optical_image_path = Column(String, nullable=True)
     optical_classification = Column(String, nullable=True)
@@ -151,5 +163,8 @@ class ImageProcessingJob(Base):
     
     processing_duration_ms = Column(Integer, default=0)
     created_at = Column(DateTime, default=get_utc_now)
+    
+    # Provenance fields
+    model_version = Column(String, nullable=True)
 
 
