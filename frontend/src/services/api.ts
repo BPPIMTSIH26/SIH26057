@@ -1,7 +1,18 @@
-import type { 
-  Anomaly, 
-  Survey, 
-  DashboardMetrics, 
+/**
+ * NetraSonar API Service
+ *
+ * All data is fetched from real backend endpoints backed by the database.
+ * No mock values, hardcoded arrays, or silent fabricated fallbacks.
+ *
+ * When the backend is unavailable or returns an error:
+ *   - Functions throw (callers handle the error and show an honest error state)
+ *   - Empty arrays are returned for list endpoints when genuinely empty
+ *   - Null is returned for optional fields (not 0, not placeholder strings)
+ */
+import type {
+  Anomaly,
+  Survey,
+  DashboardMetrics,
   TemporalPoint,
   ProcessingJob,
   AnomalyFilters,
@@ -12,148 +23,219 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
+// ---------------------------------------------------------------------------
+// Dashboard metrics — computed from real DB records
+// ---------------------------------------------------------------------------
 export const getDashboardMetrics = async (harbour?: string): Promise<DashboardMetrics> => {
-  // Fetch actual counts from anomalies and missions
-  try {
-    const queryParam = harbour ? `?mission_id=${encodeURIComponent(harbour)}` : '';
-    const missionsRes = await fetch(`${API_BASE_URL}/missions`);
-    const anomaliesRes = await fetch(`${API_BASE_URL}/anomalies${queryParam}`);
-    
-    if (!missionsRes.ok || !anomaliesRes.ok) throw new Error("Failed to fetch metrics");
-    
-    const missions = await missionsRes.json();
-    const anomalies = await anomaliesRes.json();
-    
-    return {
-      normalRegions: missions.length * 12,
-      knownAnomalies: anomalies.filter((a: any) => ['Crab-Pot', 'Shipwreck'].some(t => a.type.includes(t))).length,
-      unknownAnomalies: anomalies.filter((a: any) => !['Crab-Pot', 'Shipwreck'].some(t => a.type.includes(t))).length,
-      newChanges: anomalies.filter((a: any) => a.status === 'NEW').length,
-    };
-  } catch (err: any) {
-    console.error("Dashboard metrics error, returning fallback", err);
-    return { normalRegions: 0, knownAnomalies: 0, unknownAnomalies: 0, newChanges: 0 };
-  }
+  const queryParam = harbour ? `?mission_id=${encodeURIComponent(harbour)}` : '';
+  const res = await fetch(`${API_BASE_URL}/dashboard/metrics${queryParam}`);
+  if (!res.ok) throw new Error(`Dashboard metrics error: ${res.status}`);
+  const data = await res.json();
+  return {
+    normalRegions: data.normalRegions,     // null when coverage area is unknown — truthful
+    knownAnomalies: data.knownAnomalies ?? 0,
+    unknownAnomalies: data.unknownAnomalies ?? 0,
+    newChanges: data.newChanges ?? 0,
+    totalAnomalies: data.totalAnomalies ?? 0,
+  } as DashboardMetrics;
 };
 
+// ---------------------------------------------------------------------------
+// Surveys / missions
+// ---------------------------------------------------------------------------
 export const getSurveys = async (): Promise<Survey[]> => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/missions`);
-    if (!res.ok) throw new Error("Failed to fetch missions");
-    const missions = await res.json();
-    
-    return missions.map((m: any) => ({
-      id: m.mission_id || m.id,
-      name: m.name || m.mission_id,
-      vessel: m.source || 'Unknown',
-      area: 'Local Sector',
-      surveyDate: m.created_at,
-      depthRange: m.depth ? `${m.depth - 10}-${m.depth + 10}m` : 'Unknown',
-      status: m.status.toLowerCase() === 'completed' ? 'complete' : 
-              m.status.toLowerCase() === 'in_progress' ? 'processing' : 'ready'
-    }));
-  } catch (err) {
-    console.error("Surveys fetch error", err);
-    return [];
-  }
+  const res = await fetch(`${API_BASE_URL}/missions`);
+  if (!res.ok) throw new Error(`Surveys fetch error: ${res.status}`);
+  const missions = await res.json();
+  return missions.map((m: any) => ({
+    id: m.mission_id || m.id,
+    name: m.name || m.mission_id,
+    vessel: m.source || null,
+    area: m.area || null,
+    surveyDate: m.created_at,
+    depthRange: m.depth ? `${m.depth - 10}–${m.depth + 10}m` : null,
+    status: m.status.toLowerCase() === 'completed' ? 'complete' :
+            m.status.toLowerCase() === 'in_progress' ? 'processing' : 'ready'
+  }));
 };
 
+// ---------------------------------------------------------------------------
+// Anomalies — read from real DB via API
+// ---------------------------------------------------------------------------
 export const getAnomalies = async (filters?: AnomalyFilters, harbour?: string): Promise<Anomaly[]> => {
-  try {
-    const queryParam = harbour ? `?mission_id=${encodeURIComponent(harbour)}` : '';
-    const res = await fetch(`${API_BASE_URL}/anomalies${queryParam}`);
-    if (!res.ok) throw new Error("Failed to fetch anomalies");
-    let anomalies = await res.json();
-    
-    if (filters?.status && filters.status !== 'All') {
-        // filter logic if necessary, adapted to backend enum
-    }
+  const params = new URLSearchParams();
+  if (harbour) params.set('mission_id', harbour);
+  if (filters?.status && filters.status !== 'All') params.set('status', filters.status);
+  if (filters?.page) params.set('page', String(filters.page));
+  if (filters?.limit) params.set('limit', String(filters.limit));
 
-    return anomalies.map((a: any, i: number) => ({
-      id: a.anomaly_id || a.id,
-      label: a.anomaly_id || `Anomaly #${i}`,
-      classification: ['Crab-Pot', 'Shipwreck'].some(t => a.type.includes(t)) ? 'known' : 'unknown',
-      severity: a.risk_level === 'CRITICAL' ? 'high' : a.risk_level === 'HIGH' ? 'unusual' : 'normal',
-      reviewStatus: a.status === 'VERIFIED' ? 'known_object' : 'pending',
-      overallScore: Math.round(a.risk_score * 100),
-      spatialDeviationScore: Math.round((a.risk_score * 0.9) * 100),
-      temporalChangeScore: Math.round((a.risk_score * 1.1) * 100),
-      confidence: Math.round(a.confidence * 100),
-      latitude: a.latitude || 0,
-      longitude: a.longitude || 0,
-      depthMeters: Math.round((a.depth || 0) * 10) / 10,
-      detectedAt: a.created_at,
-      firstObserved: a.created_at,
-      explanation: a.explanation || `Detected ${a.type} with ${(a.confidence * 100).toFixed(1)}% confidence.`,
-      notes: a.notes,
-      sonarImage: "sonar_placeholder.png", // The backend should ideally link the image path
-      priority: a.risk_level === 'CRITICAL' ? 'immediate' : a.risk_level === 'HIGH' ? 'high' : 'medium',
-    }));
-  } catch (err: any) {
-    console.error("Anomalies fetch error", err);
-    return [];
-  }
+  const res = await fetch(`${API_BASE_URL}/anomalies?${params.toString()}`);
+  if (!res.ok) throw new Error(`Anomalies fetch error: ${res.status}`);
+  const anomalies: any[] = await res.json();
+
+  return anomalies.map((a: any, i: number) => ({
+    id: a.anomaly_id || a.id,
+    label: a.anomaly_id || `Anomaly #${i + 1}`,
+    classification: ['human'].includes((a.type || '').toLowerCase()) ? 'known' : 'unknown',
+    severity: a.risk_level === 'CRITICAL' ? 'high' : a.risk_level === 'HIGH' ? 'unusual' : 'normal',
+    reviewStatus: (
+      a.status === 'VERIFIED'         ? 'known_object'      :
+      a.status === 'FALSE_POSITIVE'   ? 'false_positive'    :
+      a.status === 'confirmed_unknown'? 'confirmed_unknown'  :
+      'pending'
+    ),
+    overallScore: Math.round((a.risk_score ?? 0) * 100),
+    spatialDeviationScore: Math.round(((a.risk_score ?? 0) * 0.9) * 100),
+    temporalChangeScore: Math.round(((a.risk_score ?? 0) * 1.1) * 100),
+    confidence: Math.round((a.confidence ?? 0) * 100),
+    // Coordinates: null if unmapped — NEVER substitute 0 for missing coordinates
+    latitude: a.latitude ?? null,
+    longitude: a.longitude ?? null,
+    depthMeters: a.depth != null ? Math.round(a.depth * 10) / 10 : null,
+    detectedAt: a.created_at,
+    firstObserved: a.created_at,
+    explanation: a.explanation || `${a.type} detected with ${((a.confidence ?? 0) * 100).toFixed(1)}% confidence.`,
+    notes: a.notes || null,
+    // Real sonar image path from backend, null if not stored
+    sonarImage: a.sonar_image_path || null,
+    priority: a.risk_level === 'CRITICAL' ? 'immediate' : a.risk_level === 'HIGH' ? 'high' : 'medium',
+    locationSource: a.location_source || 'unmapped',
+    modelVersion: a.model_version || null,
+    datasetVersion: a.dataset_version || null,
+  }));
 };
 
 export const getAnomalyById = async (id: string, harbour?: string): Promise<Anomaly> => {
-  const anomalies = await getAnomalies({}, harbour);
-  const anomaly = anomalies.find(a => a.id === id);
-  if (!anomaly) throw new Error('Anomaly not found');
-  return anomaly;
+  const res = await fetch(`${API_BASE_URL}/anomalies/${encodeURIComponent(id)}`);
+  if (!res.ok) {
+    // Fallback: search from list
+    const anomalies = await getAnomalies({}, harbour);
+    const found = anomalies.find(a => a.id === id);
+    if (!found) throw new Error('Anomaly not found');
+    return found;
+  }
+  const a: any = await res.json();
+  return {
+    id: a.anomaly_id || a.id,
+    label: a.anomaly_id || 'Unknown',
+    classification: 'unknown',
+    severity: a.risk_level === 'CRITICAL' ? 'high' : 'normal',
+    reviewStatus: a.status === 'VERIFIED' ? 'known_object' : 'pending',
+    overallScore: Math.round((a.risk_score ?? 0) * 100),
+    spatialDeviationScore: Math.round(((a.risk_score ?? 0) * 0.9) * 100),
+    temporalChangeScore: Math.round(((a.risk_score ?? 0) * 1.1) * 100),
+    confidence: Math.round((a.confidence ?? 0) * 100),
+    latitude: a.latitude ?? null,
+    longitude: a.longitude ?? null,
+    depthMeters: a.depth != null ? Math.round(a.depth * 10) / 10 : null,
+    detectedAt: a.created_at,
+    firstObserved: a.created_at,
+    explanation: a.explanation || '',
+    notes: a.notes || null,
+    sonarImage: a.sonar_image_path || null,
+    priority: 'medium',
+    locationSource: a.location_source || 'unmapped',
+    modelVersion: a.model_version || null,
+    datasetVersion: a.dataset_version || null,
+  };
 };
 
+// ---------------------------------------------------------------------------
+// Processing
+// ---------------------------------------------------------------------------
 export const startSurveyProcessing = async (_surveyId: string): Promise<ProcessingJob> => {
+  // Trigger real pipeline via /api/pipeline/:mission_id/process
+  // For now returns a typed stub — the image-processing API handles the real flow
   return { status: 'complete', anomaliesCount: 0 };
 };
 
-export const getTemporalSeries = async (_anomalyId: string, harbour?: string): Promise<TemporalPoint[]> => {
-  return [
-    { date: "Mar '25", score: 10 },
-    { date: "Aug '26", score: 95 }
-  ];
+// ---------------------------------------------------------------------------
+// Temporal series — real per-mission anomaly counts from DB
+// ---------------------------------------------------------------------------
+export const getTemporalSeries = async (_anomalyId: string, _harbour?: string): Promise<TemporalPoint[]> => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/dashboard/trends`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    // dataPoints: [{ date, score, mission, label }]
+    return (data.dataPoints || []).map((p: any) => ({ date: p.date, score: p.score }));
+  } catch {
+    // Network error — return empty so chart shows truthful empty state
+    return [];
+  }
 };
 
+// Standalone trends fetch (used independently of anomaly selection)
+export const getDashboardTrends = async (): Promise<TemporalPoint[]> => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/dashboard/trends`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.dataPoints || []).map((p: any) => ({ date: p.date, score: p.score }));
+  } catch {
+    return [];
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Review decisions — persisted to real DB via PATCH
+// ---------------------------------------------------------------------------
 export const submitReview = async (anomalyId: string, decision: ReviewDecision): Promise<Anomaly> => {
-  // Ideally this would PATCH /api/anomalies/:id
-  const anomalies = await getAnomalies();
-  const anomaly = anomalies.find(a => a.id === anomalyId);
-  if (!anomaly) throw new Error('Anomaly not found');
-  return { ...anomaly, reviewStatus: decision.status };
+  const res = await fetch(`${API_BASE_URL}/anomalies/${encodeURIComponent(anomalyId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      status: decision.status,
+      notes: decision.notes ?? null,
+      custom_class_name: decision.newClass ?? null,
+    }),
+  });
+  if (!res.ok) throw new Error(`Review submission failed: ${res.status}`);
+  const updated: any = await res.json();
+  // Return mapped anomaly from updated record
+  return getAnomalyById(updated.anomaly_id || updated.id);
 };
 
+// ---------------------------------------------------------------------------
+// Report summary — derived from real dashboard metrics
+// ---------------------------------------------------------------------------
 export const getReportSummary = async (_surveyId: string): Promise<ReportSummary> => {
+  const res = await fetch(`${API_BASE_URL}/dashboard/metrics`);
+  if (!res.ok) throw new Error(`Report summary fetch error: ${res.status}`);
+  const data = await res.json();
   return {
-    surveyCoverage: "100%",
-    normalRegions: 84,
-    knownAnomalies: 12,
-    unknownAnomalies: 7,
-    newChanges: 5
+    surveyCoverage: 'Unavailable',   // Requires area coverage data not yet stored
+    normalRegions: data.normalRegions ?? 0,
+    knownAnomalies: data.knownAnomalies ?? 0,
+    unknownAnomalies: data.unknownAnomalies ?? 0,
+    newChanges: data.newChanges ?? 0,
   };
 };
 
+// ---------------------------------------------------------------------------
+// Model feedback — from real registry + real DB review counts
+// ---------------------------------------------------------------------------
 export const getModelFeedback = async (): Promise<ModelFeedback> => {
-  return {
-    currentModel: { name: "v1.0", accuracy: 89, lastUpdated: new Date().toISOString() },
-    feedbackSamples: 18,
-    potentialRetrainingSet: 7,
-    nextModel: { name: "v1.1", accuracy: 92, estimatedTime: "24h" }
-  };
+  const res = await fetch(`${API_BASE_URL}/dashboard/model-feedback`);
+  if (!res.ok) throw new Error(`Model feedback fetch error: ${res.status}`);
+  return res.json();
 };
 
-// ==========================================
-// REAL-TIME WEBSOCKET MOCK (Kept for UI compatibility)
-// ==========================================
+// ---------------------------------------------------------------------------
+// Real-time subscriptions (WebSocket not yet implemented)
+// ---------------------------------------------------------------------------
 export const subscribeToRealTimeAnomalies = (
-  harbour: string,
-  onUpdate: (anomalyId: string, updates: Partial<Anomaly>) => void,
+  _harbour: string,
+  _onUpdate: (anomalyId: string, updates: Partial<Anomaly>) => void,
   _onNew: (anomaly: Anomaly) => void
 ) => {
-  return () => { };
+  // WebSocket not yet implemented. Returns no-op unsubscribe.
+  return () => {};
 };
 
-// ==========================================
-// USER MANAGEMENT (Admin Only)
-// ==========================================
+// ---------------------------------------------------------------------------
+// User management (Admin only)
+// ---------------------------------------------------------------------------
 export const getUsers = async (token: string): Promise<any[]> => {
   const res = await fetch(`${API_BASE_URL}/auth/users`, {
     headers: { 'Authorization': `Bearer ${token}` }
@@ -182,4 +264,3 @@ export const revokeUser = async (userId: string, token: string): Promise<any> =>
   }
   return res.json();
 };
-

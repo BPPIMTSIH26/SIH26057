@@ -9,8 +9,8 @@ import ActiveLearningWidget from '../components/ui/ActiveLearningWidget';
 import {
   getDashboardMetrics,
   getAnomalies,
-  getTemporalSeries,
-  getModelFeedback
+  getModelFeedback,
+  getDashboardTrends
 } from '../services/api';
 import { DashboardMetrics, Anomaly, TemporalPoint, ModelFeedback, HARBOURS } from '../data/mockData';
 import { useHarbour, useRealTimeAnomalies } from '../contexts/AppContext';
@@ -60,25 +60,35 @@ export default function Dashboard() {
       if (isFirstLoad.current) {
         setIsLoading(true);
       }
-      const [m, a, c, mf] = await Promise.all([
-        getDashboardMetrics(activeHarbour),
-        getAnomalies({}, activeHarbour),
-        getTemporalSeries('', activeHarbour),
-        getModelFeedback()
-      ]);
-      setMetrics(m);
-      setAnomalies(a);
-      setChartData(c);
-      setModelFeedback(mf);
-      if (a.length > 0) {
-        if (isAutoPatrol) {
-          const idx = patrolIndicesRef.current[activeHarbour] || 0;
-          const nextIdx = idx % a.length;
-          setSelectedAnomalyId(a[nextIdx].id);
+      try {
+        const [m, a, mf, trends] = await Promise.all([
+          getDashboardMetrics(activeHarbour),
+          getAnomalies({}, activeHarbour),
+          getModelFeedback(),
+          getDashboardTrends()
+        ]);
+        setMetrics(m);
+        setAnomalies(a);
+        setModelFeedback(mf);
+        setChartData(trends);
+        if (a.length > 0) {
+          if (isAutoPatrol) {
+            const idx = patrolIndicesRef.current[activeHarbour] || 0;
+            const nextIdx = idx % a.length;
+            setSelectedAnomalyId(a[nextIdx].id);
+          } else {
+            const top = a.find(x => x.priority === 'immediate') || a.find(x => x.priority === 'high') || a[0];
+            setSelectedAnomalyId(top.id);
+          }
         } else {
-          const top = a.find(x => x.priority === 'immediate') || a.find(x => x.priority === 'high') || a[0];
-          setSelectedAnomalyId(top.id);
+          setSelectedAnomalyId('');
         }
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+        // On error: show empty state, don't substitute fabricated values
+        setMetrics(null);
+        setAnomalies([]);
+        setChartData([]);
       }
       setIsLoading(false);
       isFirstLoad.current = false;
@@ -86,6 +96,7 @@ export default function Dashboard() {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeHarbour]);
+
 
   // Auto patrol logic
   useEffect(() => {
@@ -136,9 +147,9 @@ export default function Dashboard() {
             
             {/* Top Ribbons (KPIs) - Responsive Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 shrink-0">
-              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Normal Regions" value={metrics?.normalRegions ?? '--'} icon={CheckCircle} colorClass="text-text-primary" isLoading={isLoading} /></div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Normal Regions" value={metrics?.normalRegions != null ? metrics.normalRegions : 'N/A'} icon={CheckCircle} colorClass="text-text-primary" isLoading={isLoading} /></div>
               <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Known Anomalies" value={metrics?.knownAnomalies ?? '--'} icon={AlertTriangle} colorClass="text-warning" isLoading={isLoading} /></div>
-              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Unknown Anomalies" value={metrics?.unknownAnomalies ?? '--'} icon={AlertCircle} colorClass="text-danger" trend="+2 since last run" trendDirection="up" isLoading={isLoading} /></div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Unknown Anomalies" value={metrics?.unknownAnomalies ?? '--'} icon={AlertCircle} colorClass="text-danger" isLoading={isLoading} /></div>
               <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="New Changes" value={metrics?.newChanges ?? '--'} icon={TrendingUp} colorClass="text-cyan" trend="-1 since last run" trendDirection="down" isLoading={isLoading} /></div>
             </div>
 
@@ -183,7 +194,7 @@ export default function Dashboard() {
                   </Marker>
                   
                   {/* Anomaly Markers */}
-                  {liveAnomalies.map(a => {
+                  {liveAnomalies.filter(a => a.latitude !== null && a.longitude !== null).map(a => {
                     const isSelected = a.id === selectedAnomalyId;
                     return (
                       <Marker
@@ -286,7 +297,7 @@ export default function Dashboard() {
                       </div>
                       <div className="bg-glass rounded-xl p-4 backdrop-blur-md border border-glass-border flex flex-col gap-1">
                         <div className="text-[10px] text-text-secondary uppercase tracking-widest font-bold">Depth</div>
-                        <div className="text-text-primary font-mono text-2xl font-light">{selectedAnomaly.depthMeters}m</div>
+                        <div className="text-text-primary font-mono text-2xl font-light">{selectedAnomaly.depthMeters !== null ? `${selectedAnomaly.depthMeters}m` : 'N/A'}</div>
                       </div>
                     </div>
                   </div>

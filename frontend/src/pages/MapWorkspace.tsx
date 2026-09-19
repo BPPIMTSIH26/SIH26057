@@ -224,7 +224,7 @@ export default function MapWorkspace() {
           )}
 
           {/* Anomaly nodes */}
-          {filteredAnomalies.map(anomaly => {
+          {filteredAnomalies.filter(a => a.latitude !== null && a.longitude !== null).map(anomaly => {
             const selected = anomaly.id === selectedAnomalyId;
             return (
               <Marker key={anomaly.id} longitude={anomaly.longitude} latitude={anomaly.latitude} anchor="center">
@@ -249,7 +249,7 @@ export default function MapWorkspace() {
                   </div>
                   <div className={`theme-panel px-2 py-1 flex flex-col items-center transition-all duration-300 z-20 ${selected ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none'}`}>
                     <span className="text-[10px] font-display font-light text-text-primary uppercase tracking-[0.2em] whitespace-nowrap">{anomaly.label}</span>
-                    <span className="text-[9px] font-mono text-text-secondary whitespace-nowrap">{formatCoordinates(anomaly.latitude, anomaly.longitude)}</span>
+                    <span className="text-[9px] font-mono text-text-secondary whitespace-nowrap">{anomaly.latitude !== null ? formatCoordinates(anomaly.latitude, anomaly.longitude) : 'UNMAPPED'}</span>
                   </div>
                 </div>
               </Marker>
@@ -402,17 +402,30 @@ export default function MapWorkspace() {
                 <div className="grid grid-cols-2 gap-y-5 p-6 bg-glass">
                   <div>
                     <div className="text-[9px] text-text-secondary font-mono uppercase tracking-widest font-bold mb-1.5">Depth</div>
-                    <div className="text-text-primary font-mono text-[11px]">{selectedAnomaly.depthMeters} m</div>
+                    <div className="text-text-primary font-mono text-[11px]">{selectedAnomaly.depthMeters !== null ? `${selectedAnomaly.depthMeters} m` : 'N/A'}</div>
                   </div>
                   <div>
                     <div className="text-[9px] text-text-secondary font-mono uppercase tracking-widest font-bold mb-1.5">Detected</div>
                     <div className="text-text-primary font-mono text-[11px]">{new Date(selectedAnomaly.detectedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                   </div>
+                  <div>
+                    <div className="text-[9px] text-text-secondary font-mono uppercase tracking-widest font-bold mb-1.5">Model / AI</div>
+                    <div className="text-text-primary font-mono text-[11px] uppercase">{selectedAnomaly.modelVersion}</div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-text-secondary font-mono uppercase tracking-widest font-bold mb-1.5">Data Source</div>
+                    <div className="text-text-primary font-mono text-[11px] uppercase">{selectedAnomaly.datasetVersion}</div>
+                  </div>
                   <div className="col-span-2">
                     <div className="text-[9px] text-text-secondary font-mono uppercase tracking-widest font-bold mb-1.5">Coordinates</div>
-                    <div className="text-text-primary font-mono text-[11px] flex items-center gap-2 bg-glass p-2.5 rounded-xl border border-glass-border">
-                      <Navigation className="w-3.5 h-3.5 text-accent shrink-0" />
-                      {formatCoordinates(selectedAnomaly.latitude, selectedAnomaly.longitude)}
+                    <div className="text-text-primary font-mono text-[11px] flex items-center justify-between gap-2 bg-glass p-2.5 rounded-xl border border-glass-border">
+                      <div className="flex items-center gap-2">
+                        <Navigation className="w-3.5 h-3.5 text-accent shrink-0" />
+                        {selectedAnomaly.latitude !== null ? formatCoordinates(selectedAnomaly.latitude, selectedAnomaly.longitude) : 'UNMAPPED'}
+                      </div>
+                      <div className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${selectedAnomaly.locationSource === 'unmapped' ? 'text-warning border-warning/30 bg-warning/10' : 'text-success border-success/30 bg-success/10'}`}>
+                        {selectedAnomaly.locationSource}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -461,7 +474,7 @@ export default function MapWorkspace() {
                     </div>
                     <div className="text-[10px] text-text-secondary font-mono flex gap-4">
                       <span>SCORE: <span className="text-text-primary">{anomaly.overallScore}</span></span>
-                      <span>DEPTH: <span className="text-text-primary">{anomaly.depthMeters}m</span></span>
+                      <span>DEPTH: <span className="text-text-primary">{anomaly.depthMeters !== null ? `${anomaly.depthMeters}m` : 'N/A'}</span></span>
                     </div>
                   </button>
                 ))}
@@ -539,8 +552,8 @@ export default function MapWorkspace() {
                 {/* Top Right Stats HUD */}
                 <div className="absolute top-4 right-4 flex flex-col items-end gap-1 font-mono text-[10px] text-text-primary bg-surface/80 p-3 rounded-xl backdrop-blur-xl border border-glass-border">
                   <span className="text-text-secondary uppercase tracking-widest">SYS_TIME: <span className="text-text-primary font-bold">{new Date().toISOString().split('T')[1].slice(0, 8)} UTC</span></span>
-                  <span className="text-text-secondary uppercase tracking-widest">LAT: <span className="text-text-primary font-bold">{formatLat(selectedAnomaly?.latitude || 0)}</span></span>
-                  <span className="text-text-secondary uppercase tracking-widest">LNG: <span className="text-text-primary font-bold">{formatLng(selectedAnomaly?.longitude || 0)}</span></span>
+                  <span className="text-text-secondary uppercase tracking-widest">LAT: <span className="text-text-primary font-bold">{selectedAnomaly?.latitude != null ? formatLat(selectedAnomaly.latitude) : 'UNMAPPED'}</span></span>
+                  <span className="text-text-secondary uppercase tracking-widest">LNG: <span className="text-text-primary font-bold">{selectedAnomaly?.longitude != null ? formatLng(selectedAnomaly.longitude) : 'UNMAPPED'}</span></span>
                 </div>
               </div>
             </div>
@@ -548,7 +561,7 @@ export default function MapWorkspace() {
               <span>Transect: B_04</span>
               <span>Freq: 450 kHz</span>
               <span>Range: 50m</span>
-              <span>{formatCoordinates(selectedAnomaly?.latitude || 0, selectedAnomaly?.longitude || 0, true)}</span>
+              <span>{(selectedAnomaly?.latitude != null && selectedAnomaly?.longitude != null) ? formatCoordinates(selectedAnomaly.latitude, selectedAnomaly.longitude, true) : 'UNMAPPED'}</span>
             </div>
           </div>
         </div>

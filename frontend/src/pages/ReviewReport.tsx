@@ -36,7 +36,7 @@ export default function ReviewReport() {
  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
  const [selectedId, setSelectedId] = useState<string>('');
  const [notes, setNotes] = useState('');
- const [showToast, setShowToast] = useState<{message: string, type: 'success' | 'info'} | null>(null);
+ const [showToast, setShowToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
  const [showNewClassModal, setShowNewClassModal] = useState(false);
  const [newClassName, setNewClassName] = useState('');
  const mapRef = useRef<any>(null);
@@ -114,7 +114,7 @@ export default function ReviewReport() {
  }
  }, [page, fetchAnomalies]);
 
- const triggerToast = (message: string, type: 'success' | 'info' = 'success') => {
+  const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
  setShowToast({ message, type });
  setTimeout(() => setShowToast(null), 3000);
  };
@@ -124,24 +124,24 @@ export default function ReviewReport() {
  try {
  const updated = await submitReview(selectedId, { status: decision, notes });
  setAnomalies(prev => prev.map(a => a.id === selectedId ? updated : a));
- 
- // Update local feedback count for demo
- if (feedbackData) {
- setFeedbackData({ ...feedbackData, feedbackSamples: feedbackData.feedbackSamples + 1 });
- }
- 
+ // Reload model feedback to get the updated real count from the database
+ try {
+   const freshFeedback = await getModelFeedback();
+   setFeedbackData(freshFeedback);
+ } catch (_) { /* non-critical */ }
  triggerToast('Review saved successfully. Added to feedback loop.');
  setNotes('');
- 
  // Select next pending
  const nextPending = anomalies.find(a => a.id !== selectedId && a.reviewStatus === 'pending');
  if (nextPending) {
  setTimeout(() => setSelectedId(nextPending.id), 500);
  }
  } catch (e) {
- console.error(e);
+ console.error('Review submission error:', e);
+ triggerToast('Failed to save review. Please try again.', 'error');
  }
  };
+
 
  const selectedAnomaly = anomalies.find(a => a.id === selectedId);
 
@@ -265,7 +265,7 @@ export default function ReviewReport() {
  title="View on Map"
  >
  <Navigation className="w-3 h-3 text-cyan" /> 
- {formatCoordinates(selectedAnomaly.latitude, selectedAnomaly.longitude)}
+ {selectedAnomaly.latitude !== null ? formatCoordinates(selectedAnomaly.latitude, selectedAnomaly.longitude) : 'UNMAPPED'}
  </button>
  <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {new Date(selectedAnomaly.detectedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })} UTC</span>
  </div>
@@ -454,7 +454,7 @@ export default function ReviewReport() {
  try { await navigator.clipboard.writeText(window.location.href); triggerToast('Link copied!'); } 
  catch (err) { console.error(err); triggerToast('Failed to copy', 'info'); }
  }} className="bg-cyan/10 hover:bg-cyan/20 border border-cyan/30 text-cyan text-[10px] font-bold uppercase tracking-widest px-4 py-2 transition-colors flex items-center gap-2 ml-auto">
- <Share2 className="w-3 h-3" /> Share Demo Link
+ <Share2 className="w-3 h-3" /> Share Link
  </button>
  </div>
  
@@ -514,7 +514,7 @@ export default function ReviewReport() {
   </Marker>
 
   {/* Anomaly Markers */}
-  {anomalies.map(anomaly => {
+  {anomalies.filter(a => a.latitude !== null && a.longitude !== null).map(anomaly => {
     const isSelected = anomaly.id === selectedId;
     return (
       <Marker

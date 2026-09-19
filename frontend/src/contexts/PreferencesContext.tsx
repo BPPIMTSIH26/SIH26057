@@ -6,9 +6,9 @@ type CoordFormat = 'DD' | 'DMS';
 interface PreferencesContextType {
   coordFormat: CoordFormat;
   setCoordFormat: (format: CoordFormat) => void;
-  formatCoordinates: (lat: number, lng: number, includeLabels?: boolean) => string;
-  formatLat: (lat: number) => string;
-  formatLng: (lng: number) => string;
+  formatCoordinates: (lat: number | null, lng: number | null, includeLabels?: boolean) => string;
+  formatLat: (lat: number | null) => string;
+  formatLng: (lng: number | null) => string;
 }
 
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined);
@@ -29,19 +29,22 @@ export const PreferencesProvider: React.FC<{ children: ReactNode }> = ({ childre
     return `${d}°${m}'${s}"${dir}`;
   };
 
-  const formatLat = (lat: number) => {
+  const formatLat = (lat: number | null) => {
+    if (lat === null) return 'N/A';
     return coordFormat === 'DD' 
       ? `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`
       : toDMS(lat, true);
   };
 
-  const formatLng = (lng: number) => {
+  const formatLng = (lng: number | null) => {
+    if (lng === null) return 'N/A';
     return coordFormat === 'DD' 
       ? `${Math.abs(lng).toFixed(4)}° ${lng >= 0 ? 'E' : 'W'}`
       : toDMS(lng, false);
   };
 
-  const formatCoordinates = (lat: number, lng: number, includeLabels = false) => {
+  const formatCoordinates = (lat: number | null, lng: number | null, includeLabels = false) => {
+    if (lat === null || lng === null) return 'UNMAPPED';
     if (includeLabels) {
       return `LAT: ${formatLat(lat)} | LNG: ${formatLng(lng)}`;
     }

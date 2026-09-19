@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   UploadCloud, 
   Image as ImageIcon, 
@@ -12,11 +13,58 @@ import {
   Columns,
   Sparkles,
   Eye,
-  Activity
+  Activity,
+  Waves,
+  ScanLine,
+  ShieldAlert,
+  ArrowRight,
+  FlaskConical,
+  MountainSnow
 } from 'lucide-react';
 import { imageProcessingApi, ImageProcessingJobResponse } from '../services/imageProcessingApi';
 
+// ── Seabed composition helpers ──────────────────────────────────────────────
+function deriveSeabedProfile(result: import('../services/imageProcessingApi').ImageProcessingJobResponse) {
+  const qa = result.qualityAssessment;
+  const ms = result.maskStatistics;
+  if (!qa || !ms) return null;
+
+  // Shadow % correlates with hard/rocky returns (strong acoustic backscatter)
+  // High contrast score → rough / rocky; low → soft/sandy
+  const shadowPct   = ms.shadowPercentage   ?? 0;
+  const usablePct   = ms.usablePercentage   ?? 0;
+  const contrastStd = qa.contrastScore      ?? 0;
+
+  // Heuristic substrate classification
+  // Rocky: contrast > 40 AND shadow > 15%
+  // Mixed: contrast 20-40 OR shadow 8-15%
+  // Sandy: contrast < 20 AND shadow < 8%
+  let substrateType: 'Rocky / Hard' | 'Mixed Substrate' | 'Sandy / Soft';
+  let rockyPct: number;
+  let sandyPct: number;
+
+  if (contrastStd > 40 && shadowPct > 15) {
+    substrateType = 'Rocky / Hard';
+    rockyPct = Math.min(100, 50 + (shadowPct * 2));
+    sandyPct = 100 - rockyPct;
+  } else if (contrastStd < 20 && shadowPct < 8) {
+    substrateType = 'Sandy / Soft';
+    sandyPct = Math.min(100, 60 + (usablePct * 0.3));
+    rockyPct = 100 - sandyPct;
+  } else {
+    substrateType = 'Mixed Substrate';
+    rockyPct = Math.min(90, Math.max(10, shadowPct * 2.5));
+    sandyPct = 100 - rockyPct;
+  }
+
+  const textureScore = Math.min(100, Math.round(contrastStd * 1.8));
+  const hardnessIndex = Math.min(10, +(shadowPct * 0.4 + contrastStd * 0.05).toFixed(1));
+
+  return { substrateType, rockyPct: +rockyPct.toFixed(1), sandyPct: +sandyPct.toFixed(1), textureScore, hardnessIndex, shadowPct: +shadowPct.toFixed(1), contrastStd: +contrastStd.toFixed(1) };
+}
+
 const ImageProcessing: React.FC = () => {
+  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [result, setResult] = useState<ImageProcessingJobResponse | null>(null);
@@ -32,6 +80,7 @@ const ImageProcessing: React.FC = () => {
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const [imgKey, setImgKey] = useState<number>(() => Date.now());
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+  const anomalyQueueRef = useRef<HTMLDivElement>(null);
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -108,6 +157,14 @@ const ImageProcessing: React.FC = () => {
 
   const getMediaUrl = (path?: string) => {
     if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return `${path}?t=${imgKey}`;
+    }
+    const apiBase = import.meta.env.VITE_API_URL || '';
+    if (apiBase && path.startsWith('/api/')) {
+      const origin = apiBase.replace(/\/api\/?$/, '');
+      return `${origin}${path}?t=${imgKey}`;
+    }
     return `${path}?t=${imgKey}`;
   };
 
@@ -548,6 +605,209 @@ const ImageProcessing: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* ══ SEABED COMPOSITION ANALYSIS ══ */}
+              {result && (result.status === 'completed' || result.status === 'assessed') && (() => {
+                const seabed = deriveSeabedProfile(result);
+                if (!seabed) return null;
+                const substrateColor =
+                  seabed.substrateType === 'Rocky / Hard' ? 'text-orange-400' :
+                  seabed.substrateType === 'Sandy / Soft' ? 'text-yellow-400' :
+                  'text-teal-400';
+                const substrateGlow =
+                  seabed.substrateType === 'Rocky / Hard' ? 'shadow-[0_0_18px_rgba(251,146,60,0.12)]' :
+                  seabed.substrateType === 'Sandy / Soft' ? 'shadow-[0_0_18px_rgba(250,204,21,0.12)]' :
+                  'shadow-[0_0_18px_rgba(45,212,191,0.12)]';
+                return (
+                  <div className={`bg-glass border border-glass-border rounded-xl p-5 ${substrateGlow}`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold flex items-center gap-2">
+                        <Waves className="w-4 h-4 text-cyan" />
+                        Seabed Composition Analysis
+                      </h3>
+                      <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-full border ${seabed.substrateType === 'Rocky / Hard' ? 'border-orange-500/40 bg-orange-500/10 text-orange-400' : seabed.substrateType === 'Sandy / Soft' ? 'border-yellow-400/40 bg-yellow-400/10 text-yellow-300' : 'border-teal-400/40 bg-teal-400/10 text-teal-300'}`}>
+                        {seabed.substrateType}
+                      </span>
+                    </div>
+
+                    {/* Substrate composition bar */}
+                    <div className="mb-5">
+                      <div className="flex justify-between text-[10px] font-mono text-text-muted mb-1.5">
+                        <span className="flex items-center gap-1"><MountainSnow className="w-3 h-3 text-orange-400" /> Rocky / Hard — {seabed.rockyPct}%</span>
+                        <span className="flex items-center gap-1">Sandy / Soft — {seabed.sandyPct}% <FlaskConical className="w-3 h-3 text-yellow-400" /></span>
+                      </div>
+                      <div className="w-full h-3 rounded-full overflow-hidden bg-glass-strong border border-glass-border flex">
+                        <div
+                          className="h-full bg-gradient-to-r from-orange-500 to-orange-400 transition-all duration-700"
+                          style={{ width: `${seabed.rockyPct}%` }}
+                        />
+                        <div
+                          className="h-full bg-gradient-to-r from-yellow-400 to-yellow-300 transition-all duration-700"
+                          style={{ width: `${seabed.sandyPct}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Stats grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-3 bg-glass-strong rounded-lg border border-glass-border text-center">
+                        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Texture Score</div>
+                        <div className="text-lg font-mono font-bold text-text-primary">{seabed.textureScore}<span className="text-xs text-text-muted">/100</span></div>
+                        <div className="text-[9px] text-text-muted mt-0.5">{seabed.textureScore > 65 ? 'Rough / Irregular' : seabed.textureScore > 35 ? 'Moderate' : 'Smooth / Fine'}</div>
+                      </div>
+                      <div className="p-3 bg-glass-strong rounded-lg border border-glass-border text-center">
+                        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Hardness Index</div>
+                        <div className={`text-lg font-mono font-bold ${substrateColor}`}>{seabed.hardnessIndex}<span className="text-xs text-text-muted">/10</span></div>
+                        <div className="text-[9px] text-text-muted mt-0.5">{seabed.hardnessIndex > 6 ? 'Hard Substrate' : seabed.hardnessIndex > 3 ? 'Semi-Rigid' : 'Soft Substrate'}</div>
+                      </div>
+                      <div className="p-3 bg-glass-strong rounded-lg border border-glass-border text-center">
+                        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Acoustic Shadow</div>
+                        <div className="text-lg font-mono font-bold text-blue-400">{seabed.shadowPct}<span className="text-xs text-text-muted">%</span></div>
+                        <div className="text-[9px] text-text-muted mt-0.5">Backscatter void coverage</div>
+                      </div>
+                      <div className="p-3 bg-glass-strong rounded-lg border border-glass-border text-center">
+                        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Contrast Std</div>
+                        <div className="text-lg font-mono font-bold text-cyan">{seabed.contrastStd}</div>
+                        <div className="text-[9px] text-text-muted mt-0.5">Pixel intensity spread</div>
+                      </div>
+                    </div>
+
+                    {/* Interpretation note */}
+                    <div className="mt-4 text-xs text-text-muted p-3 bg-glass-strong rounded-lg border border-glass-border leading-relaxed">
+                      <ScanLine className="w-3.5 h-3.5 inline-block mr-1.5 text-cyan align-text-top" />
+                      <span className="font-semibold text-text-primary">AI Interpretation: </span>
+                      {seabed.substrateType === 'Rocky / Hard'
+                        ? `High acoustic backscatter with ${seabed.shadowPct}% shadow regions indicates a predominantly hard, rocky substrate. Expect strong return signals and well-defined feature edges.`
+                        : seabed.substrateType === 'Sandy / Soft'
+                        ? `Low shadow coverage (${seabed.shadowPct}%) and uniform texture suggest soft sandy or silty seabed. Acoustic returns are diffuse with minimal object relief.`
+                        : `Mixed acoustic signature with ${seabed.shadowPct}% shadow regions. Seabed likely transitions between rocky outcrops and sandy sediment — common in estuarine or coastal survey zones.`
+                      }
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* ══ ANOMALY HUMAN REVIEW QUEUE ══ */}
+              {result && (result.status === 'completed' || result.status === 'assessed') && (() => {
+                const flagged = (result.regionAnalysis ?? []).filter(
+                  r => r.label === 'likely_object' || (r.objectConfidence >= 0.25 && r.label !== 'natural_seabed_feature')
+                );
+                const highConf  = flagged.filter(r => r.objectConfidence >= 0.5);
+                const medConf   = flagged.filter(r => r.objectConfidence >= 0.25 && r.objectConfidence < 0.5);
+
+                return (
+                  <div ref={anomalyQueueRef} className="bg-glass border border-danger/30 rounded-xl p-5 shadow-[0_0_24px_rgba(255,77,77,0.07)]">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-danger" />
+                        Anomaly Human Review Queue
+                        {flagged.length > 0 && (
+                          <span className="ml-1 px-2 py-0.5 rounded-full bg-danger/15 border border-danger/40 text-danger text-[10px] font-mono font-bold animate-pulse">
+                            {flagged.length} flagged
+                          </span>
+                        )}
+                      </h3>
+                      {flagged.length > 0 && (
+                        <button
+                          id="goto-human-review-btn"
+                          onClick={() => navigate('/review')}
+                          className="flex items-center gap-1.5 px-3.5 py-2 bg-danger/15 hover:bg-danger/25 border border-danger/40 hover:border-danger/70 text-danger rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(255,77,77,0.25)]"
+                        >
+                          View in Human Review
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {flagged.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <CheckCircle className="w-8 h-8 text-success mb-2 opacity-70" />
+                        <p className="text-sm text-text-primary font-medium">No anomalies requiring human review</p>
+                        <p className="text-xs text-text-muted mt-1">All detected regions classified as natural seabed features or acoustic shadows.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {/* Summary chips */}
+                        <div className="flex gap-2 flex-wrap mb-1">
+                          {highConf.length > 0 && (
+                            <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-danger/15 border border-danger/40 text-danger">
+                              ⚠ {highConf.length} high-confidence object{highConf.length > 1 ? 's' : ''} (≥50%)
+                            </span>
+                          )}
+                          {medConf.length > 0 && (
+                            <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-warning/15 border border-warning/40 text-warning">
+                              ~ {medConf.length} medium-confidence candidate{medConf.length > 1 ? 's' : ''} (25–50%)
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Anomaly rows */}
+                        {flagged.map((region, idx) => {
+                          const conf = +(region.objectConfidence * 100).toFixed(1);
+                          const isHigh = region.objectConfidence >= 0.5;
+                          return (
+                            <div
+                              key={region.id}
+                              className={`p-3.5 rounded-lg border text-xs flex flex-col gap-1.5 transition-all ${
+                                isHigh
+                                  ? 'bg-danger/5 border-danger/30 hover:border-danger/60'
+                                  : 'bg-warning/5 border-warning/20 hover:border-warning/50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-2 h-2 rounded-full shrink-0 ${isHigh ? 'bg-danger animate-pulse' : 'bg-warning'}`} />
+                                  <span className={`font-mono font-bold uppercase tracking-wide ${ isHigh ? 'text-danger' : 'text-warning'}`}>
+                                    Anomaly #{idx + 1} — {region.label.replace(/_/g, ' ')}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  <span className="font-mono text-text-muted">
+                                    Conf: <span className={`font-bold ${isHigh ? 'text-danger' : 'text-warning'}`}>{conf}%</span>
+                                  </span>
+                                  <span className="font-mono text-text-muted">
+                                    {Math.round(region.boundingBox.width)}×{Math.round(region.boundingBox.height)}px
+                                  </span>
+                                </div>
+                              </div>
+                              <p className="text-text-muted leading-relaxed pl-4">{region.explanation}</p>
+                              <div className="flex items-center justify-between pl-4 mt-0.5">
+                                <span className="text-[10px] font-mono text-text-muted">
+                                  Position: ({Math.round(region.boundingBox.x)}, {Math.round(region.boundingBox.y)}) px
+                                </span>
+                                <button
+                                  onClick={() => navigate('/review')}
+                                  className={`text-[10px] font-semibold flex items-center gap-1 px-2.5 py-1 rounded-md border cursor-pointer transition-all ${
+                                    isHigh
+                                      ? 'border-danger/40 bg-danger/10 text-danger hover:bg-danger/20'
+                                      : 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/20'
+                                  }`}
+                                >
+                                  Inspect Details <ArrowRight className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Footer CTA */}
+                        <div className="mt-2 pt-3 border-t border-glass-border flex items-center justify-between">
+                          <p className="text-[11px] text-text-muted">
+                            AI flagged {flagged.length} region{flagged.length > 1 ? 's' : ''} for expert validation. Review and classify each detection.
+                          </p>
+                          <button
+                            onClick={() => navigate('/review')}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-danger text-white rounded-lg text-xs font-bold cursor-pointer hover:bg-danger/85 transition-all shadow-md hover:shadow-[0_0_16px_rgba(255,77,77,0.4)]"
+                          >
+                            Open Human Review <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </>
           ) : (
             <div className="bg-glass border border-glass-border rounded-xl p-5 shadow-lg h-full flex flex-col items-center justify-center text-center min-h-[350px]">
