@@ -3,12 +3,12 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ../backend
+      context: ../..
       dockerfile: Dockerfile.dev
     ports:
       - "8000:8000"
     volumes:
-      - ../backend:/app
+      - ../..:/app
     environment:
       - APP_ENV=development
       - DATABASE_URL=sqlite:///./data/sonar_x.db
@@ -23,12 +23,12 @@ services:
 
   frontend:
     build:
-      context: ../frontend
+      context: ../../../frontend
       dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
     volumes:
-      - ../frontend:/app
+      - ../../../frontend:/app
       - /app/node_modules
     command: npm run dev -- --host 0.0.0.0
     depends_on:
