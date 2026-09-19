@@ -1,6 +1,6 @@
 export interface Point {
-  latitude: number;
-  longitude: number;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface HarbourConfig {
@@ -19,7 +19,7 @@ export function getHarbourViewport(
   harbour: HarbourConfig,
   targetPoint?: Point | null
 ) {
-  const water = targetPoint
+  const water = (targetPoint && typeof targetPoint.latitude === 'number' && typeof targetPoint.longitude === 'number')
     ? { lat: targetPoint.latitude, lng: targetPoint.longitude }
     : (harbour.waterCenter || { lat: harbour.lat, lng: harbour.lng });
 
@@ -94,7 +94,8 @@ export function fitMapToHarbourAndPoints(
       essential: true
     });
   } catch (_err) {
-    const vp = getHarbourViewport(harbour, pts[0]);
+    const validPt = pts.find(p => typeof p.latitude === 'number' && typeof p.longitude === 'number');
+    const vp = getHarbourViewport(harbour, validPt);
     map.flyTo({
       center: [vp.longitude, vp.latitude],
       zoom: vp.zoom,

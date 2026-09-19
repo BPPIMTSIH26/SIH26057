@@ -22,9 +22,9 @@ export interface Anomaly {
   spatialDeviationScore: number;
   temporalChangeScore: number;
   confidence: number;
-  latitude: number;
-  longitude: number;
-  depthMeters: number;
+  latitude: number | null;
+  longitude: number | null;
+  depthMeters: number | null;
   detectedAt: string;
   firstObserved: string;
   explanation: string;
@@ -32,6 +32,9 @@ export interface Anomaly {
   priority: "low" | "medium" | "high" | "immediate";
   notes?: string;
   customClassName?: string;
+  locationSource?: string;
+  modelVersion?: string;
+  datasetVersion?: string;
 }
 
 export interface ModelFeedback {
