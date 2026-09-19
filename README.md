@@ -1,25 +1,18 @@
-# 🌊 SIH26057: Ocean-X (S.A.G.A.R. Command)
+# 🌊 S.A.G.A.R. — Ocean-X Command
+### Autonomous Underwater Anomaly Intelligence & Seabed Survey Reconnaissance
 
 <div align="center">
 
-![GitHub repo size](https://img.shields.io/github/repo-size/BPPIMTSIH26/SIH26057?style=for-the-badge&logo=github&color=0ea5e9)
-![GitHub stars](https://img.shields.io/github/stars/BPPIMTSIH26/SIH26057?style=for-the-badge&logo=github&color=38bdf8)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-00FFFF?style=for-the-badge&logo=yolo&logoColor=black)
-![MapLibre](https://img.shields.io/badge/MapLibre_GL-3D_Geospatial-2F52E0?style=for-the-badge&logo=maplibre&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4_Glassmorphic-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-
-<br/>
-
-### **Context-Aware Open-World Underwater Anomaly Intelligence & Seabed Survey Reconnaissance**
-**Smart India Hackathon (SIH 2026) | Problem Statement ID: 26057**  
-*Organization: **BPPIMTSIH26** | Lead Developer: **Narayan Kumar Jha (@narayan-nkj)***
+[![SIH 2026](https://img.shields.io/badge/Smart_India_Hackathon-2026_National_Finals-0284c7?style=flat-square)](https://sih.gov.in)
+[![Organization](https://img.shields.io/badge/Organization-BPPIMTSIH26-4f46e5?style=flat-square)](https://github.com/BPPIMTSIH26)
+[![Problem Statement](https://img.shields.io/badge/Problem_Statement_ID-26057-059669?style=flat-square)](https://github.com/BPPIMTSIH26/SIH26057)
+[![Architecture](https://img.shields.io/badge/Architecture-FastAPI_•_React_19_•_PyTorch_•_MapLibre-0f172a?style=flat-square)](#)
 
 </div>
+
+> **Smart India Hackathon (SIH 2026) | Problem Statement ID: 26057**  
+> **Institution:** B.P. Poddar Institute of Management & Technology (**BPPIMTSIH26**)  
+> **Lead Architect & Deep Learning Engineer:** **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj))
 
 ---
 
@@ -136,18 +129,17 @@ flowchart TD
 
 ```
 SIH26057-OceanX/
-├── frontend/                # React 19 + TypeScript + Vite + MapLibre GL
-│   ├── src/
-│   │   ├── components/      # UI components, PriorityQueue, Glassmorphic widgets
-│   │   ├── pages/           # 10 dedicated tactical & analysis pages
-│   │   ├── contexts/        # AuthContext, NotificationContext
-│   │   └── services/        # Axios API clients, WebSocket telemetry
-└── backend/                 # FastAPI + PyTorch + ONNX Runtime + SQLite/SQLAlchemy
-    ├── app/
-    │   ├── api/             # REST API routers (Auth, Sonar, Detection, Processing)
-    │   ├── ml/              # YOLOv8 & ONNX inference models
-    │   ├── services/        # 14-stage image processor, OTP emailer, Report generator
-    │   └── database/        # SQLAlchemy models, SQLite engine, Seeding logic
+├── backend/                 # FastAPI API, YOLOv8/ONNX Models & Auditing Module
+│   ├── app/                 # Routers, ML inference, services & database models
+│   ├── auditing/            # Audit reports, API specifications, launch scripts & configs
+│   ├── data/                # Bathymetric sonar swaths, imagery, and SQLite db
+│   ├── models/              # Pretrained neural network weights (YOLO / ONNX)
+│   └── tests/               # Auth, security, and image processing test suites
+├── frontend/                # React 19 + TypeScript + Vite + MapLibre GL 3D
+│   ├── src/                 # Tactical dashboard, map workspace, processing lab
+│   └── public/              # High-resolution hydrographic assets and UI icons
+├── package.json             # Root unified launcher scripts (npm start, npm stop)
+└── README.md                # System documentation & technical specification
 ```
 
 ### Core Technologies
@@ -156,7 +148,7 @@ SIH26057-OceanX/
 - **Computer Vision & AI**: OpenCV (`cv2`), PyTorch, Ultralytics YOLOv8, ONNX Runtime, NumPy, SciPy, Pillow.
 - **Geospatial Processing**: Shapely, PyProj, GeoPandas.
 - **Security**: Argon2/PBKDF2 password hashing, JWT bearer tokens, SMTP Gmail OTP integration.
-- **DevOps & Deployment**: Docker, Docker Compose, Shell Automation (`start.sh`, `stop.sh`, `run.py`).
+- **DevOps & Deployment**: Docker Compose, Shell Automation (`start.sh`, `stop.sh`, `run.py`).
 
 ---
 
@@ -172,21 +164,21 @@ SIH26057-OceanX/
 
 ### Option A: One-Command Startup (Recommended)
 
-Run the unified orchestrator from the project root:
+From the project root directory, execute:
 
 ```bash
-# Clone the repository
-git clone https://github.com/BPPIMTSIH26/SIH26057.git
-cd SIH26057
-
-# Make scripts executable and start both servers
-chmod +x start.sh stop.sh
-./start.sh
+# Preferred: Launch entire platform (Backend on :8000 & Frontend on :5173)
+npm start
 ```
 
-*Or using Python:*
+*Or directly via the orchestration script:*
 ```bash
-python3 run.py
+bash backend/auditing/scripts/start.sh
+```
+
+*To gracefully stop all background services:*
+```bash
+npm stop
 ```
 
 - **Frontend Application**: `http://localhost:5173`
