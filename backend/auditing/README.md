@@ -1,18 +1,21 @@
-# auditing/
+# backend/auditing/
 
-This folder contains all audit, database seeding, data migration, and API specification documents for the S.A.G.A.R. / NetraSonar platform.
+This folder houses all auditing, database migration, deployment configurations, maintenance scripts, and testing specifications for the S.A.G.A.R. / NetraSonar platform.
 
-| File | Purpose |
-|------|---------|
+| Directory / File | Purpose |
+|------------------|---------|
 | `API_CONTRACT.md` | Full REST API contract — all endpoints, request/response schemas, and HTTP codes |
-| `report.md` | Technical report — stack, ML models, detected hazard data |
-| `seed_all.py` | Master seed script — seeds full initial dataset (missions, anomalies, reports) |
-| `seed_data.py` | Seeds core mission and image data |
-| `seed_anomalies.py` | Seeds anomaly detection results for demo and test scenarios |
-| `fix_seed_coords.py` | One-time migration to fix coordinate precision in seeded anomaly records |
-| `migrate_users.py` | One-time user schema migration script |
+| `report.md` | Comprehensive security, architecture, and quality audit report |
+| `config/` | Linter, type-checker, and developer environment configurations |
+| `deployment/` | Multi-container Docker Compose and cloud hosting deployment manifests |
+| `scripts/` | Unified service orchestration launchers (`start.sh`, `stop.sh`, `run.py`) |
+| `seed_all.py` | Master database seed script — populates harbors, anomalies, and missions |
+| `seed_data.py` | Seeds core mission, vessel, and bathymetric sonar records |
+| `seed_anomalies.py` | Seeds calibrated anomaly detection test sets across maritime regions |
+| `fix_seed_coords.py` | Geolocation coordinate calibration script |
+| `migrate_users.py` | Database schema user table migration utility |
 
-> **Note**: Run seed scripts from the project root using the backend venv:
+> **Execution Note**: Run seed and migration scripts from the project root using the backend environment:
 > ```bash
-> backend/venv/bin/python auditing/seed_all.py
+> backend/venv/bin/python backend/auditing/seed_all.py
 > ```
