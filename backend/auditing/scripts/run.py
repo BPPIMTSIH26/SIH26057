@@ -9,12 +9,12 @@ import subprocess
 
 def main():
     scripts_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(scripts_dir)  # one level above scripts/
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(scripts_dir)))  # 3 levels above backend/auditing/scripts/
     start_sh = os.path.join(scripts_dir, "start.sh")
     stop_sh = os.path.join(scripts_dir, "stop.sh")
 
     if not os.path.exists(start_sh):
-        print("Error: scripts/start.sh not found.")
+        print("Error: start.sh not found.")
         sys.exit(1)
 
     try:
