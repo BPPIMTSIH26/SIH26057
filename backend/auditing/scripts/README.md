@@ -1,12 +1,12 @@
-# scripts/
+# backend/auditing/scripts/
 
-This folder contains all launcher, startup, and shutdown scripts for the S.A.G.A.R. / NetraSonar platform.
+This folder contains service orchestration, startup, and shutdown scripts for the S.A.G.A.R. / NetraSonar platform.
 
 | File | Purpose |
 |------|---------|
-| `start.sh` | Bash launcher — starts both FastAPI backend (port 8000) and Vite frontend (port 5173) |
-| `stop.sh` | Bash shutdown — gracefully kills all services on ports 8000 and 5173 |
-| `run.py` | Python launcher wrapper — calls `start.sh` with graceful Ctrl+C handling |
+| `start.sh` | Bash launcher — starts FastAPI backend (port 8000) and Vite frontend (port 5173) |
+| `stop.sh` | Bash shutdown — gracefully terminates all services on ports 8000 and 5173 |
+| `run.py` | Python launcher wrapper — calls `start.sh` with graceful signal handling |
 
 ## Usage
 
@@ -17,8 +17,8 @@ From the **project root**, run:
 npm start
 
 # Or directly via bash
-bash scripts/start.sh
+bash backend/auditing/scripts/start.sh
 
 # Or via Python
-python scripts/run.py
+python backend/auditing/scripts/run.py
 ```
