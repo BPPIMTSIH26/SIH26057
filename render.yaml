@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: sagarnetra-backend
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        value: sqlite:///./data/sonar_x.db
+      - key: UPLOAD_DIR
+        value: ./data/uploads
+      - key: PROCESSED_DIR
+        value: ./data/processed
+      - key: REPORT_DIR
+        value: ./data/reports
+      - key: MODEL_DIR
+        value: ./models
+      - key: MODEL_PROVIDER
+        value: yolo
+      - key: MODEL_PATH
+        value: ./yolov8n.pt
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: '["*"]'
