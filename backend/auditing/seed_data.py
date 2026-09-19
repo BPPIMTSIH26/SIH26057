@@ -1,8 +1,12 @@
 import os
+import sys
 import random
 import math
 from datetime import datetime, timedelta
 import uuid
+
+# Ensure backend package root is on sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.database.database import engine, Base, SessionLocal
 from app.database.models import Mission, SonarImage, Detection, Anomaly
