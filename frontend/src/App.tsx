@@ -336,11 +336,28 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppRouter = () => {
-  const [booting, setBooting] = useState(true);
+  const [booting, setBooting] = useState(() => {
+    try {
+      return sessionStorage.getItem('sagar_booted') !== 'true';
+    } catch {
+      return false;
+    }
+  });
   const { isAuthenticated } = useUser();
 
   if (booting) {
-    return <BootScreen onComplete={() => setBooting(false)} />;
+    return (
+      <BootScreen
+        onComplete={() => {
+          try {
+            sessionStorage.setItem('sagar_booted', 'true');
+          } catch {
+            // safe
+          }
+          setBooting(false);
+        }}
+      />
+    );
   }
 
   return (
