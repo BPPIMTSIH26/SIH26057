@@ -4,9 +4,9 @@
   "private": true,
   "description": "SagarNetra / NetraSonar Autonomous Undersea Anomaly & Mine Detection System",
   "scripts": {
-    "start": "./backend/auditing/scripts/start.sh",
-    "stop": "./backend/auditing/scripts/stop.sh",
-    "dev": "./backend/auditing/scripts/start.sh",
+    "start": "bash ./backend/auditing/scripts/start.sh",
+    "stop": "bash ./backend/auditing/scripts/stop.sh",
+    "dev": "bash ./backend/auditing/scripts/start.sh",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "cd backend && source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
     "build": "npm --prefix frontend run build"
