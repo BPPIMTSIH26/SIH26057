@@ -1,0 +1,4 @@
+human
+metal_debris
+ghost_net
+unknown_man_made_object
