@@ -2,7 +2,8 @@ import sqlite3
 import os
 
 def run_migration():
-    db_path = os.path.join(os.path.dirname(__file__), 'data', 'sonar_x.db')
+    backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    db_path = os.path.join(backend_dir, 'data', 'sonar_x.db')
     if not os.path.exists(db_path):
         # Database will be created on app startup
         print(f"Database {db_path} does not exist yet. It will be initialized on startup.")
