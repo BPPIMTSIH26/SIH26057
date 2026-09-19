@@ -272,7 +272,7 @@ docker-compose up --build
 - 🎯 **Ishika Chowdhury** ([@i5hika0x](https://github.com/i5hika0x)) — **Core Lead: Sonar Vision & Geospatial Intelligence**
 
 #### ⚓ Engineering & Domain Specialists
-- 🌐 **Sayantan Pachal** ([@sayantan-pachal](https://github.com/sayantan-pachal)) — **Geospatial Processing & GIS Swath Pipeline Specialist**
+- 🌐 **Sayantan Pachal** ([@sayantan-pachal](https://github.com/sayantan-pachal)) — **Full-Stack Development & System Integration Specialist**
 - ⚙️ **Shivam Gupta** ([@shiv2345king](https://github.com/shiv2345king)) — **Backend Infrastructure & Model Optimization Engineer**
 - 🔬 **Shougata Sikder** ([@Shougata2003](https://github.com/Shougata2003)) — **Hydrographic Anomaly Verification & QA Pipeline Specialist**
 
