@@ -36,15 +36,17 @@ export const useUser = () => useContext(UserContext);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
-      const saved = sessionStorage.getItem('sagar_user') || localStorage.getItem('sagar_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          fullName: parsed.fullName || parsed.full_name || defaultProfile.fullName,
-          email: parsed.email || defaultProfile.email,
-          avatarUrl: parsed.avatarUrl || null,
-          role: parsed.role || defaultProfile.role,
-        };
+      if (sessionStorage.getItem('isAuthenticated') === 'true') {
+        const saved = sessionStorage.getItem('sagar_user');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            fullName: parsed.fullName || parsed.full_name || defaultProfile.fullName,
+            email: parsed.email || defaultProfile.email,
+            avatarUrl: parsed.avatarUrl || null,
+            role: parsed.role || defaultProfile.role,
+          };
+        }
       }
     } catch {
       // safe fallback
@@ -54,9 +56,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
-      return sessionStorage.getItem('isAuthenticated') !== 'false';
+      return sessionStorage.getItem('isAuthenticated') === 'true';
     } catch {
-      return true;
+      return false;
     }
   });
 
@@ -93,11 +95,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsAuthenticated(false);
+    setProfile(defaultProfile);
     try {
-      sessionStorage.setItem('isAuthenticated', 'false');
+      sessionStorage.removeItem('isAuthenticated');
       sessionStorage.removeItem('sagar_token');
       sessionStorage.removeItem('sagar_user');
       localStorage.removeItem('sagar_user');
+      localStorage.removeItem('isAuthenticated');
     } catch {
       // safe fallback
     }
