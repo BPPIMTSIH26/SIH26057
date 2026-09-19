@@ -1,9 +1,14 @@
 services:
+  # ============================================================================
+  # SagarNetra FastAPI Backend Service
+  # ============================================================================
   - type: web
     name: sagarnetra-backend
-    env: python
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_ENV
         value: production
@@ -21,7 +26,30 @@ services:
         value: yolo
       - key: MODEL_PATH
         value: ./yolov8n.pt
+      - key: CONFIDENCE_THRESHOLD
+        value: "0.5"
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
         value: '["*"]'
+
+  # ============================================================================
+  # SagarNetra React/Vite Frontend (Static Site)
+  # ============================================================================
+  - type: web
+    name: sagarnetra-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: sagarnetra-backend
+          property: host
