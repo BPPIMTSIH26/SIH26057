@@ -1,9 +1,9 @@
 {
-  "venvPath": "../backend",
+  "venvPath": "../..",
   "venv": "venv",
-  "extraPaths": ["../backend"],
-  "include": ["../backend/app", "../backend/tests"],
-  "exclude": ["../backend/venv"],
+  "extraPaths": ["../.."],
+  "include": ["../../app", "../../tests"],
+  "exclude": ["../../venv"],
   "reportMissingModuleSource": "none",
   "reportMissingImports": "none",
   "reportUnknownMemberType": "none",
