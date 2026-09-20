@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAutoPatrol, setIsAutoPatrol] = useState(true);
   const mapRef = useRef<any>(null);
+  const mapFitTimerRef = useRef<any>(null);
 
   const liveAnomalies = React.useMemo(() =>
     anomalies.map(a => ({ ...a, ...(realTimeUpdates[a.id] || {}) })),
@@ -40,17 +41,23 @@ export default function Dashboard() {
 
   const initialVp = React.useMemo(() => getHarbourViewport(harborConfig, selectedAnomaly), [harborConfig, selectedAnomaly]);
 
-  // Frame both harbor port and anomaly simultaneously on map
+  // Frame both harbor port and anomaly simultaneously on map.
+  // Debounced to prevent double-animation when activeHarbour changes
+  // (avoids firing once for harborConfig change AND again for liveAnomalies.length change).
   useEffect(() => {
-    if (mapRef.current && harborConfig) {
-      fitMapToHarbourAndPoints(
-        mapRef.current,
-        harborConfig,
-        selectedAnomaly || liveAnomalies,
-        { padding: 45, maxZoom: 11.4, duration: 1800 }
-      );
-    }
-  }, [selectedAnomaly?.id, harborConfig, activeHarbour, liveAnomalies.length]);
+    if (mapFitTimerRef.current) clearTimeout(mapFitTimerRef.current);
+    mapFitTimerRef.current = setTimeout(() => {
+      if (mapRef.current && harborConfig) {
+        fitMapToHarbourAndPoints(
+          mapRef.current,
+          harborConfig,
+          selectedAnomaly || (liveAnomalies.length > 0 ? liveAnomalies : null),
+          { padding: 45, maxZoom: 11.4, duration: 1600 }
+        );
+      }
+    }, 120); // 120ms debounce — absorbs the data-load re-render
+  }, [selectedAnomaly?.id, harborConfig?.lat, harborConfig?.lng, activeHarbour]);
+  // ↑ deliberately excludes liveAnomalies.length to prevent double animation on data load
 
   const isFirstLoad = useRef(true);
   const patrolIndicesRef = useRef<Record<string, number>>({});
