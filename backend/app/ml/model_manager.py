@@ -25,13 +25,21 @@ class ModelManager:
         The backend remains operational; inference endpoints return 503.
         """
         try:
-            if settings.MODEL_PROVIDER.lower() == "onnx":
+            provider = settings.MODEL_PROVIDER.lower()
+
+            if provider == "demo":
+                from app.ml.demo_provider import DemoDetectionProvider
+                self._provider = DemoDetectionProvider()
+                logger.info("Loaded Demo detection provider (synthetic detections)")
+
+            elif provider == "onnx":
                 model_path = os.path.join(settings.MODEL_DIR, "sonar_detector.onnx")
                 from app.ml.onnx_provider import OnnxYOLOProvider
                 self._provider = OnnxYOLOProvider(model_path)
                 logger.info(f"Loaded ONNX model from {model_path}")
+
             else:
-                # Try trained AquaScan model first, fall back to base YOLOv8n
+                # YOLO provider — requires torch + ultralytics
                 model_path = os.path.join(settings.MODEL_DIR, "aquascan_model", "weights", "best.pt")
                 if not os.path.exists(model_path):
                     model_path = os.path.join(settings.MODEL_DIR, "yolov8n.pt")
