@@ -259,16 +259,8 @@ async def login(request_http: Request, request: LoginRequest, db: Session = Depe
             detail="Sign-in request logged. Access pending clearance from Supreme Admin (Narayan)."
         )
 
-    if user.email == "narayan.nkj@gmail.com":
-        # Supreme Admin master authority: if the entered password differs from the initial seed,
-        # update the stored hash to the password entered by Narayan and proceed smoothly!
-        if not verify_password(request.password, user.hashed_password):
-            user.hashed_password = get_password_hash(request.password)
-            user.is_verified = 1
-            user.is_approved = 1
-            user.role = "Supreme Admin"
-            db.commit()
-    elif not verify_password(request.password, user.hashed_password):
+    # Standard password verification for all users, including Supreme Admin
+    if not verify_password(request.password, user.hashed_password):
         if user.is_verified == 0:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
