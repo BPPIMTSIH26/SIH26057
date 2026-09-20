@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { CheckCircle, AlertTriangle, AlertCircle, TrendingUp, Anchor, Zap } from 'lucide-react';
+import { CheckCircle, AlertTriangle, AlertCircle, TrendingUp, Anchor, Zap, RefreshCw } from 'lucide-react';
 
 import MetricCard from '../components/ui/MetricCard';
 import PriorityQueue from '../components/ui/PriorityQueue';
@@ -12,13 +12,13 @@ import {
   getModelFeedback,
   getDashboardTrends
 } from '../services/api';
-import { DashboardMetrics, Anomaly, TemporalPoint, ModelFeedback, HARBOURS } from '../data/mockData';
-import { useHarbour, useRealTimeAnomalies } from '../contexts/AppContext';
+import { DashboardMetrics, Anomaly, TemporalPoint, ModelFeedback } from '../data/mockData';
+import { usePort, useRealTimeAnomalies } from '../contexts/AppContext';
 import { Map, Marker } from '../components/RawMap';
 import { getHarbourViewport, fitMapToHarbourAndPoints } from '../utils/mapUtils';
 
 export default function Dashboard() {
-  const { activeHarbour, setActiveHarbour } = useHarbour();
+  const { selectedPortId, selectedPort, setSelectedPortId, ports } = usePort();
   const navigate = useNavigate();
   const realTimeUpdates = useRealTimeAnomalies();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -27,110 +27,187 @@ export default function Dashboard() {
   const [modelFeedback, setModelFeedback] = useState<ModelFeedback | null>(null);
   const [selectedAnomalyId, setSelectedAnomalyId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isAutoPatrol, setIsAutoPatrol] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isAutoPatrol, setIsAutoPatrol] = useState(false);
   const mapRef = useRef<any>(null);
   const mapFitTimerRef = useRef<any>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef<number>(0);
+  const patrolIndicesRef = useRef<Record<string, number>>({});
 
-  const liveAnomalies = React.useMemo(() =>
+  // Merge real-time websocket updates with fetched anomalies
+  const liveAnomalies = useMemo(() =>
     anomalies.map(a => ({ ...a, ...(realTimeUpdates[a.id] || {}) })),
     [anomalies, realTimeUpdates]
   );
 
-  const selectedAnomaly = liveAnomalies.find(a => a.id === selectedAnomalyId);
-  const harborConfig = HARBOURS[activeHarbour] || HARBOURS['Mumbai Harbor Q3'];
+  // Strictly filter anomalies to the currently selected port ID
+  const portAnomalies = useMemo(() =>
+    liveAnomalies.filter(a => !a.portId || a.portId === selectedPortId),
+    [liveAnomalies, selectedPortId]
+  );
 
-  const initialVp = React.useMemo(() => getHarbourViewport(harborConfig, selectedAnomaly), [harborConfig, selectedAnomaly]);
+  // Inspector anomaly strictly validated to match the current selected port
+  const selectedAnomaly = useMemo(() => {
+    if (!selectedAnomalyId) return null;
+    const found = portAnomalies.find(a => a.id === selectedAnomalyId);
+    if (!found) return null;
+    if (found.portId && found.portId !== selectedPortId) return null;
+    return found;
+  }, [portAnomalies, selectedAnomalyId, selectedPortId]);
 
-  // Frame both harbor port and anomaly simultaneously on map.
-  // Debounced to prevent double-animation when activeHarbour changes
-  // (avoids firing once for harborConfig change AND again for liveAnomalies.length change).
+  // Viewport calculation based on canonical selected port
+  const initialVp = useMemo(() => getHarbourViewport(selectedPort, selectedAnomaly), [selectedPort, selectedAnomaly]);
+
+  // Frame both port and anomaly on map with debouncing to prevent thrashing
   useEffect(() => {
     if (mapFitTimerRef.current) clearTimeout(mapFitTimerRef.current);
     mapFitTimerRef.current = setTimeout(() => {
-      if (mapRef.current && harborConfig) {
+      if (mapRef.current && selectedPort) {
         fitMapToHarbourAndPoints(
           mapRef.current,
-          harborConfig,
-          selectedAnomaly || (liveAnomalies.length > 0 ? liveAnomalies : null),
+          selectedPort,
+          selectedAnomaly || (portAnomalies.length > 0 ? portAnomalies : null),
           { padding: 45, maxZoom: 11.4, duration: 1600 }
         );
       }
-    }, 120); // 120ms debounce — absorbs the data-load re-render
-  }, [selectedAnomaly?.id, harborConfig?.lat, harborConfig?.lng, activeHarbour]);
-  // ↑ deliberately excludes liveAnomalies.length to prevent double animation on data load
+    }, 120);
+  }, [selectedAnomaly?.id, selectedPort.lat, selectedPort.lng, selectedPortId, portAnomalies]);
 
-  const isFirstLoad = useRef(true);
-  const patrolIndicesRef = useRef<Record<string, number>>({});
-  // Load data
-  useEffect(() => {
-    async function loadData() {
-      if (isFirstLoad.current) {
-        setIsLoading(true);
+  // Safe anomaly selection: guarantees port alignment before opening inspector
+  const selectAnomaly = useCallback((anomaly: Anomaly) => {
+    if (anomaly.portId && anomaly.portId !== selectedPortId) {
+      setSelectedPortId(anomaly.portId);
+    }
+    setSelectedAnomalyId(anomaly.id);
+    setIsAutoPatrol(false);
+  }, [selectedPortId, setSelectedPortId]);
+
+  // Data fetching scoped to selectedPortId with request cancellation & race condition guards
+  const loadData = useCallback(async () => {
+    const currentReqId = ++requestIdRef.current;
+
+    // Cancel prior in-flight requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    // Immediately clear stale previous-port data before rendering or awaiting
+    setAnomalies([]);
+    setSelectedAnomalyId('');
+    setMetrics(null);
+    setChartData([]);
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const [m, a, mf, trends] = await Promise.all([
+        getDashboardMetrics(selectedPortId, controller.signal),
+        getAnomalies({}, selectedPortId, controller.signal),
+        getModelFeedback(),
+        getDashboardTrends(selectedPortId, controller.signal)
+      ]);
+
+      if (controller.signal.aborted || currentReqId !== requestIdRef.current) {
+        return;
       }
-      try {
-        const [m, a, mf, trends] = await Promise.all([
-          getDashboardMetrics(activeHarbour),
-          getAnomalies({}, activeHarbour),
-          getModelFeedback(),
-          getDashboardTrends()
-        ]);
-        setMetrics(m);
-        setAnomalies(a);
-        setModelFeedback(mf);
-        setChartData(trends);
-        if (a.length > 0) {
-          if (isAutoPatrol) {
-            const idx = patrolIndicesRef.current[activeHarbour] || 0;
-            const nextIdx = idx % a.length;
-            setSelectedAnomalyId(a[nextIdx].id);
-          } else {
-            const top = a.find(x => x.priority === 'immediate') || a.find(x => x.priority === 'high') || a[0];
-            setSelectedAnomalyId(top.id);
-          }
+
+      // Enforce port isolation on anomalies
+      const scopedAnomalies = a.filter(item => !item.portId || item.portId === selectedPortId);
+      setMetrics(m);
+      setAnomalies(scopedAnomalies);
+      setModelFeedback(mf);
+      setChartData(trends);
+
+      if (scopedAnomalies.length > 0) {
+        if (isAutoPatrol) {
+          const idx = patrolIndicesRef.current[selectedPortId] || 0;
+          const nextIdx = idx % scopedAnomalies.length;
+          setSelectedAnomalyId(scopedAnomalies[nextIdx].id);
         } else {
-          setSelectedAnomalyId('');
+          const top = scopedAnomalies.find(x => x.priority === 'immediate') ||
+                      scopedAnomalies.find(x => x.priority === 'high') ||
+                      scopedAnomalies[0];
+          setSelectedAnomalyId(top.id);
         }
-      } catch (err) {
-        console.error('Dashboard load error:', err);
-        // On error: show empty state, don't substitute fabricated values
-        setMetrics(null);
-        setAnomalies([]);
-        setChartData([]);
+      } else {
+        setSelectedAnomalyId('');
       }
       setIsLoading(false);
-      isFirstLoad.current = false;
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || controller.signal.aborted) {
+        return;
+      }
+      if (currentReqId !== requestIdRef.current) {
+        return;
+      }
+      console.error('Dashboard load error:', err);
+      setError('Unable to load port telemetry. Check connection and retry.');
+      setMetrics(null);
+      setAnomalies([]);
+      setChartData([]);
+      setSelectedAnomalyId('');
+      setIsLoading(false);
     }
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeHarbour]);
+  }, [selectedPortId, isAutoPatrol]);
 
-
-  // Auto patrol logic
   useEffect(() => {
-    if (!isAutoPatrol) return;
+    loadData();
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [loadData]);
+
+  // Auto patrol logic: cycles through canonical ports list safely
+  useEffect(() => {
+    if (!isAutoPatrol || ports.length === 0) return;
 
     const interval = setInterval(() => {
-      const ports = Object.keys(HARBOURS);
-      const currentIndex = ports.indexOf(activeHarbour);
+      const currentIndex = ports.findIndex(p => p.id === selectedPortId);
       const nextIndex = (currentIndex + 1) % ports.length;
-      const nextHarbour = ports[nextIndex];
-      
-      if (patrolIndicesRef.current[nextHarbour] === undefined) {
-        patrolIndicesRef.current[nextHarbour] = 0;
+      const nextPort = ports[nextIndex];
+
+      if (patrolIndicesRef.current[nextPort.id] === undefined) {
+        patrolIndicesRef.current[nextPort.id] = 0;
       } else {
-        patrolIndicesRef.current[nextHarbour] += 1;
+        patrolIndicesRef.current[nextPort.id] += 1;
       }
-      
-      setActiveHarbour(nextHarbour);
-    }, 5000); // 5s wait (2.5s animation + 2.5s stay)
+
+      setSelectedPortId(nextPort.id);
+    }, 6000);
 
     return () => clearInterval(interval);
-  }, [isAutoPatrol, activeHarbour, setActiveHarbour]);
+  }, [isAutoPatrol, selectedPortId, setSelectedPortId, ports]);
 
-  const priorityAnomalies = liveAnomalies
-    .filter(a => a.priority === 'immediate' || a.priority === 'high' || a.priority === 'medium')
-    .sort((a, b) => b.overallScore - a.overallScore);
+  // Priority queue anomalies (filtered to selected port only)
+  const priorityAnomalies = useMemo(() =>
+    portAnomalies
+      .filter(a => a.priority === 'immediate' || a.priority === 'high' || a.priority === 'medium')
+      .sort((a, b) => b.overallScore - a.overallScore),
+    [portAnomalies]
+  );
 
+  // Derived KPI metrics fallback to ensure port-only accuracy
+  const derivedKnown = useMemo(() => 
+    portAnomalies.filter(a => a.classification?.toUpperCase() === 'KNOWN').length,
+    [portAnomalies]
+  );
+  const derivedUnknown = useMemo(() => 
+    portAnomalies.filter(a => a.classification?.toUpperCase() === 'UNKNOWN').length,
+    [portAnomalies]
+  );
+  const derivedNewChanges = useMemo(() => 
+    portAnomalies.filter(a => a.severity === 'unusual' || a.severity === 'high').length,
+    [portAnomalies]
+  );
+
+  const displayKnown = metrics?.knownAnomalies != null ? metrics.knownAnomalies : derivedKnown;
+  const displayUnknown = metrics?.unknownAnomalies != null ? metrics.unknownAnomalies : derivedUnknown;
+  const displayNewChanges = metrics?.newChanges != null ? metrics.newChanges : derivedNewChanges;
 
   return (
     <div className="relative flex flex-col h-full bg-void text-text-primary overflow-hidden">
@@ -138,11 +215,6 @@ export default function Dashboard() {
       {/* ── FULL SCREEN DARK TECH BACKGROUND ── */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-glass-strong)_0%,_var(--color-void)_50%)]">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50 mix-blend-overlay" />
-        {isLoading && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-void/60 backdrop-blur-sm">
-            <div className="w-8 h-8 border-2 border-glass-border border-t-cyan rounded-full animate-spin" />
-          </div>
-        )}
       </div>
 
       {/* ── BENTO BOX LAYOUT ── */}
@@ -152,18 +224,60 @@ export default function Dashboard() {
           {/* LEFT COLUMN */}
           <div className="flex-[2] flex flex-col gap-4 lg:gap-6 min-w-0 xl:min-h-0">
             
-            {/* Top Ribbons (KPIs) - Responsive Grid */}
+            {/* Top Ribbons (KPIs) - Scoped strictly to selected port */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 shrink-0">
-              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Normal Regions" value={metrics?.normalRegions != null ? metrics.normalRegions : 'N/A'} icon={CheckCircle} colorClass="text-text-primary" isLoading={isLoading} /></div>
-              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Known Anomalies" value={metrics?.knownAnomalies ?? '--'} icon={AlertTriangle} colorClass="text-warning" isLoading={isLoading} /></div>
-              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="Unknown Anomalies" value={metrics?.unknownAnomalies ?? '--'} icon={AlertCircle} colorClass="text-danger" isLoading={isLoading} /></div>
-              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"><MetricCard label="New Changes" value={metrics?.newChanges ?? '--'} icon={TrendingUp} colorClass="text-cyan" trend="-1 since last run" trendDirection="down" isLoading={isLoading} /></div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+                <MetricCard 
+                  label="Normal Regions" 
+                  value={metrics?.normalRegions != null ? metrics.normalRegions : 'N/A'} 
+                  icon={CheckCircle} 
+                  colorClass="text-text-primary" 
+                  isLoading={isLoading} 
+                />
+              </div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+                <MetricCard 
+                  label="Known Anomalies" 
+                  value={displayKnown} 
+                  icon={AlertTriangle} 
+                  colorClass="text-warning" 
+                  isLoading={isLoading} 
+                />
+              </div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+                <MetricCard 
+                  label="Unknown Anomalies" 
+                  value={displayUnknown} 
+                  icon={AlertCircle} 
+                  colorClass="text-danger" 
+                  isLoading={isLoading} 
+                />
+              </div>
+              <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+                <MetricCard 
+                  label="New Changes" 
+                  value={displayNewChanges} 
+                  icon={TrendingUp} 
+                  colorClass="text-cyan" 
+                  trend={`${portAnomalies.length} total in ${selectedPort.code}`} 
+                  trendDirection="down" 
+                  isLoading={isLoading} 
+                />
+              </div>
             </div>
 
             {/* Minimap Section */}
             <div className="flex-1 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-1 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.4)] min-h-[300px] md:min-h-[400px] overflow-hidden relative group">
               <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
-                <h3 className="font-display font-bold text-sm uppercase tracking-[0.12em] text-text-primary px-3 py-1.5 bg-void/80 backdrop-blur-md border border-glass-border rounded-lg shadow-lg pointer-events-none hidden sm:block">Sector Minimap</h3>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-void/80 backdrop-blur-md border border-glass-border rounded-lg shadow-lg pointer-events-none">
+                  <span className="w-1.5 h-1.5 bg-accent rounded-full animate-glow-pulse" />
+                  <h3 className="font-display font-bold text-xs uppercase tracking-[0.12em] text-text-primary">
+                    Minimap: {selectedPort.name}
+                  </h3>
+                  <span className="text-[9px] px-1 py-0.5 rounded bg-surface border border-glass-border font-mono text-cyan">
+                    {selectedPort.code}
+                  </span>
+                </div>
                 <button 
                   onClick={() => setIsAutoPatrol(!isAutoPatrol)}
                   className={`px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors border shadow-lg flex items-center gap-2 ${
@@ -176,6 +290,7 @@ export default function Dashboard() {
                   Auto Patrol
                 </button>
               </div>
+
               <div className="flex-1 rounded-xl overflow-hidden relative pointer-events-auto">
                 <Map
                   ref={mapRef}
@@ -188,20 +303,21 @@ export default function Dashboard() {
                   }}
                   interactive={true}
                 >
-                  {/* Port marker */}
-                  <Marker longitude={harborConfig.lng} latitude={harborConfig.lat}>
+                  {/* Selected Port marker */}
+                  <Marker longitude={selectedPort.lng} latitude={selectedPort.lat}>
                     <div className="flex flex-col items-center group cursor-pointer">
                       <div className="w-3.5 h-3.5 bg-accent rounded-sm border border-void shadow-[var(--glow-accent)] relative z-10 flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-void rounded-xs" />
                       </div>
-                      <div className="mt-1 px-1.5 py-0.5 bg-void/90 backdrop-blur border border-glass-border text-[9px] text-text-primary uppercase tracking-[0.15em] font-medium whitespace-nowrap rounded-sm shadow-lg">
-                        PORT: {activeHarbour}
+                      <div className="mt-1 px-2 py-0.5 bg-void/90 backdrop-blur border border-glass-border text-[9px] text-text-primary uppercase tracking-[0.15em] font-medium whitespace-nowrap rounded shadow-lg flex items-center gap-1.5">
+                        <span className="text-accent font-semibold">{selectedPort.name}</span>
+                        <span className="text-text-muted font-mono">[{selectedPort.code}]</span>
                       </div>
                     </div>
                   </Marker>
                   
-                  {/* Anomaly Markers */}
-                  {liveAnomalies.filter(a => a.latitude !== null && a.longitude !== null).map(a => {
+                  {/* Anomaly Markers: strictly scoped to current selected port */}
+                  {portAnomalies.filter(a => a.latitude !== null && a.longitude !== null).map(a => {
                     const isSelected = a.id === selectedAnomalyId;
                     return (
                       <Marker
@@ -210,20 +326,17 @@ export default function Dashboard() {
                         latitude={a.latitude}
                       >
                         <div
-                          onClick={() => {
-                            setSelectedAnomalyId(a.id);
-                            setIsAutoPatrol(false);
-                          }}
+                          onClick={() => selectAnomaly(a)}
                           className="cursor-pointer group flex flex-col items-center justify-center"
-                          title={`${a.label} (${a.priority})`}
+                          title={`${a.label} (${a.priority}) — ${selectedPort.name}`}
                         >
                           {isSelected ? (
                             <div className="relative flex items-center justify-center w-5 h-5">
                               <div className="absolute -inset-2 rounded-full border border-danger animate-ping opacity-60" style={{ animationDuration: '2.5s' }} />
-                              <div className="w-3 h-3 rounded-full bg-danger border-2 border-void shadow-[var(--glow-accent)] relative z-10" />
+                              <div className="w-3.5 h-3.5 rounded-full bg-danger border-2 border-void shadow-[0_0_12px_var(--color-danger)] relative z-10" />
                             </div>
                           ) : (
-                            <div className={`w-2 h-2 rounded-full border border-void transition-transform group-hover:scale-125 ${
+                            <div className={`w-2.5 h-2.5 rounded-full border border-void transition-transform group-hover:scale-125 ${
                               a.severity === 'high' ? 'bg-danger shadow-[0_0_6px_var(--color-danger)]' : 
                               a.severity === 'unusual' ? 'bg-warning' : 'bg-accent/80'
                             }`} />
@@ -237,10 +350,17 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Short Survey Activity Chart */}
+            {/* Port-scoped Survey Trends Chart */}
             <div className="h-48 shrink-0 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-5 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-display font-bold text-xs uppercase tracking-[0.12em] text-text-primary">Survey Trends</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-display font-bold text-xs uppercase tracking-[0.12em] text-text-primary">
+                    Survey Trends
+                  </h3>
+                  <span className="text-[9px] font-mono text-text-muted px-1.5 py-0.5 rounded bg-surface border border-glass-border">
+                    {selectedPort.name}
+                  </span>
+                </div>
                 {isLoading && <div className="w-3 h-3 border-2 border-glass-border border-t-cyan rounded-full animate-spin" />}
               </div>
               <div className="flex-1 w-full relative">
@@ -249,6 +369,10 @@ export default function Dashboard() {
                     {[...Array(24)].map((_, i) => (
                       <div key={i} className="flex-1 bg-glass rounded-t-sm" style={{ height: `${(Math.sin(i * 1234.5) * 0.5 + 0.5) * 60 + 20}%` }} />
                     ))}
+                  </div>
+                ) : chartData.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-4 border border-dashed border-glass-border/40 rounded-xl">
+                    <span className="text-xs font-mono text-text-muted uppercase">No historical trend data recorded for {selectedPort.name}.</span>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -280,11 +404,16 @@ export default function Dashboard() {
           {/* RIGHT COLUMN */}
           <div className="flex-[1] flex flex-col gap-4 lg:gap-6 shrink-0 w-full xl:min-w-[340px] xl:w-[400px] xl:min-h-0">
             
-            {/* Inspector Node */}
+            {/* Inspector Node: Strictly scoped to selectedPortId */}
             <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-6 flex flex-col shrink-0 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-              <h3 className="font-display font-bold text-sm uppercase tracking-[0.12em] text-text-primary flex items-center gap-2 mb-4">
-                <Zap className="w-4 h-4 text-cyan" /> Inspector Node
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display font-bold text-sm uppercase tracking-[0.12em] text-text-primary flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-cyan" /> Inspector Node
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-glass-border text-cyan">
+                  {selectedPort.name} [{selectedPort.code}]
+                </span>
+              </div>
               <div className="min-h-[120px]">
                 {isLoading ? (
                   <div className="flex flex-col gap-3 animate-pulse">
@@ -292,10 +421,31 @@ export default function Dashboard() {
                     <div className="h-3 bg-glass rounded w-full"></div>
                     <div className="h-3 bg-glass rounded w-5/6"></div>
                   </div>
+                ) : error ? (
+                  <div className="h-[120px] flex flex-col items-center justify-center text-center p-4 border border-danger/30 bg-danger/5 rounded-xl">
+                    <AlertCircle className="w-5 h-5 text-danger mb-2" />
+                    <span className="text-xs font-mono text-danger mb-3">{error}</span>
+                    <button
+                      onClick={loadData}
+                      className="px-3 py-1 bg-surface border border-glass-border text-xs rounded hover:bg-glass flex items-center gap-1.5"
+                    >
+                      <RefreshCw className="w-3 h-3" /> Retry
+                    </button>
+                  </div>
                 ) : selectedAnomaly ? (
                   <div className="flex flex-col gap-5 animate-in fade-in duration-300">
+                    <div className="flex items-center justify-between border-b border-glass-border pb-2">
+                      <span className="font-display font-medium text-xs text-text-primary uppercase tracking-wider">
+                        {selectedAnomaly.label}
+                      </span>
+                      <span className="text-[10px] font-mono text-text-muted">
+                        PORT ID: {selectedAnomaly.portId || selectedPortId}
+                      </span>
+                    </div>
                     <div className="border-l-2 border-cyan pl-4 py-1">
-                      <p className="text-text-primary font-mono text-xs leading-relaxed uppercase opacity-90">{selectedAnomaly.explanation || 'Anomaly requires manual review. Automated analysis pending deeper scanning operations.'}</p>
+                      <p className="text-text-primary font-mono text-xs leading-relaxed uppercase opacity-90">
+                        {selectedAnomaly.explanation || 'Anomaly requires manual review. Automated analysis pending deeper scanning operations.'}
+                      </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-glass rounded-xl p-4 backdrop-blur-md border border-glass-border flex flex-col gap-1">
@@ -304,27 +454,41 @@ export default function Dashboard() {
                       </div>
                       <div className="bg-glass rounded-xl p-4 backdrop-blur-md border border-glass-border flex flex-col gap-1">
                         <div className="text-[10px] text-text-secondary uppercase tracking-widest font-bold">Depth</div>
-                        <div className="text-text-primary font-mono text-2xl font-light">{selectedAnomaly.depthMeters !== null ? `${selectedAnomaly.depthMeters}m` : 'N/A'}</div>
+                        <div className="text-text-primary font-mono text-2xl font-light">
+                          {selectedAnomaly.depthMeters !== null ? `${selectedAnomaly.depthMeters}m` : 'N/A'}
+                        </div>
                       </div>
                     </div>
+                  </div>
+                ) : portAnomalies.length === 0 ? (
+                  <div className="h-[120px] flex flex-col items-center justify-center text-center p-6 border border-dashed border-glass-border bg-glass rounded-xl">
+                    <CheckCircle className="w-6 h-6 text-success mb-2 opacity-80" />
+                    <span className="text-xs font-mono text-text-secondary uppercase">
+                      No anomalies detected for {selectedPort.name}.
+                    </span>
                   </div>
                 ) : (
                   <div className="h-[120px] flex flex-col items-center justify-center text-center p-6 border border-dashed border-glass-border bg-glass rounded-xl">
                     <Anchor className="w-6 h-6 text-text-muted mb-3" />
-                    <span className="text-xs font-mono text-text-secondary uppercase">Select an anomaly to initialize inspector.</span>
+                    <span className="text-xs font-mono text-text-secondary uppercase">
+                      Select an anomaly in {selectedPort.name} to inspect.
+                    </span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Priority Queue */}
+            {/* Active Queue: Filtered strictly to selectedPort */}
             <div className="flex-1 min-h-0 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col">
               <PriorityQueue
                 anomalies={priorityAnomalies}
                 selectedId={selectedAnomalyId}
                 isLoading={isLoading}
-                onSelectAnomaly={id => setSelectedAnomalyId(id)}
-                onViewDetails={id => navigate('/map', { state: { selectedAnomalyId: id } })}
+                onSelectAnomaly={id => {
+                  const target = portAnomalies.find(a => a.id === id);
+                  if (target) selectAnomaly(target);
+                }}
+                onViewDetails={id => navigate(`/map?port=${selectedPortId}`, { state: { selectedAnomalyId: id } })}
               />
             </div>
 
