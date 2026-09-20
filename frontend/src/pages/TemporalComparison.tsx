@@ -3,31 +3,40 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { History, Zap, ShieldAlert, ToggleLeft, ToggleRight, SlidersHorizontal, Anchor } from 'lucide-react';
 import { getTemporalSeries, getAnomalyById, getAnomalies } from '../services/api';
 import { TemporalPoint, Anomaly } from '../data/mockData';
-import { useHarbour } from '../contexts/AppContext';
+import { usePort } from '../contexts/AppContext';
 
 const paneClass = 'bg-surface border border-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl';
 
 export default function TemporalComparison() {
- const { activeHarbour } = useHarbour();
- const [chartData, setChartData] = useState<TemporalPoint[]>([]);
- const [anomaly, setAnomaly] = useState<Anomaly | null>(null);
- const [showChangedOnly, setShowChangedOnly] = useState(true);
- const [sliderIndex, setSliderIndex] = useState(4);
+  const { selectedPortId, selectedPort } = usePort();
+  const activeHarbour = selectedPort.name;
+  const [chartData, setChartData] = useState<TemporalPoint[]>([]);
+  const [anomaly, setAnomaly] = useState<Anomaly | null>(null);
+  const [showChangedOnly, setShowChangedOnly] = useState(true);
+  const [sliderIndex, setSliderIndex] = useState(4);
 
- const currentSurveyIndex = chartData.length > 0 ? chartData.length - 1 : 5;
- const previousSurveyIndex = chartData.length > 0 ? chartData.length - 2 : 4;
- const baselineIndex = 0;
+  const currentSurveyIndex = chartData.length > 0 ? chartData.length - 1 : 5;
+  const previousSurveyIndex = chartData.length > 0 ? chartData.length - 2 : 4;
+  const baselineIndex = 0;
 
- useEffect(() => {
- getAnomalies({}, activeHarbour).then(anomalies => {
- const id = anomalies[0]?.id || 'ano_017';
- getTemporalSeries(id, activeHarbour).then(data => {
- setChartData(data);
- setSliderIndex(data.length > 1 ? data.length - 2 : 4); // default to previous survey
- });
- getAnomalyById(id, activeHarbour).then(setAnomaly).catch(() => setAnomaly(null));
- });
- }, [activeHarbour]);
+  useEffect(() => {
+    setChartData([]);
+    setAnomaly(null);
+    getAnomalies({}, selectedPortId).then(anomalies => {
+      const scoped = anomalies.filter(a => !a.portId || a.portId === selectedPortId);
+      if (scoped.length > 0) {
+        const id = scoped[0].id;
+        getTemporalSeries(id, selectedPortId).then(data => {
+          setChartData(data);
+          setSliderIndex(data.length > 1 ? data.length - 2 : 0);
+        });
+        getAnomalyById(id, selectedPortId).then(setAnomaly).catch(() => setAnomaly(null));
+      } else {
+        setChartData([]);
+        setAnomaly(null);
+      }
+    });
+  }, [selectedPortId]);
 
  // The "reference" panel shows the date at sliderIndex; the "current" panel always shows latest
  const referenceDate = chartData[sliderIndex]?.date || "Mar '26";

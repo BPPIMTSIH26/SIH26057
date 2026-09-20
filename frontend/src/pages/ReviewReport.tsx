@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAnomalies, submitReview, getReportSummary, getModelFeedback } from '../services/api';
-import { Anomaly, ReportSummary, ModelFeedback, HARBOURS } from '../data/mockData';
+import { Anomaly, ReportSummary, ModelFeedback } from '../data/mockData';
 import { Map, Marker } from '../components/RawMap';
 import { getHarbourViewport, fitMapToHarbourAndPoints } from '../utils/mapUtils';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -23,7 +23,7 @@ import {
  ChevronDown,
  Check 
 } from 'lucide-react';
-import { useHarbour } from '../contexts/AppContext';
+import { usePort } from '../contexts/AppContext';
 import { usePreferences } from '../contexts/PreferencesContext';
 
 type Tab = 'review' | 'report';
@@ -31,66 +31,74 @@ type Tab = 'review' | 'report';
 const paneClass = 'bg-surface border border-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl';
 
 export default function ReviewReport() {
- const navigate = useNavigate();
- const { activeHarbour } = useHarbour();
- const harborConfig = HARBOURS[activeHarbour] || HARBOURS['Mumbai Harbor Q3'];
- const { formatCoordinates } = usePreferences();
- const [activeTab, setActiveTab] = useState<Tab>('review');
- const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
- const [selectedId, setSelectedId] = useState<string>('');
- const [notes, setNotes] = useState('');
- const [showToast, setShowToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
- const [showNewClassModal, setShowNewClassModal] = useState(false);
- const [newClassName, setNewClassName] = useState('');
- const mapRef = useRef<any>(null);
- 
- const [reportData, setReportData] = useState<ReportSummary | null>(null);
- const [feedbackData, setFeedbackData] = useState<ModelFeedback | null>(null);
+  const navigate = useNavigate();
+  const { selectedPortId, selectedPort } = usePort();
+  const harborConfig = selectedPort;
+  const activeHarbour = selectedPort.name;
+  const { formatCoordinates } = usePreferences();
+  const [activeTab, setActiveTab] = useState<Tab>('review');
+  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('');
+  const [notes, setNotes] = useState('');
+  const [showToast, setShowToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
+  const [showNewClassModal, setShowNewClassModal] = useState(false);
+  const [newClassName, setNewClassName] = useState('');
+  const mapRef = useRef<any>(null);
+  
+  const [reportData, setReportData] = useState<ReportSummary | null>(null);
+  const [feedbackData, setFeedbackData] = useState<ModelFeedback | null>(null);
 
- useEffect(() => {
-   if (activeTab === 'report' && mapRef.current && harborConfig) {
-     const timer = setTimeout(() => {
-       fitMapToHarbourAndPoints(
-         mapRef.current,
-         harborConfig,
-         anomalies,
-         { padding: 35, maxZoom: 11.2, duration: 1500 }
-       );
-     }, 250);
-     return () => clearTimeout(timer);
-   }
- }, [activeTab, activeHarbour, harborConfig, anomalies]);
+  useEffect(() => {
+    if (activeTab === 'report' && mapRef.current && harborConfig) {
+      const timer = setTimeout(() => {
+        fitMapToHarbourAndPoints(
+          mapRef.current,
+          harborConfig,
+          anomalies,
+          { padding: 35, maxZoom: 11.2, duration: 1500 }
+        );
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, selectedPortId, harborConfig, anomalies]);
 
- const [page, setPage] = useState(1);
- const [hasMore, setHasMore] = useState(true);
- const [isLoading, setIsLoading] = useState(false);
- const observerTarget = useRef<HTMLLIElement>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const observerTarget = useRef<HTMLLIElement>(null);
 
- const fetchAnomalies = useCallback(async (pageNum: number, isInitial = false) => {
- setIsLoading(true);
- try {
- const data = await getAnomalies({ page: pageNum, limit: 10 }, activeHarbour);
- if (isInitial) {
- setAnomalies(data);
- if (data.length > 0) setSelectedId(data.find(a => a.reviewStatus === 'pending')?.id || data[0].id);
- } else {
- setAnomalies(prev => [...prev, ...data]);
- }
- setHasMore(data.length === 10);
- } catch (e) {
- console.error(e);
- } finally {
- setIsLoading(false);
- }
- }, [activeHarbour]);
+  const fetchAnomalies = useCallback(async (pageNum: number, isInitial = false) => {
+    setIsLoading(true);
+    try {
+      const data = await getAnomalies({ page: pageNum, limit: 10 }, selectedPortId);
+      const scoped = data.filter(a => !a.portId || a.portId === selectedPortId);
+      if (isInitial) {
+        setAnomalies(scoped);
+        if (scoped.length > 0) {
+          setSelectedId(scoped.find(a => a.reviewStatus === 'pending')?.id || scoped[0].id);
+        } else {
+          setSelectedId('');
+        }
+      } else {
+        setAnomalies(prev => [...prev, ...scoped]);
+      }
+      setHasMore(scoped.length === 10);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedPortId]);
 
- // Initial load when harbour changes
- useEffect(() => {
- Promise.resolve().then(() => setPage(1));
- Promise.resolve().then(() => fetchAnomalies(1, true));
- getReportSummary('surv_001').then(setReportData);
- getModelFeedback().then(setFeedbackData);
- }, [activeHarbour, fetchAnomalies]);
+  // Initial load when port changes
+  useEffect(() => {
+    setAnomalies([]);
+    setSelectedId('');
+    Promise.resolve().then(() => setPage(1));
+    Promise.resolve().then(() => fetchAnomalies(1, true));
+    getReportSummary('surv_001').then(setReportData);
+    getModelFeedback().then(setFeedbackData);
+  }, [selectedPortId, fetchAnomalies]);
 
  // Observer for infinite scroll
  useEffect(() => {
