@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     REPORT_DIR: str = "./data/reports"
     MODEL_DIR: str = "./models"
     
+    # S3 Object Storage
+    AWS_ENDPOINT_URL_S3: str | None = None
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
+    AWS_REGION: str | None = None
+    AWS_BUCKET_NAME: str | None = None
+    
     # AI/Model Settings
     MODEL_PROVIDER: str = "demo"
     CONFIDENCE_THRESHOLD: float = 0.5

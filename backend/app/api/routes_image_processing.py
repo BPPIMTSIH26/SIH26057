@@ -11,6 +11,7 @@ from app.database.models import User, ImageProcessingJob
 from app.api.routes_auth import get_current_user_optional
 from app.schemas.image_processing import JobCreateResponse, ImageProcessingJobResponse
 from app.services.image_processing_service import ImageProcessingService
+from app.services.s3_service import S3Service
 from app.core.config import get_settings
 
 router = APIRouter()
@@ -60,15 +61,20 @@ async def create_processing_job(
     
     # Save the original file immutably and safely
     safe_name = os.path.basename(file.filename)
-    file_path = os.path.join(settings.UPLOAD_DIR, f"{uuid.uuid4()}_{safe_name}")
+    unique_filename = f"{uuid.uuid4()}_{safe_name}"
+    file_path = os.path.join(settings.UPLOAD_DIR, unique_filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+        
+    # Upload to S3 if configured
+    s3_url = S3Service.upload_file(file_path, f"uploads/original/{unique_filename}", content_type=file.content_type or "image/jpeg")
+    original_image_path = s3_url if s3_url else f"/api/uploads/{os.path.basename(file_path)}"
         
     job = ImageProcessingJob(
         user_id=current_user.id,
         status="queued",
         stage="queued",
-        original_image_path=f"/api/uploads/{os.path.basename(file_path)}"
+        original_image_path=original_image_path
     )
     db.add(job)
     db.commit()
