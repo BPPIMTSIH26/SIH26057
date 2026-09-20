@@ -11,6 +11,7 @@ import uuid
 
 from app.database.models import ImageProcessingJob
 from app.core.config import get_settings
+from app.services.s3_service import S3Service
 
 settings = get_settings()
 RESULTS_DIR = os.path.join(settings.UPLOAD_DIR, "processing_results")
@@ -24,7 +25,9 @@ class ImageProcessingService:
             cv2.imwrite(path, image_arr)
         else:
             cv2.imwrite(path, cv2.cvtColor(image_arr, cv2.COLOR_RGB2BGR))
-        return f"/api/uploads/processing_results/{filename}"
+            
+        s3_url = S3Service.upload_file(path, f"uploads/processing_results/{filename}")
+        return s3_url if s3_url else f"/api/uploads/processing_results/{filename}"
 
     @staticmethod
     def _detect_regions(img, orig_h, orig_w):
