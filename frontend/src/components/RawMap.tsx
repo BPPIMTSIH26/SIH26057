@@ -44,7 +44,7 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
           jsStyleObject.layers.forEach((layer: any) => {
             if (layer.id === 'background' || layer.type === 'background') {
               if (!layer.paint) layer.paint = {};
-              layer.paint['background-color'] = theme === 'dark' ? '#1e293b' : '#E8EEF4';
+              layer.paint['background-color'] = theme === 'dark' ? '#0A0F1A' : '#E8EEF4';
             }
             if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
               layer.layout['text-field'] = [
@@ -148,7 +148,7 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
         jsStyleObject.layers.forEach((layer: any) => {
           if (layer.id === 'background' || layer.type === 'background') {
             if (!layer.paint) layer.paint = {};
-            layer.paint['background-color'] = theme === 'dark' ? '#1e293b' : '#E8EEF4';
+            layer.paint['background-color'] = theme === 'dark' ? '#0A0F1A' : '#E8EEF4';
           }
           if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
             layer.layout['text-field'] = ['coalesce', ['get', 'name:en'], ['get', 'name']];
@@ -168,7 +168,7 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
     <div 
       style={{ 
         width: '100%', height: '100%', position: 'absolute', inset: 0, 
-        backgroundColor: theme === 'dark' ? '#1e293b' : '#E8EEF4',
+        backgroundColor: theme === 'dark' ? '#0A0F1A' : '#E8EEF4',
       }}
     >
       {/* Loading skeleton — visible until tiles render */}
