@@ -19,6 +19,7 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [tileError, setTileError] = useState(false);
 
   useImperativeHandle(ref, () => map, [map]);
 
@@ -82,6 +83,15 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
           setTimeout(() => mapInstance?.resize(), 100);
           setTimeout(() => mapInstance?.resize(), 500);
           setTimeout(() => mapInstance?.resize(), 1500);
+        });
+
+        mapInstance.on('error', (e: any) => {
+          // Catch tile/style fetch errors - show fallback instead of silent black
+          const msg = e?.error?.message || '';
+          if (msg.includes('fetch') || msg.includes('Failed') || msg.includes('style')) {
+            console.warn('[RawMap] Tile/style error:', msg);
+            if (isMounted) setTileError(true);
+          }
         });
         
         mapInstance.on('idle', (e) => {
@@ -150,12 +160,47 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
     <div 
       style={{ 
         width: '100%', height: '100%', position: 'absolute', inset: 0, 
-        backgroundColor: theme === 'dark' ? '#0A0A0A' : '#F4F4F5',
-        opacity: isLoaded ? 1 : 0,
-        transition: 'opacity 0.8s ease-in-out'
+        backgroundColor: theme === 'dark' ? '#0A0F1A' : '#E8EEF4',
       }}
     >
-      <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }} />
+      {/* Loading skeleton — visible until tiles render */}
+      {!isLoaded && !tileError && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          background: theme === 'dark'
+            ? 'linear-gradient(135deg, #0A0F1A 0%, #0d1520 50%, #0A0F1A 100%)'
+            : 'linear-gradient(135deg, #E8EEF4 0%, #dde5ed 50%, #E8EEF4 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            width: 28, height: 28, border: '2px solid rgba(0,229,255,0.2)',
+            borderTop: '2px solid rgba(0,229,255,0.7)', borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+        </div>
+      )}
+      {/* Tile error fallback */}
+      {tileError && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          background: '#0A0F1A',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 8, color: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'monospace'
+        }}>
+          <span style={{ fontSize: 20 }}>◫</span>
+          <span>MAP TILES UNAVAILABLE</span>
+          <span style={{ fontSize: 9, opacity: 0.5 }}>Check network / tile server</span>
+        </div>
+      )}
+      {/* Map canvas */}
+      <div 
+        ref={containerRef} 
+        style={{ 
+          width: '100%', height: '100%', position: 'absolute', inset: 0,
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.6s ease-in-out'
+        }} 
+      />
       {map && <MapContext.Provider value={map}>{children}</MapContext.Provider>}
     </div>
   );
