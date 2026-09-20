@@ -44,7 +44,6 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
           jsStyleObject.layers.forEach((layer: any) => {
             if (layer.id === 'background' || layer.type === 'background') {
               if (!layer.paint) layer.paint = {};
-              layer.paint['background-color'] = theme === 'dark' ? '#0A0F1A' : '#E8EEF4';
             }
             if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
               layer.layout['text-field'] = [
@@ -148,7 +147,6 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
         jsStyleObject.layers.forEach((layer: any) => {
           if (layer.id === 'background' || layer.type === 'background') {
             if (!layer.paint) layer.paint = {};
-            layer.paint['background-color'] = theme === 'dark' ? '#0A0F1A' : '#E8EEF4';
           }
           if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
             layer.layout['text-field'] = ['coalesce', ['get', 'name:en'], ['get', 'name']];
@@ -168,7 +166,7 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
     <div 
       style={{ 
         width: '100%', height: '100%', position: 'absolute', inset: 0, 
-        backgroundColor: theme === 'dark' ? '#0A0F1A' : '#E8EEF4',
+        backgroundColor: theme === 'dark' ? '#0A0A0A' : '#F4F4F5',
       }}
     >
       {/* Loading skeleton — visible until tiles render */}
@@ -176,8 +174,8 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
           background: theme === 'dark'
-            ? 'linear-gradient(135deg, #0A0F1A 0%, #0d1520 50%, #0A0F1A 100%)'
-            : 'linear-gradient(135deg, #E8EEF4 0%, #dde5ed 50%, #E8EEF4 100%)',
+            ? 'linear-gradient(135deg, #0A0A0A 0%, #151515 50%, #0A0A0A 100%)'
+            : 'linear-gradient(135deg, #F4F4F5 0%, #E4E4E5 50%, #F4F4F5 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <div style={{
