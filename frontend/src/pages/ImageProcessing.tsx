@@ -21,6 +21,8 @@ import {
   FlaskConical,
   MountainSnow
 } from 'lucide-react';
+import { useHarbour } from '../contexts/AppContext';
+import { HARBOURS } from '../data/mockData';
 import { imageProcessingApi, ImageProcessingJobResponse } from '../services/imageProcessingApi';
 
 // ── Seabed composition helpers ──────────────────────────────────────────────
@@ -82,6 +84,8 @@ const ImageProcessing: React.FC = () => {
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const [imgKey, setImgKey] = useState<number>(() => Date.now());
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+  
+  const { activeHarbour } = useHarbour();
   const anomalyQueueRef = useRef<HTMLDivElement>(null);
 
   const fetchHistory = useCallback(async () => {
@@ -139,7 +143,18 @@ const ImageProcessing: React.FC = () => {
     setIsPublishing(true);
     setPublishSuccess(false);
     try {
-      await imageProcessingApi.publishJob(jobId);
+      let location = undefined;
+      const harborConfig = HARBOURS[activeHarbour];
+      if (harborConfig) {
+        // Scatter slightly around the harbor's water center
+        const r1 = (Math.random() - 0.5) * harborConfig.spread;
+        const r2 = (Math.random() - 0.5) * harborConfig.spread;
+        location = {
+          latitude: harborConfig.waterCenter.lat + r1,
+          longitude: harborConfig.waterCenter.lng + r2
+        };
+      }
+      await imageProcessingApi.publishJob(jobId, location);
       setPublishSuccess(true);
       setTimeout(() => setPublishSuccess(false), 3000);
     } catch (err: any) {
