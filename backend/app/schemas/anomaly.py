@@ -6,7 +6,7 @@ class AnomalyResponse(BaseModel):
     id: str
     anomaly_id: str
     mission_id: str
-    detection_id: str
+    detection_id: Optional[str] = None
     type: str
     confidence: float
     risk_score: float
