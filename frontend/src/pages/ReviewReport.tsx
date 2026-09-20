@@ -18,6 +18,9 @@ import {
  Clock, 
  MessageSquare, 
  Zap, 
+ UploadCloud,
+ X, 
+ ChevronDown,
  Check 
 } from 'lucide-react';
 import { useHarbour } from '../contexts/AppContext';
@@ -415,7 +418,22 @@ export default function ReviewReport() {
  ></textarea>
  </div>
  
- <div className="bg-success/10 border border-success/30 p-3 flex items-start gap-3">
+ <div className="flex flex-col gap-2 mt-4">
+   <label className="text-[10px] text-text-secondary uppercase tracking-[0.2em] font-bold flex items-center gap-2">
+     <UploadCloud className="w-3.5 h-3.5" /> Reference SSS Image
+   </label>
+   <div className="border border-dashed border-glass-border hover:border-glass-border-strong bg-void transition-all duration-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer group">
+     <div className="w-10 h-10 rounded-full bg-glass border border-glass-border flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-[var(--glow-hover)]">
+       <UploadCloud className="w-5 h-5 text-text-muted group-hover:text-accent transition-colors" />
+     </div>
+     <p className="text-[11px] font-mono text-text-secondary text-center leading-relaxed">
+       Drag and drop SSS crop image here<br/>
+       <span className="text-[9px] text-text-muted">or click to browse (.jpg, .png, .tiff)</span>
+     </p>
+   </div>
+ </div>
+ 
+ <div className="bg-success/10 border border-success/30 p-3 flex items-start gap-3 mt-4">
  <Zap className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
  <div className="text-[10px] font-mono text-success uppercase tracking-wider leading-relaxed">
  Your decision adds to the active learning set for Model v1.1

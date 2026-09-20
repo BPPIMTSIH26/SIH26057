@@ -90,7 +90,7 @@ export function fitMapToHarbourAndPoints(
     map.fitBounds(bounds, {
       padding: options?.padding ?? 70,
       maxZoom: options?.maxZoom ?? 11.6,
-      duration: options?.duration ?? 1600,
+      duration: options?.duration ?? 400,
       essential: true
     });
   } catch (_err) {
@@ -98,8 +98,8 @@ export function fitMapToHarbourAndPoints(
     const vp = getHarbourViewport(harbour, validPt);
     map.flyTo({
       center: [vp.longitude, vp.latitude],
-      zoom: vp.zoom,
-      duration: options?.duration ?? 1600,
+      zoom: options?.maxZoom ?? vp.zoom,
+      duration: options?.duration ?? 400,
       essential: true
     });
   }
