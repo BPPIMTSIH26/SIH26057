@@ -19,6 +19,13 @@ def map_port_name(port_name):
 
 def seed():
     db = SessionLocal()
+    
+    # Wipe existing anomalies first to replace them with the new ocean-centered ones
+    print("Deleting all existing anomalies...")
+    db.query(Anomaly).delete()
+    db.commit()
+    print("Deleted.")
+    
     with open('synthetic_data.json', 'r') as f:
         data = json.load(f)
         
