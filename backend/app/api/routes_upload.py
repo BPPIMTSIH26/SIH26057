@@ -9,8 +9,9 @@ Coordinates are NEVER fabricated. If the mission has verified GPS metadata,
 geolocation is estimated from sonar geometry. Otherwise, detections are stored
 as unmapped (latitude=None, longitude=None, location_source='unmapped').
 """
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from sqlalchemy.orm import Session
+from typing import Optional
 import shutil
 import os
 import time
@@ -41,6 +42,7 @@ def sha256_file(path: str) -> str:
 @router.post("/")
 async def upload_image(
         file: UploadFile = File(...),
+        port_id: Optional[str] = Form(None),
         db: Session = Depends(get_db)):
 
     if not file.filename:
@@ -78,8 +80,12 @@ async def upload_image(
         processing_time_ms = int((time.time() - inference_start) * 1000)
         inference_timestamp = datetime.now(timezone.utc).isoformat()
 
-        # Assign to an active mission — required for mission context
-        mission = db.query(Mission).first()
+        # Assign to mission matching port_id if specified, or active mission
+        mission = None
+        if port_id:
+            mission = db.query(Mission).filter((Mission.port_id == port_id) | (Mission.mission_id == port_id)).first()
+        if not mission:
+            mission = db.query(Mission).first()
         if not mission:
             raise HTTPException(
                 status_code=400,
@@ -152,6 +158,7 @@ async def upload_image(
             # Create anomaly record from confirmed detection
             anomaly = Anomaly(
                 mission_id=mission.id,
+                port_id=mission.port_id or port_id,
                 detection_id=det_record.id,
                 anomaly_id=f"ANO-UPL-{str(uuid.uuid4())[:8].upper()}",
                 type=det_record.class_name,
