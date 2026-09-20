@@ -1,21 +1,30 @@
+# ── Core API ──────────────────────────────────────────────────────────────────
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
 pydantic-settings
 SQLAlchemy
+
+# ── Image / Data Processing (lightweight) ─────────────────────────────────────
 opencv-python-headless
 numpy
 Pillow
-torch
-ultralytics
-onnx
-onnxruntime
 Shapely
 pyproj
+
+# ── Report Generation ──────────────────────────────────────────────────────────
 reportlab
-pytest
-httpx
-python-multipart
+
+# ── Auth & Security ───────────────────────────────────────────────────────────
 bcrypt>=4.0.0
 pyjwt>=2.8.0
+python-multipart
 python-dotenv>=1.0.0
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest
+httpx
+
+# ── Optional: ML Inference (only needed for MODEL_PROVIDER=yolo or onnx) ──────
+# Install manually when not deploying to Render:
+#   pip install torch ultralytics onnx onnxruntime
