@@ -42,16 +42,26 @@ def _load_model_registry() -> Optional[dict]:
 # Metrics
 # ---------------------------------------------------------------------------
 @router.get("/metrics")
-def get_dashboard_metrics(mission_id: Optional[str] = None, db: Session = Depends(get_db)):
+def get_dashboard_metrics(
+    port_id: Optional[str] = None,
+    mission_id: Optional[str] = None, 
+    db: Session = Depends(get_db)
+):
     """
     Returns counts derived from real anomaly records in the database.
+    Strictly scoped to port_id or mission_id when provided.
     'normalRegions' is not computable without area-coverage data — returned as null.
     """
     query = db.query(Anomaly)
-    if mission_id:
-        mission = db.query(Mission).filter(Mission.mission_id == mission_id).first()
-        if mission:
-            query = query.filter(Anomaly.mission_id == mission.id)
+    if port_id:
+        query = query.outerjoin(Mission, Anomaly.mission_id == Mission.id).filter(
+            (Anomaly.port_id == port_id) | (Mission.port_id == port_id)
+        )
+    elif mission_id:
+        query = query.outerjoin(Mission, Anomaly.mission_id == Mission.id).filter(
+            (Anomaly.mission_id == mission_id) | (Mission.mission_id == mission_id) | 
+            (Anomaly.port_id == mission_id) | (Mission.port_id == mission_id)
+        )
 
     total_anomalies = query.count()
 
@@ -170,18 +180,36 @@ def get_model_registry():
 # Survey Trends — real anomaly counts aggregated by mission
 # ---------------------------------------------------------------------------
 @router.get("/trends")
-def get_survey_trends(db: Session = Depends(get_db)):
+def get_survey_trends(
+    port_id: Optional[str] = None,
+    mission_id: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     """
     Returns per-mission anomaly counts for the Survey Trends chart.
-    Data points represent real missions with their real anomaly totals.
+    Data points represent real missions with their real anomaly totals,
+    filtered by port_id or mission_id when specified.
     """
-    missions = db.query(Mission).order_by(Mission.created_at).all()
+    mission_query = db.query(Mission).order_by(Mission.created_at)
+    if port_id:
+        mission_query = mission_query.filter(
+            (Mission.port_id == port_id) | (Mission.mission_id == port_id)
+        )
+    elif mission_id:
+        mission_query = mission_query.filter(
+            (Mission.mission_id == mission_id) | (Mission.port_id == mission_id)
+        )
+
+    missions = mission_query.all()
     if not missions:
         return {"dataPoints": [], "dataSource": "real_database_records"}
 
     data_points = []
     for mission in missions:
-        count = db.query(Anomaly).filter(Anomaly.mission_id == mission.id).count()
+        count_query = db.query(Anomaly).filter(Anomaly.mission_id == mission.id)
+        if port_id:
+            count_query = count_query.filter(Anomaly.port_id == port_id)
+        count = count_query.count()
         if count > 0:  # Only include missions with detected anomalies
             data_points.append({
                 "date": mission.created_at.strftime("%b %d") if mission.created_at else mission.mission_id,

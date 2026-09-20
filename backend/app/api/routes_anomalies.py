@@ -16,6 +16,7 @@ router = APIRouter()
 
 @router.get("", response_model=List[AnomalyResponse])
 def get_anomalies(
+    port_id: Optional[str] = None,
     mission_id: Optional[str] = None,
     status: Optional[str] = None,
     risk_level: Optional[str] = None,
@@ -25,18 +26,25 @@ def get_anomalies(
 ):
     """
     Return anomalies from real database records.
-    Supports filtering by mission_id, status, and risk_level.
+    Supports filtering by port_id, mission_id, status, and risk_level.
     """
     repo = AnomalyRepository(db)
-    return repo.get_all(mission_id=mission_id, status=status, risk_level=risk_level)
+    return repo.get_all(port_id=port_id, mission_id=mission_id, status=status, risk_level=risk_level)
 
 
 @router.get("/{anomaly_id}", response_model=AnomalyResponse)
-def get_anomaly(anomaly_id: str, db: Session = Depends(get_db)):
+def get_anomaly(anomaly_id: str, port_id: Optional[str] = None, db: Session = Depends(get_db)):
     repo = AnomalyRepository(db)
     anomaly = repo.get(anomaly_id)
     if not anomaly:
         raise HTTPException(status_code=404, detail="Anomaly not found")
+    
+    # Strictly validate port relationship when port_id is provided
+    if port_id and anomaly.port_id and anomaly.port_id != port_id:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Anomaly {anomaly_id} belongs to port '{anomaly.port_id}', not selected port '{port_id}'"
+        )
     return anomaly
 
 
