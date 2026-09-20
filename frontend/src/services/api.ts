@@ -92,9 +92,9 @@ export const getAnomalies = async (filters?: AnomalyFilters, harbour?: string): 
       a.status === 'confirmed_unknown'? 'confirmed_unknown'  :
       'pending'
     ),
-    overallScore: Math.round((a.risk_score ?? 0) * 100),
-    spatialDeviationScore: Math.round(((a.risk_score ?? 0) * 0.9) * 100),
-    temporalChangeScore: Math.round(((a.risk_score ?? 0) * 1.1) * 100),
+    overallScore: Math.round(a.risk_score ?? 0),
+    spatialDeviationScore: Math.round((a.risk_score ?? 0) * 0.9),
+    temporalChangeScore: Math.round((a.risk_score ?? 0) * 1.1),
     confidence: Math.round((a.confidence ?? 0) * 100),
     // Coordinates: null if unmapped — NEVER substitute 0 for missing coordinates
     latitude: a.latitude ?? null,
@@ -130,9 +130,9 @@ export const getAnomalyById = async (id: string, harbour?: string): Promise<Anom
     classification: 'unknown',
     severity: a.risk_level === 'CRITICAL' ? 'high' : 'normal',
     reviewStatus: a.status === 'VERIFIED' ? 'known_object' : 'pending',
-    overallScore: Math.round((a.risk_score ?? 0) * 100),
-    spatialDeviationScore: Math.round(((a.risk_score ?? 0) * 0.9) * 100),
-    temporalChangeScore: Math.round(((a.risk_score ?? 0) * 1.1) * 100),
+    overallScore: Math.round(a.risk_score ?? 0),
+    spatialDeviationScore: Math.round((a.risk_score ?? 0) * 0.9),
+    temporalChangeScore: Math.round((a.risk_score ?? 0) * 1.1),
     confidence: Math.round((a.confidence ?? 0) * 100),
     latitude: a.latitude ?? null,
     longitude: a.longitude ?? null,

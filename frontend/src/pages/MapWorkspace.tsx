@@ -584,6 +584,17 @@ export default function MapWorkspace() {
               <div className="bg-glass border border-glass-border rounded-2xl p-5 relative overflow-hidden shadow-lg">
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-accent animate-glow-pulse shadow-[var(--glow-accent)]" />
                 <p className="text-text-primary font-mono text-[11px] leading-relaxed ml-2">{selectedAnomaly?.explanation}</p>
+                <div className="mt-4 ml-2 border border-glass-border rounded-xl overflow-hidden relative group">
+                  <div className="absolute inset-0 bg-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none" />
+                  <div className="absolute top-2 left-2 bg-void/80 backdrop-blur-sm border border-glass-border px-2 py-1 rounded text-[8px] font-mono text-accent z-10">SONAR CROP — 455kHz</div>
+                  <div className="w-full h-32 bg-[#0a1016] relative flex items-center justify-center overflow-hidden">
+                    {/* Grid lines */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(0,229,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,229,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                    {/* Simulated object reflection based on type */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-8 bg-accent/40 blur-[2px] rounded-full rotate-12" />
+                    <div className="absolute top-1/2 left-[55%] -translate-x-1/2 -translate-y-1/2 w-20 h-10 bg-black/80 blur-[4px] rounded-full rotate-12" /> {/* Acoustic shadow */}
+                  </div>
+                </div>
                 {selectedAnomaly?.notes && (
                   <div className="mt-4 pt-4 border-t border-glass-border ml-2">
                     <h4 className="text-[10px] font-display font-bold tracking-[0.2em] uppercase text-text-secondary mb-2">Historical Notes</h4>
