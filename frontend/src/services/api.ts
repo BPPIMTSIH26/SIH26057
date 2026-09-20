@@ -73,11 +73,19 @@ export const getAnomalies = async (filters?: AnomalyFilters, harbour?: string): 
   if (!res.ok) throw new Error(`Anomalies fetch error: ${res.status}`);
   const anomalies: any[] = await res.json();
 
-  return anomalies.map((a: any, i: number) => ({
+  return anomalies.map((a: any, i: number) => {
+    let notesData: any = {};
+    try {
+      if (a.notes && a.notes.startsWith('{')) {
+        notesData = JSON.parse(a.notes);
+      }
+    } catch(e) {}
+    
+    return {
     id: a.anomaly_id || a.id,
     label: a.anomaly_id || `Anomaly #${i + 1}`,
-    classification: ['human'].includes((a.type || '').toLowerCase()) ? 'known' : 'unknown',
-    severity: a.risk_level === 'CRITICAL' ? 'high' : a.risk_level === 'HIGH' ? 'unusual' : 'normal',
+    classification: notesData.classification ? notesData.classification.toLowerCase() : (['human'].includes((a.type || '').toLowerCase()) ? 'known' : 'unknown'),
+    severity: notesData.severity ? notesData.severity.toLowerCase() : (a.risk_level === 'CRITICAL' || a.risk_level === 'HIGH' ? 'high' : a.risk_level === 'MEDIUM' ? 'unusual' : 'normal'),
     reviewStatus: (
       a.status === 'VERIFIED'         ? 'known_object'      :
       a.status === 'FALSE_POSITIVE'   ? 'false_positive'    :
@@ -102,7 +110,8 @@ export const getAnomalies = async (filters?: AnomalyFilters, harbour?: string): 
     locationSource: a.location_source || 'unmapped',
     modelVersion: a.model_version || null,
     datasetVersion: a.dataset_version || null,
-  }));
+    };
+  });
 };
 
 export const getAnomalyById = async (id: string, harbour?: string): Promise<Anomaly> => {

@@ -1,0 +1,611 @@
+{
+  "format": "SAGAR_SURVEY_COLLECTION_JSON",
+  "version": "1.0",
+  "collection_name": "Multi-Port Baseline Survey Collection",
+  "collection_date": "2026-09-20",
+  "coordinate_system": "WGS84",
+  "units": {
+    "position": "decimal_degrees",
+    "depth": "meters",
+    "speed": "knots",
+    "heading": "degrees",
+    "backscatter": "dB"
+  },
+  "surveys": [
+    {
+      "survey_id": "KOLKATA-20260920",
+      "survey_name": "Kolkata Port Baseline Survey",
+      "port_name": "Kolkata",
+      "country": "India",
+      "waterbody": "Hooghly River",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 7A",
+      "survey_date": "2026-09-20",
+      "depth_range_m": {
+        "minimum": 15,
+        "maximum": 45
+      },
+      "baseline_reference": "Kolkata Port Baseline 2026",
+      "records": [
+        {
+          "record_id": "KOL-001",
+          "timestamp_utc": "2026-09-20T04:30:00Z",
+          "latitude": 22.572646,
+          "longitude": 88.363895,
+          "depth_m": 15.8,
+          "vessel_speed_knots": 3.2,
+          "heading_deg": 92.4,
+          "backscatter_db": -28.6,
+          "position_quality": "RTK_FIXED",
+          "sensor_status": "OK"
+        }
+      ],
+      "anomalies": [
+        {
+          "anomaly_id": "KOL-A01",
+          "location": "Kolkata",
+          "latitude": 22.574,
+          "longitude": 88.3712,
+          "timestamp_utc": "2026-09-20T05:00:00Z",
+          "anomaly_type": "Siltation / seabed shoaling",
+          "classification": "UNKNOWN",
+          "confidence_percent": 94,
+          "severity": "HIGH",
+          "depth_m": 23.1,
+          "expected_depth_m": 28.0,
+          "depth_delta_m": -4.9,
+          "backscatter_db": -32.0,
+          "expected_backscatter_db": -27.1,
+          "backscatter_delta_db": -4.9,
+          "dimensions_m": {
+            "length": 42,
+            "width": 18,
+            "height_or relief": 3
+          },
+          "evidence": "Localized shallow return with elevated backscatter relative to adjacent transect.",
+          "possible_hazard": "Reduced under-keel clearance for vessels.",
+          "recommended_action": "Conduct confirmatory cross-line survey and dredging assessment.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "KOL-A02",
+          "location": "Kolkata",
+          "latitude": 22.5754,
+          "longitude": 88.3788,
+          "timestamp_utc": "2026-09-20T05:00:00Z",
+          "anomaly_type": "Submerged debris field",
+          "classification": "KNOWN",
+          "confidence_percent": 86,
+          "severity": "MEDIUM",
+          "depth_m": 34.8,
+          "expected_depth_m": 35.5,
+          "depth_delta_m": -0.7,
+          "backscatter_db": -37.0,
+          "expected_backscatter_db": -30.4,
+          "backscatter_delta_db": -6.6,
+          "dimensions_m": {
+            "length": 12,
+            "width": 8,
+            "height_or relief": 1.5
+          },
+          "evidence": "Compact high-backscatter cluster over three consecutive records.",
+          "possible_hazard": "Potential sonar or propeller impact hazard.",
+          "recommended_action": "Mark location and inspect with ROV before navigation.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "MUMBAI-20260920",
+      "survey_name": "Mumbai Port Baseline Survey",
+      "port_name": "Mumbai",
+      "country": "India",
+      "waterbody": "Arabian Sea",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 2B",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "MUM-A01",
+          "location": "Mumbai",
+          "latitude": 18.9353,
+          "longitude": 72.8474,
+          "timestamp_utc": "2026-09-20T06:30:00Z",
+          "anomaly_type": "Mooring or anchor object",
+          "classification": "UNKNOWN",
+          "confidence_percent": 88,
+          "severity": "MEDIUM",
+          "depth_m": 25.6,
+          "expected_depth_m": 24.1,
+          "depth_delta_m": 1.5,
+          "backscatter_db": -21.9,
+          "expected_backscatter_db": -31.5,
+          "backscatter_delta_db": 9.6,
+          "dimensions_m": {
+            "length": 6,
+            "width": 4,
+            "height_or relief": 2
+          },
+          "evidence": "Strong isolated hard target above the local seabed return.",
+          "possible_hazard": "Entanglement risk for anchors and fishing gear.",
+          "recommended_action": "Verify target with side-scan sonar and update nautical notice if confirmed.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "MUM-A02",
+          "location": "Mumbai",
+          "latitude": 18.929,
+          "longitude": 72.8501,
+          "timestamp_utc": "2026-09-20T06:30:00Z",
+          "anomaly_type": "Pipeline or cable exposure",
+          "classification": "KNOWN",
+          "confidence_percent": 91,
+          "severity": "HIGH",
+          "depth_m": 36.2,
+          "expected_depth_m": 34.8,
+          "depth_delta_m": 1.4,
+          "backscatter_db": -24.6,
+          "expected_backscatter_db": -38.0,
+          "backscatter_delta_db": 13.4,
+          "dimensions_m": {
+            "length": 55,
+            "width": 1.2,
+            "height_or relief": 0.8
+          },
+          "evidence": "Linear elevated return crossing the survey line.",
+          "possible_hazard": "Possible infrastructure damage or snagging hazard.",
+          "recommended_action": "Notify port engineering and inspect the exposed segment.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "KOCHI-20260920",
+      "survey_name": "Kochi Port Baseline Survey",
+      "port_name": "Kochi",
+      "country": "India",
+      "waterbody": "Arabian Sea",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 4C",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "KOC-A01",
+          "location": "Kochi",
+          "latitude": 9.963,
+          "longitude": 76.263,
+          "timestamp_utc": "2026-09-20T08:30:00Z",
+          "anomaly_type": "Scour depression",
+          "classification": "UNKNOWN",
+          "confidence_percent": 92,
+          "severity": "HIGH",
+          "depth_m": 25.9,
+          "expected_depth_m": 22.0,
+          "depth_delta_m": 3.9,
+          "backscatter_db": -22.4,
+          "expected_backscatter_db": -31.1,
+          "backscatter_delta_db": 8.7,
+          "dimensions_m": {
+            "length": 30,
+            "width": 14,
+            "height_or relief": 2.5
+          },
+          "evidence": "Broad bathymetric depression with edge scour signature.",
+          "possible_hazard": "Foundation or berth stability concern.",
+          "recommended_action": "Run a denser bathymetric grid and compare with engineering limits.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "KOC-A02",
+          "location": "Kochi",
+          "latitude": 9.961,
+          "longitude": 76.2573,
+          "timestamp_utc": "2026-09-20T08:30:00Z",
+          "anomaly_type": "Submerged debris",
+          "classification": "KNOWN",
+          "confidence_percent": 84,
+          "severity": "MEDIUM",
+          "depth_m": 30.8,
+          "expected_depth_m": 31.5,
+          "depth_delta_m": -0.7,
+          "backscatter_db": -20.8,
+          "expected_backscatter_db": -35.2,
+          "backscatter_delta_db": 14.4,
+          "dimensions_m": {
+            "length": 9,
+            "width": 5,
+            "height_or relief": 1.2
+          },
+          "evidence": "High-backscatter point target in otherwise soft sediment.",
+          "possible_hazard": "Local navigation hazard.",
+          "recommended_action": "Confirm by ROV or diver inspection and remove if practical.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "VISAKHAPATNAM-20260920",
+      "survey_name": "Visakhapatnam Port Baseline Survey",
+      "port_name": "Visakhapatnam",
+      "country": "India",
+      "waterbody": "Bay of Bengal",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 5D",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "VIZ-A01",
+          "location": "Visakhapatnam",
+          "latitude": 17.689,
+          "longitude": 83.2218,
+          "timestamp_utc": "2026-09-20T10:30:00Z",
+          "anomaly_type": "Rock / hard-bottom return",
+          "classification": "UNKNOWN",
+          "confidence_percent": 89,
+          "severity": "MEDIUM",
+          "depth_m": 28.4,
+          "expected_depth_m": 31.0,
+          "depth_delta_m": -2.6,
+          "backscatter_db": -19.7,
+          "expected_backscatter_db": -34.0,
+          "backscatter_delta_db": 14.3,
+          "dimensions_m": {
+            "length": 18,
+            "width": 11,
+            "height_or relief": 1.8
+          },
+          "evidence": "Irregular hard return with rapid depth transition.",
+          "possible_hazard": "Possible grounding hazard in shallow route.",
+          "recommended_action": "Perform high-resolution multibeam resurvey and chart the obstruction.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "VIZ-A02",
+          "location": "Visakhapatnam",
+          "latitude": 17.6942,
+          "longitude": 83.2284,
+          "timestamp_utc": "2026-09-20T10:30:00Z",
+          "anomaly_type": "Sediment plume",
+          "classification": "KNOWN",
+          "confidence_percent": 82,
+          "severity": "LOW",
+          "depth_m": 46.5,
+          "expected_depth_m": 44.8,
+          "depth_delta_m": 1.7,
+          "backscatter_db": -26.1,
+          "expected_backscatter_db": -40.0,
+          "backscatter_delta_db": 13.9,
+          "dimensions_m": {
+            "length": 120,
+            "width": 75,
+            "height_or relief": 1
+          },
+          "evidence": "Diffuse low-contrast backscatter spread downstream of the channel.",
+          "possible_hazard": "Reduced visibility and potential dredging impact.",
+          "recommended_action": "Collect turbidity samples and compare with discharge records.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "JAWAHARLAL-NEHRU-20260920",
+      "survey_name": "Jawaharlal Nehru Port Baseline Survey",
+      "port_name": "Jawaharlal Nehru",
+      "country": "India",
+      "waterbody": "Arabian Sea",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 1E",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "JNP-A01",
+          "location": "Jawaharlal Nehru",
+          "latitude": 18.946,
+          "longitude": 72.9522,
+          "timestamp_utc": "2026-09-20T12:30:00Z",
+          "anomaly_type": "Container or large submerged object",
+          "classification": "KNOWN",
+          "confidence_percent": 96,
+          "severity": "HIGH",
+          "depth_m": 26.9,
+          "expected_depth_m": 26.0,
+          "depth_delta_m": 0.9,
+          "backscatter_db": -18.2,
+          "expected_backscatter_db": -34.0,
+          "backscatter_delta_db": 15.8,
+          "dimensions_m": {
+            "length": 14,
+            "width": 9,
+            "height_or relief": 3
+          },
+          "evidence": "Large rectangular high-backscatter target near the traffic lane.",
+          "possible_hazard": "Severe collision and propeller damage risk.",
+          "recommended_action": "Restrict the immediate lane and perform urgent visual/ROV confirmation.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "JNP-A02",
+          "location": "Jawaharlal Nehru",
+          "latitude": 18.941,
+          "longitude": 72.959,
+          "timestamp_utc": "2026-09-20T12:30:00Z",
+          "anomaly_type": "Seabed shoaling",
+          "classification": "UNKNOWN",
+          "confidence_percent": 93,
+          "severity": "HIGH",
+          "depth_m": 39.1,
+          "expected_depth_m": 42.0,
+          "depth_delta_m": -2.9,
+          "backscatter_db": -30.2,
+          "expected_backscatter_db": -39.0,
+          "backscatter_delta_db": 8.8,
+          "dimensions_m": {
+            "length": 65,
+            "width": 22,
+            "height_or relief": 1.5
+          },
+          "evidence": "Persistent shallow contour compared with baseline depth.",
+          "possible_hazard": "Reduced navigation clearance for deep-draft vessels.",
+          "recommended_action": "Update depth model after repeat survey and assess dredging need.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "PARADE-20260920",
+      "survey_name": "Parade Port Baseline Survey",
+      "port_name": "Parade",
+      "country": "India",
+      "waterbody": "Bay of Bengal",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 6F",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "PAR-A01",
+          "location": "Parade",
+          "latitude": 20.2762,
+          "longitude": 86.6978,
+          "timestamp_utc": "2026-09-20T14:30:00Z",
+          "anomaly_type": "Siltation / channel infill",
+          "classification": "UNKNOWN",
+          "confidence_percent": 90,
+          "severity": "HIGH",
+          "depth_m": 14.2,
+          "expected_depth_m": 17.0,
+          "depth_delta_m": -2.8,
+          "backscatter_db": -25.1,
+          "expected_backscatter_db": -29.5,
+          "backscatter_delta_db": 4.4,
+          "dimensions_m": {
+            "length": 48,
+            "width": 16,
+            "height_or relief": 2
+          },
+          "evidence": "Shallow elongated return aligned with the channel axis.",
+          "possible_hazard": "Potential channel restriction.",
+          "recommended_action": "Conduct sediment sampling and schedule a channel sounding.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "PAR-A02",
+          "location": "Parade",
+          "latitude": 20.2818,
+          "longitude": 86.7026,
+          "timestamp_utc": "2026-09-20T14:30:00Z",
+          "anomaly_type": "Submerged timber or debris",
+          "classification": "KNOWN",
+          "confidence_percent": 85,
+          "severity": "MEDIUM",
+          "depth_m": 26.4,
+          "expected_depth_m": 27.1,
+          "depth_delta_m": -0.7,
+          "backscatter_db": -18.8,
+          "expected_backscatter_db": -34.8,
+          "backscatter_delta_db": 16.0,
+          "dimensions_m": {
+            "length": 10,
+            "width": 3,
+            "height_or relief": 1
+          },
+          "evidence": "Small high-amplitude target on a soft-bottom background.",
+          "possible_hazard": "Fishing gear or small-craft hazard.",
+          "recommended_action": "Verify target and remove or mark it.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "CHENNAI-20260920",
+      "survey_name": "Chennai Port Baseline Survey",
+      "port_name": "Chennai",
+      "country": "India",
+      "waterbody": "Bay of Bengal",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 3G",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "CHE-A01",
+          "location": "Chennai",
+          "latitude": 13.086,
+          "longitude": 80.2736,
+          "timestamp_utc": "2026-09-20T16:30:00Z",
+          "anomaly_type": "Pipeline or cable exposure",
+          "classification": "UNKNOWN",
+          "confidence_percent": 90,
+          "severity": "HIGH",
+          "depth_m": 22.6,
+          "expected_depth_m": 24.0,
+          "depth_delta_m": -1.4,
+          "backscatter_db": -20.5,
+          "expected_backscatter_db": -31.9,
+          "backscatter_delta_db": 11.4,
+          "dimensions_m": {
+            "length": 38,
+            "width": 1,
+            "height_or relief": 0.7
+          },
+          "evidence": "Continuous linear feature crossing the expected seabed plane.",
+          "possible_hazard": "Infrastructure snagging or damage risk.",
+          "recommended_action": "Coordinate with asset owner and conduct a focused inspection.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "CHE-A02",
+          "location": "Chennai",
+          "latitude": 13.0908,
+          "longitude": 80.2784,
+          "timestamp_utc": "2026-09-20T16:30:00Z",
+          "anomaly_type": "Scour depression",
+          "classification": "KNOWN",
+          "confidence_percent": 87,
+          "severity": "MEDIUM",
+          "depth_m": 34.1,
+          "expected_depth_m": 31.8,
+          "depth_delta_m": 2.3,
+          "backscatter_db": -23.0,
+          "expected_backscatter_db": -37.0,
+          "backscatter_delta_db": 14.0,
+          "dimensions_m": {
+            "length": 26,
+            "width": 12,
+            "height_or relief": 2
+          },
+          "evidence": "Depression adjacent to the port approach structure.",
+          "possible_hazard": "Local seabed instability.",
+          "recommended_action": "Repeat the survey after the next tide cycle and inspect structure foundations.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "THUNDER-BAY-20260920",
+      "survey_name": "Thunder Bay Port Baseline Survey",
+      "port_name": "Thunder Bay",
+      "country": "Canada",
+      "waterbody": "Lake Superior",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 8H",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "THB-A01",
+          "location": "Thunder Bay",
+          "latitude": 48.3822,
+          "longitude": -89.2564,
+          "timestamp_utc": "2026-09-20T18:30:00Z",
+          "anomaly_type": "Vessel wreck or large submerged structure",
+          "classification": "KNOWN",
+          "confidence_percent": 97,
+          "severity": "HIGH",
+          "depth_m": 20.9,
+          "expected_depth_m": 25.0,
+          "depth_delta_m": -4.1,
+          "backscatter_db": -16.3,
+          "expected_backscatter_db": -30.8,
+          "backscatter_delta_db": 14.5,
+          "dimensions_m": {
+            "length": 32,
+            "width": 8,
+            "height_or relief": 4
+          },
+          "evidence": "Strong elongated target with shadow consistent with a hull-shaped object.",
+          "possible_hazard": "Major obstruction and collision hazard.",
+          "recommended_action": "Cross-check historical wreck records and mark the target on navigation layers.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "THB-A02",
+          "location": "Thunder Bay",
+          "latitude": 48.385,
+          "longitude": -89.2631,
+          "timestamp_utc": "2026-09-20T18:30:00Z",
+          "anomaly_type": "Rock or hard-bottom outcrop",
+          "classification": "UNKNOWN",
+          "confidence_percent": 90,
+          "severity": "MEDIUM",
+          "depth_m": 32.1,
+          "expected_depth_m": 35.0,
+          "depth_delta_m": -2.9,
+          "backscatter_db": -18.7,
+          "expected_backscatter_db": -36.5,
+          "backscatter_delta_db": 17.8,
+          "dimensions_m": {
+            "length": 20,
+            "width": 15,
+            "height_or relief": 1.5
+          },
+          "evidence": "Irregular hard return with strong acoustic shadow.",
+          "possible_hazard": "Hazard for deep-draft vessels.",
+          "recommended_action": "Complete a high-resolution confirmation survey.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    },
+    {
+      "survey_id": "LAKE-HURON-20260920",
+      "survey_name": "Lake Huron Baseline Survey",
+      "port_name": "Lake Huron",
+      "country": "Canada",
+      "waterbody": "Lake Huron",
+      "vessel_platform": "RV Sagar Shakti",
+      "area_sector": "Sector 9J",
+      "survey_date": "2026-09-20",
+      "anomalies": [
+        {
+          "anomaly_id": "LHU-A01",
+          "location": "Lake Huron",
+          "latitude": 44.6488,
+          "longitude": -81.1252,
+          "timestamp_utc": "2026-09-20T20:30:00Z",
+          "anomaly_type": "Submerged wreck or obstruction",
+          "classification": "UNKNOWN",
+          "confidence_percent": 95,
+          "severity": "HIGH",
+          "depth_m": 37.5,
+          "expected_depth_m": 42.0,
+          "depth_delta_m": -4.5,
+          "backscatter_db": -15.8,
+          "expected_backscatter_db": -34.7,
+          "backscatter_delta_db": 18.9,
+          "dimensions_m": {
+            "length": 28,
+            "width": 7,
+            "height_or relief": 3
+          },
+          "evidence": "Large coherent high-backscatter target with a defined shadow.",
+          "possible_hazard": "Navigation hazard and possible protected wreck site.",
+          "recommended_action": "Perform side-scan and ROV inspection; restrict disturbance until identified.",
+          "status": "REQUIRES_REVIEW"
+        },
+        {
+          "anomaly_id": "LHU-A02",
+          "location": "Lake Huron",
+          "latitude": 44.6501,
+          "longitude": -81.1198,
+          "timestamp_utc": "2026-09-20T20:30:00Z",
+          "anomaly_type": "Sediment plume / turbidity anomaly",
+          "classification": "UNKNOWN",
+          "confidence_percent": 83,
+          "severity": "LOW",
+          "depth_m": 56.8,
+          "expected_depth_m": 55.0,
+          "depth_delta_m": 1.8,
+          "backscatter_db": -25.4,
+          "expected_backscatter_db": -40.6,
+          "backscatter_delta_db": 15.2,
+          "dimensions_m": {
+            "length": 210,
+            "width": 90,
+            "height_or relief": 1
+          },
+          "evidence": "Broad diffuse return extending down-current from the survey corridor.",
+          "possible_hazard": "Reduced water quality and visibility.",
+          "recommended_action": "Collect turbidity and sediment samples and investigate the source.",
+          "status": "REQUIRES_REVIEW"
+        }
+      ]
+    }
+  ]
+}
