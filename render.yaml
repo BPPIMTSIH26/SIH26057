@@ -30,23 +30,6 @@ services:
       - key: CORS_ORIGINS
         value: '["*"]'
 
-  # ============================================================================
-  # SagarNetra React/Vite Frontend (Static Site)
-  # ============================================================================
-  - type: static
-    name: sagarnetra-frontend
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: sagarnetra-backend
-          property: url
+  # NOTE: Frontend (Static Site) must be deployed manually via Render Dashboard.
+  # Render Blueprint YAML does not support type:static.
+  # See README for manual frontend deployment steps.
