@@ -6,7 +6,7 @@ services:
     name: sagarnetra-backend
     runtime: python
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_ENV
@@ -22,9 +22,7 @@ services:
       - key: MODEL_DIR
         value: ./models
       - key: MODEL_PROVIDER
-        value: yolo
-      - key: MODEL_PATH
-        value: ./yolov8n.pt
+        value: demo
       - key: CONFIDENCE_THRESHOLD
         value: "0.5"
       - key: JWT_SECRET_KEY
@@ -45,6 +43,8 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: VITE_API_URL
         fromService:
           type: web
