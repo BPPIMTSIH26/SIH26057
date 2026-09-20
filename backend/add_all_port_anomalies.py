@@ -2,15 +2,15 @@ import json
 import random
 
 water_centers = {
-  'Lake Huron': {'lat': 45.0500, 'lng': -83.0000},
-  'Thunder Bay': {'lat': 45.0500, 'lng': -83.0000},
-  'Mumbai': {'lat': 18.9300, 'lng': 72.6500},
-  'Chennai': {'lat': 13.0800, 'lng': 80.4500},
-  'Kochi': {'lat': 9.9500, 'lng': 76.0500},
-  'Visakhapatnam': {'lat': 17.5500, 'lng': 83.4500},
-  'Jawaharlal Nehru': {'lat': 18.8000, 'lng': 72.8000},
-  'Kolkata': {'lat': 21.3000, 'lng': 88.0000},
-  'Parade': {'lat': 20.1000, 'lng': 86.8500}
+  'Lake Huron': {'lat': 45.0600, 'lng': -83.4300},
+  'Thunder Bay': {'lat': 45.0600, 'lng': -83.4300},
+  'Mumbai': {'lat': 18.9387, 'lng': 72.8353},
+  'Chennai': {'lat': 13.0827, 'lng': 80.2707},
+  'Kochi': {'lat': 9.9312, 'lng': 76.2673},
+  'Visakhapatnam': {'lat': 17.6868, 'lng': 83.2185},
+  'Jawaharlal Nehru': {'lat': 18.9500, 'lng': 72.9500},
+  'Kolkata': {'lat': 22.5314, 'lng': 88.3225},
+  'Parade': {'lat': 20.2662, 'lng': 86.6775}
 }
 
 def generate_anomalies_for_port(port_name, base_lat, base_lon, count):
@@ -29,8 +29,8 @@ def generate_anomalies_for_port(port_name, base_lat, base_lon, count):
     
     for i in range(count):
         # Increased jitter to spread them out nicely in the ocean
-        lat_jitter = random.uniform(-0.015, 0.015)
-        lon_jitter = random.uniform(-0.015, 0.015)
+        lat_jitter = random.uniform(-0.04, 0.04)
+        lon_jitter = random.uniform(-0.04, 0.04)
         
         atype, aclass, asev = random.choice(anomaly_types)
         
