@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.database.models import Mission, SonarImage, Detection, Anomaly, Report
 from typing import List, Optional
 
@@ -70,22 +70,46 @@ class AnomalyRepository:
         return anomalies
 
     def get(self, id: str) -> Optional[Anomaly]:
-        return self.db.query(Anomaly).filter(Anomaly.id == id).first()
+        anomaly = self.db.query(Anomaly).options(joinedload(Anomaly.mission)).filter(
+            (Anomaly.id == id) | (Anomaly.anomaly_id == id)
+        ).first()
+        if anomaly and not getattr(anomaly, 'port_name', None) and anomaly.mission:
+            anomaly.port_name = anomaly.mission.name or anomaly.mission.mission_id
+        return anomaly
 
-    def get_all(self, mission_id: Optional[str] = None, status: Optional[str] = None, risk_level: Optional[str] = None) -> List[Anomaly]:
-        from app.database.models import Mission
-        query = self.db.query(Anomaly)
-        if mission_id:
-            # Join with Mission to allow filtering by either the UUID (Anomaly.mission_id) 
-            # or the human-readable mission_id (Mission.mission_id)
-            query = query.join(Mission, Anomaly.mission_id == Mission.id).filter(
-                (Anomaly.mission_id == mission_id) | (Mission.mission_id == mission_id)
+    def get_all(
+        self,
+        port_id: Optional[str] = None,
+        mission_id: Optional[str] = None,
+        status: Optional[str] = None,
+        risk_level: Optional[str] = None,
+        coordinate_status: Optional[str] = None,
+        only_water_validated: bool = False
+    ) -> List[Anomaly]:
+        query = self.db.query(Anomaly).options(joinedload(Anomaly.mission))
+        if port_id:
+            # Strictly filter by port_id
+            query = query.outerjoin(Mission, Anomaly.mission_id == Mission.id).filter(
+                (Anomaly.port_id == port_id) | (Mission.port_id == port_id)
+            )
+        elif mission_id:
+            query = query.outerjoin(Mission, Anomaly.mission_id == Mission.id).filter(
+                (Anomaly.mission_id == mission_id) | (Mission.mission_id == mission_id) | (Anomaly.port_id == mission_id) | (Mission.port_id == mission_id)
             )
         if status:
             query = query.filter(Anomaly.status == status)
         if risk_level:
             query = query.filter(Anomaly.risk_level == risk_level)
-        return query.all()
+        if only_water_validated:
+            query = query.filter(Anomaly.coordinate_status == "VALIDATED_WATER")
+        elif coordinate_status:
+            query = query.filter(Anomaly.coordinate_status == coordinate_status)
+
+        anomalies = query.all()
+        for a in anomalies:
+            if a.mission and not getattr(a, 'port_name', None):
+                a.port_name = a.mission.name or a.mission.mission_id
+        return anomalies
 
     def update(self, anomaly: Anomaly) -> Anomaly:
         self.db.commit()
