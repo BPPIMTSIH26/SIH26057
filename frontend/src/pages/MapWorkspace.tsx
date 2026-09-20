@@ -5,8 +5,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { Layers, Activity, Clock, Navigation, Zap, AlertTriangle, ArrowRight, ExternalLink, X, History, List, Plus, Minus, Compass } from 'lucide-react';
 
 import { getAnomalies } from '../services/api';
-import { Anomaly, HARBOURS } from '../data/mockData';
-import { useHarbour, useRealTimeAnomalies } from '../contexts/AppContext';
+import { Anomaly, PORTS } from '../data/mockData';
+import { usePort, useRealTimeAnomalies } from '../contexts/AppContext';
 import { usePreferences } from '../contexts/PreferencesContext';
 import StatusBadge from '../components/ui/StatusBadge';
 import { generateGraticule } from '../utils/graticule';
@@ -17,8 +17,9 @@ const paneClass = 'bg-surface';
 export default function MapWorkspace() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { activeHarbour, setActiveHarbour } = useHarbour();
-  const harborConfig = HARBOURS[activeHarbour] || HARBOURS['Mumbai Harbor Q3'];
+  const { selectedPortId, selectedPort, setSelectedPortId } = usePort();
+  const harborConfig = selectedPort;
+  const activeHarbour = selectedPort.name;
   const { formatCoordinates, formatLat, formatLng } = usePreferences();
   const realTimeUpdates = useRealTimeAnomalies();
   const [isCompareMode, setIsCompareMode] = useState(false);
@@ -37,20 +38,30 @@ export default function MapWorkspace() {
   const [showExplanationDrawer, setShowExplanationDrawer] = useState(false);
 
   useEffect(() => {
-    getAnomalies({}, activeHarbour).then(data => {
-      setAnomalies(data);
+    let active = true;
+    setAnomalies([]);
+    setSelectedAnomalyId(null);
+
+    getAnomalies({}, selectedPortId).then(data => {
+      if (!active) return;
+      const scoped = data.filter(a => !a.portId || a.portId === selectedPortId);
+      setAnomalies(scoped);
       if (location.state?.selectedAnomalyId) {
         const id = location.state.selectedAnomalyId;
         setSelectedAnomalyId(id);
-        const anomaly = data.find(a => a.id === id);
+        const anomaly = scoped.find(a => a.id === id);
         if (anomaly && mapRef.current) {
           setTimeout(() => {
-            fitMapToHarbourAndPoints(mapRef.current, harborConfig, anomaly, { maxZoom: 11.8 });
+            fitMapToHarbourAndPoints(mapRef.current, selectedPort, anomaly, { maxZoom: 11.8 });
           }, 350);
         }
       }
     });
-  }, [activeHarbour, location.state, harborConfig]);
+
+    return () => {
+      active = false;
+    };
+  }, [selectedPortId, location.state, selectedPort]);
 
   const liveAnomalies = useMemo(() =>
     anomalies.map(a => ({ ...a, ...(realTimeUpdates[a.id] || {}) })),
@@ -178,27 +189,27 @@ export default function MapWorkspace() {
             }}
           >
           {/* Harbour markers */}
-          {Object.entries(HARBOURS).map(([name, coords]) => (
-            <Marker key={name} longitude={coords.lng} latitude={coords.lat}>
+          {Object.values(PORTS).map((port) => (
+            <Marker key={port.id} longitude={port.lng} latitude={port.lat}>
               <div
-                ref={el => { if (el) harbourMarkersRef.current[name] = el; }}
+                ref={el => { if (el) harbourMarkersRef.current[port.name] = el; }}
                 className="flex flex-col items-center group cursor-pointer relative transition-opacity duration-300 opacity-100 pointer-events-auto"
                 onClick={e => { 
                   e.stopPropagation(); 
-                  setActiveHarbour(name);
+                  setSelectedPortId(port.id);
                   setShowAnomalyList(true); 
                 }}
               >
-                {name === activeHarbour && (
+                {port.id === selectedPortId && (
                   <div className="absolute -inset-6 rounded-sm border border-dashed border-accent/50 bg-accent/5 pointer-events-none -translate-y-4">
                     <div className="absolute inset-3 rounded-sm border border-dotted border-accent/30" />
                   </div>
                 )}
-                <div className={`w-3.5 h-3.5 border border-void shadow-[var(--glow-accent)] group-hover:scale-125 transition-transform z-10 relative flex items-center justify-center ${name === activeHarbour ? 'bg-accent' : 'bg-text-secondary'}`}>
+                <div className={`w-3.5 h-3.5 border border-void shadow-[var(--glow-accent)] group-hover:scale-125 transition-transform z-10 relative flex items-center justify-center ${port.id === selectedPortId ? 'bg-accent' : 'bg-text-secondary'}`}>
                   <div className="w-1 h-1 bg-void" />
                 </div>
-                <div className={`mt-1 px-1.5 py-0.5 bg-void/90 backdrop-blur border border-border text-[9px] text-text-primary uppercase tracking-[0.2em] font-light whitespace-nowrap shadow-[var(--glow-hover)] transition-opacity duration-300 ${name === activeHarbour ? 'opacity-100 ring-1 ring-accent/40 font-medium' : 'opacity-80 group-hover:opacity-100'}`}>
-                  {name === activeHarbour ? `PORT: ${name}` : name}
+                <div className={`mt-1 px-1.5 py-0.5 bg-void/90 backdrop-blur border border-border text-[9px] text-text-primary uppercase tracking-[0.2em] font-light whitespace-nowrap shadow-[var(--glow-hover)] transition-opacity duration-300 ${port.id === selectedPortId ? 'opacity-100 ring-1 ring-accent/40 font-medium' : 'opacity-80 group-hover:opacity-100'}`}>
+                  {port.id === selectedPortId ? `PORT: ${port.name}` : port.name}
                 </div>
               </div>
             </Marker>
