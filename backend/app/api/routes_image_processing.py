@@ -190,3 +190,85 @@ def delete_job(
     db.commit()
     return None
 
+@router.post("/jobs/{job_id}/publish")
+def publish_job(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
+):
+    from app.database.models import Mission, SonarImage, Detection, Anomaly
+    from datetime import datetime, timezone
+    
+    job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    if job.status != "completed":
+        raise HTTPException(status_code=400, detail="Job must be completed to publish")
+        
+    if not job.region_analysis:
+        raise HTTPException(status_code=400, detail="No regions detected to publish")
+        
+    regions = json.loads(job.region_analysis)
+    if not regions:
+        return {"message": "No regions to publish"}
+        
+    mission_name = f"Manual Upload - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}"
+    mission = Mission(
+        mission_id=f"M-UPLOAD-{uuid.uuid4().hex[:6].upper()}",
+        name=mission_name,
+        status="COMPLETED",
+        source="Manual Upload"
+    )
+    db.add(mission)
+    db.commit()
+    db.refresh(mission)
+    
+    sonar_image = SonarImage(
+        mission_id=mission.id,
+        filename=os.path.basename(job.original_image_path) if job.original_image_path else "unknown.png",
+        original_path=job.original_image_path,
+        processed_path=job.processed_image_path
+    )
+    db.add(sonar_image)
+    db.commit()
+    db.refresh(sonar_image)
+    
+    published_count = 0
+    for reg in regions:
+        det = Detection(
+            mission_id=mission.id,
+            sonar_image_id=sonar_image.id,
+            class_name=reg.get("label", "unknown"),
+            confidence=reg.get("objectConfidence") or reg.get("shadowConfidence") or 0.0,
+            bbox_x1=float(reg.get("boundingBox", {}).get("x", 0.0)),
+            bbox_y1=float(reg.get("boundingBox", {}).get("y", 0.0)),
+            bbox_x2=float(reg.get("boundingBox", {}).get("x", 0.0)) + float(reg.get("boundingBox", {}).get("width", 0.0)),
+            bbox_y2=float(reg.get("boundingBox", {}).get("y", 0.0)) + float(reg.get("boundingBox", {}).get("height", 0.0)),
+            status="NEW"
+        )
+        db.add(det)
+        db.commit()
+        db.refresh(det)
+        
+        conf = det.confidence or 0.0
+        risk_score = conf * 100
+        risk_level = "HIGH" if risk_score > 80 else "MEDIUM" if risk_score > 50 else "LOW"
+        
+        anomaly = Anomaly(
+            mission_id=mission.id,
+            detection_id=det.id,
+            anomaly_id=f"ANOM-{uuid.uuid4().hex[:6].upper()}",
+            type=det.class_name,
+            confidence=conf,
+            risk_score=risk_score,
+            risk_level=risk_level,
+            status="NEW",
+            explanation=reg.get("explanation", "Published from manual upload")
+        )
+        db.add(anomaly)
+        db.commit()
+        published_count += 1
+        
+    return {"message": "Successfully published to dashboard", "publishedCount": published_count, "missionId": mission.mission_id}
+

@@ -121,6 +121,19 @@ export const imageProcessingApi = {
       }
     });
     if (!res.ok) throw new Error('Failed to delete job');
+  },
+
+  publishJob: async (jobId: string): Promise<any> => {
+    const token = sessionStorage.getItem('sagar_token');
+    const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/${jobId}/publish`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      }
+    });
+    if (!res.ok) throw new Error('Failed to publish job anomalies');
+    return res.json();
   }
 };
+
 

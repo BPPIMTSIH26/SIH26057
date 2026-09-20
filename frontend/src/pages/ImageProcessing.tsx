@@ -71,6 +71,8 @@ const ImageProcessing: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<ImageProcessingJobResponse[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState(false);
   
   // Viewer modes: 'side-by-side' | 'slider' | 'enhanced'
   const [viewMode, setViewMode] = useState<'side-by-side' | 'slider' | 'enhanced'>('side-by-side');
@@ -129,6 +131,22 @@ const ImageProcessing: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to start processing');
       setIsProcessing(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!jobId) return;
+    setIsPublishing(true);
+    setPublishSuccess(false);
+    try {
+      await imageProcessingApi.publishJob(jobId);
+      setPublishSuccess(true);
+      setTimeout(() => setPublishSuccess(false), 3000);
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to publish: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -556,6 +574,20 @@ const ImageProcessing: React.FC = () => {
 
                  {/* Actions / Downloads */}
                  <div className="mt-6 flex gap-3 flex-wrap pt-4 border-t border-glass-border">
+                    {result.status === 'completed' && result.regionAnalysis && result.regionAnalysis.length > 0 && (
+                      <button 
+                        onClick={handlePublish}
+                        disabled={isPublishing || publishSuccess}
+                        className={`px-4 py-2 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
+                          publishSuccess 
+                            ? 'bg-success/20 text-success border-success/40' 
+                            : 'bg-accent text-void hover:bg-accent/90 border-transparent'
+                        }`}
+                      >
+                        {isPublishing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : (publishSuccess ? <CheckCircle className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />)}
+                        {isPublishing ? 'Publishing...' : (publishSuccess ? 'Saved to Dashboard' : 'Identify & Save Anomalies to Dashboard')}
+                      </button>
+                    )}
                     {result.processedImageUrl && (
                       <a 
                         href={result.processedImageUrl} 
