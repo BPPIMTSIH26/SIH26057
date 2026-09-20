@@ -222,10 +222,12 @@ async def signup(request_http: Request, request: SignupRequest, db: Session = De
     
     send_verification_email(new_user.email, new_user.verification_token)
     
+    smtp_configured = bool(settings.SMTP_USER and settings.SMTP_PASSWORD)
     resp = {
         "message": "Account created successfully. Please check your email to verify."
     }
-    if settings.APP_ENV == "development":
+    # Return code inline when SMTP is not configured so the frontend can display it
+    if settings.APP_ENV == "development" or not smtp_configured:
         resp["code"] = new_user.verification_token
     return resp
 
@@ -333,10 +335,11 @@ async def resend_verification(request_http: Request, request: ResendVerifyReques
     db.commit()
     
     send_verification_email(user.email, user.verification_token)
+    smtp_configured = bool(settings.SMTP_USER and settings.SMTP_PASSWORD)
     resp = {
         "message": "If that email exists and is unverified, a new link has been sent."
     }
-    if settings.APP_ENV == "development":
+    if settings.APP_ENV == "development" or not smtp_configured:
         resp["code"] = user.verification_token
     return resp
 
