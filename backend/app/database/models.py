@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, String, Float, Integer, ForeignKey, DateTime, Boolean, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.database.database import Base
@@ -15,6 +15,7 @@ class Mission(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     mission_id = Column(String, unique=True, index=True) # human readable or external ID
+    port_id = Column(String, index=True, nullable=True) # canonical stable port ID (e.g. 'chennai', 'mumbai')
     name = Column(String)
     status = Column(String, default="NEW") # NEW, IN_PROGRESS, COMPLETED
     created_at = Column(DateTime, default=get_utc_now)
@@ -87,6 +88,7 @@ class Anomaly(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     mission_id = Column(String, ForeignKey("missions.id"))
     detection_id = Column(String, ForeignKey("detections.id"))
+    port_id = Column(String, index=True, nullable=True) # canonical stable port ID (e.g. 'chennai', 'mumbai')
     anomaly_id = Column(String, unique=True, index=True)
     type = Column(String)
     confidence = Column(Float)
@@ -101,6 +103,13 @@ class Anomaly(Base):
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=get_utc_now)
     
+    # Coordinate validation & geospatial status
+    coordinate_status = Column(String, default="VALIDATED_WATER", index=True) # VALIDATED_WATER, ON_LAND, OUTSIDE_PORT_SCOPE, INVALID_COORDINATE
+    coordinate_validation_reason = Column(Text, nullable=True)
+    original_latitude = Column(Float, nullable=True)
+    original_longitude = Column(Float, nullable=True)
+    is_water_validated = Column(Boolean, default=True, index=True)
+
     # Provenance fields
     model_version = Column(String, nullable=True)
     dataset_version = Column(String, nullable=True)
