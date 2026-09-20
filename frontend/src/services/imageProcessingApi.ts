@@ -123,13 +123,15 @@ export const imageProcessingApi = {
     if (!res.ok) throw new Error('Failed to delete job');
   },
 
-  publishJob: async (jobId: string): Promise<any> => {
+  publishJob: async (jobId: string, location?: { latitude: number, longitude: number }): Promise<any> => {
     const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/${jobId}/publish`, {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-      }
+      },
+      body: location ? JSON.stringify(location) : undefined
     });
     if (!res.ok) throw new Error('Failed to publish job anomalies');
     return res.json();

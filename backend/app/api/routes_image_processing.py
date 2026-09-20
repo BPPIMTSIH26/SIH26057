@@ -196,9 +196,16 @@ def delete_job(
     db.commit()
     return None
 
+from pydantic import BaseModel
+
+class PublishRequest(BaseModel):
+    latitude: float | None = None
+    longitude: float | None = None
+
 @router.post("/jobs/{job_id}/publish")
 def publish_job(
     job_id: str,
+    publish_req: PublishRequest | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_optional)
 ):
@@ -251,6 +258,8 @@ def publish_job(
             bbox_y1=float(reg.get("boundingBox", {}).get("y", 0.0)),
             bbox_x2=float(reg.get("boundingBox", {}).get("x", 0.0)) + float(reg.get("boundingBox", {}).get("width", 0.0)),
             bbox_y2=float(reg.get("boundingBox", {}).get("y", 0.0)) + float(reg.get("boundingBox", {}).get("height", 0.0)),
+            latitude=publish_req.latitude if publish_req else None,
+            longitude=publish_req.longitude if publish_req else None,
             status="NEW"
         )
         db.add(det)
@@ -269,6 +278,8 @@ def publish_job(
             confidence=conf,
             risk_score=risk_score,
             risk_level=risk_level,
+            latitude=publish_req.latitude if publish_req else None,
+            longitude=publish_req.longitude if publish_req else None,
             status="NEW",
             explanation=reg.get("explanation", "Published from manual upload")
         )
