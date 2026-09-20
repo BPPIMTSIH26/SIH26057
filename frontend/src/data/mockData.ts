@@ -14,6 +14,8 @@ export interface Survey {
 
 export interface Anomaly {
   id: string;
+  portId: string;
+  portName?: string;
   label: string;
   classification: AnomalyClassification;
   severity: AnomalySeverity;
@@ -82,15 +84,46 @@ export interface ReviewDecision {
   newClass?: string;
 }
 
-export const HARBOURS: Record<string, { lat: number; lng: number, waterCenter: { lat: number, lng: number }, spread: number, vessel: string }> = {
-  'Thunder Bay, Lake Huron': { lat: 45.0600, lng: -83.4300, waterCenter: { lat: 45.0500, lng: -83.0000 }, spread: 0.02, vessel: 'AUV Iver3 (AI4Shipwrecks)' },
-  'Mumbai Harbor Q3': { lat: 18.9387, lng: 72.8353, waterCenter: { lat: 18.9300, lng: 72.6500 }, spread: 0.02, vessel: 'R/V Samudra' },
-  'Chennai Port': { lat: 13.0827, lng: 80.2707, waterCenter: { lat: 13.0800, lng: 80.4500 }, spread: 0.02, vessel: 'R/V Sagar Kanya' },
-  'Kochi Harbor': { lat: 9.9312, lng: 76.2673, waterCenter: { lat: 9.9500, lng: 76.0500 }, spread: 0.02, vessel: 'R/V Sindhu Sadhana' },
-  'Visakhapatnam Port': { lat: 17.6868, lng: 83.2185, waterCenter: { lat: 17.5500, lng: 83.4500 }, spread: 0.02, vessel: 'R/V Gaveshani' },
-  'Jawaharlal Nehru Port': { lat: 18.9500, lng: 72.9500, waterCenter: { lat: 18.8000, lng: 72.8000 }, spread: 0.02, vessel: 'R/V Sagar Nidhi' },
-  'Kolkata Port': { lat: 22.5314, lng: 88.3225, waterCenter: { lat: 21.3000, lng: 88.0000 }, spread: 0.02, vessel: 'R/V Sagar Manjusha' }, 
-  'Paradip Port': { lat: 20.2662, lng: 86.6775, waterCenter: { lat: 20.1000, lng: 86.8500 }, spread: 0.02, vessel: 'R/V Anveshani' },
+export interface PortDefinition {
+  id: string;
+  name: string;
+  code: string;
+  lat: number;
+  lng: number;
+  waterCenter: { lat: number; lng: number };
+  spread: number;
+  vessel: string;
+}
+
+export const PORTS: Record<string, PortDefinition> = {
+  'mumbai': { id: 'mumbai', name: 'Mumbai Harbor Q3', code: 'MUM', lat: 18.9387, lng: 72.8353, waterCenter: { lat: 18.9387, lng: 72.8353 }, spread: 0.04, vessel: 'R/V Samudra' },
+  'chennai': { id: 'chennai', name: 'Chennai Port', code: 'CHE', lat: 13.0827, lng: 80.2707, waterCenter: { lat: 13.0827, lng: 80.2707 }, spread: 0.04, vessel: 'R/V Sagar Kanya' },
+  'kochi': { id: 'kochi', name: 'Kochi Harbor', code: 'KOC', lat: 9.9312, lng: 76.2673, waterCenter: { lat: 9.9312, lng: 76.2673 }, spread: 0.04, vessel: 'R/V Sindhu Sadhana' },
+  'visakhapatnam': { id: 'visakhapatnam', name: 'Visakhapatnam Port', code: 'VIZ', lat: 17.6868, lng: 83.2185, waterCenter: { lat: 17.6868, lng: 83.2185 }, spread: 0.04, vessel: 'R/V Gaveshani' },
+  'jawaharlal-nehru': { id: 'jawaharlal-nehru', name: 'Jawaharlal Nehru Port', code: 'JAW', lat: 18.9500, lng: 72.9500, waterCenter: { lat: 18.9500, lng: 72.9500 }, spread: 0.04, vessel: 'R/V Sagar Nidhi' },
+  'kolkata': { id: 'kolkata', name: 'Kolkata Port', code: 'KOL', lat: 22.5314, lng: 88.3225, waterCenter: { lat: 22.5314, lng: 88.3225 }, spread: 0.04, vessel: 'R/V Sagar Manjusha' },
+  'paradip': { id: 'paradip', name: 'Paradip Port', code: 'PAR', lat: 20.2662, lng: 86.6775, waterCenter: { lat: 20.2662, lng: 86.6775 }, spread: 0.04, vessel: 'R/V Anveshani' },
+  'thunder-bay': { id: 'thunder-bay', name: 'Thunder Bay, Lake Huron', code: 'THU', lat: 45.0600, lng: -83.4300, waterCenter: { lat: 45.0600, lng: -83.4300 }, spread: 0.04, vessel: 'AUV Iver3 (AI4Shipwrecks)' },
+  'lake-huron': { id: 'lake-huron', name: 'Lake Huron', code: 'LAK', lat: 45.0600, lng: -83.4300, waterCenter: { lat: 45.0600, lng: -83.4300 }, spread: 0.04, vessel: 'AUV Iver3' },
 };
+
+export const DEFAULT_PORT_ID = 'mumbai';
+
+export function getPort(idOrName?: string | null): PortDefinition {
+  if (!idOrName) return PORTS[DEFAULT_PORT_ID];
+  const normalized = idOrName.toLowerCase().trim();
+  if (PORTS[normalized]) return PORTS[normalized];
+  // Match by name or code
+  const found = Object.values(PORTS).find(
+    p => p.id === normalized || p.name.toLowerCase() === normalized || p.code.toLowerCase() === normalized
+  );
+  return found || PORTS[DEFAULT_PORT_ID];
+}
+
+// Backward-compatible dictionary keyed by name
+export const HARBOURS: Record<string, PortDefinition> = Object.values(PORTS).reduce((acc, port) => {
+  acc[port.name] = port;
+  return acc;
+}, {} as Record<string, PortDefinition>);
 
 // Deleted mock arrays so the backend provides authentic data
