@@ -92,8 +92,13 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => clearInterval(timer);
   }, []);
 
+  const harbourContextValue = React.useMemo(
+    () => ({ activeHarbour, setActiveHarbour }),
+    [activeHarbour]
+  );
+
   return (
-    <HarbourContext.Provider value={{ activeHarbour, setActiveHarbour }}>
+    <HarbourContext.Provider value={harbourContextValue}>
       <RealTimeAnomalyContext.Provider value={anomalyUpdates}>
         {/* ── Root shell: Technical Pane Architecture ── */}
         <div className="flex h-screen w-full overflow-hidden font-sans relative text-text-primary bg-void">

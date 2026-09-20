@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.core.config import get_settings
 from app.core.logging import setup_logging
 import logging
@@ -55,6 +56,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please contact the administrator."},
+    )
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 app.mount("/api/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
