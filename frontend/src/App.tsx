@@ -1,6 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, Map, History, FileCheck, Bell, User, Menu, X, Anchor, Sun, Moon, Layers } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  UploadCloud, 
+  Map, 
+  History, 
+  FileCheck, 
+  Bell, 
+  User, 
+  Menu, 
+  X, 
+  Anchor, 
+  Sun, 
+  Moon, 
+  Layers 
+} from 'lucide-react';
 import Dashboard from './pages/Dashboard'; // trigger refresh
 import UploadProcess from './pages/UploadProcess';
 import ImageProcessing from './pages/ImageProcessing';
@@ -15,11 +29,11 @@ import { usePreferences } from './contexts/PreferencesContext';
 import { useTheme } from './contexts/ThemeContext';
 import { useUser, UserProvider } from './contexts/UserContext';
 import { subscribeToRealTimeAnomalies } from './services/api';
-import { HARBOURS } from './data/mockData';
+import { PORTS, getPort } from './data/mockData';
 import type { Anomaly } from './data/mockData';
 import BootScreen from './components/BootScreen';
 
-import { HarbourContext, RealTimeAnomalyContext } from './contexts/AppContext';
+import { PortContext, RealTimeAnomalyContext } from './contexts/AppContext';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -29,6 +43,7 @@ const NAV_ITEMS = [
   { id: 'comparison', label: 'Temporal Comparison', path: '/comparison', icon: History },
   { id: 'review', label: 'Human Review', path: '/review', icon: FileCheck },
 ];
+
 
 const AvatarBadge: React.FC<{ size?: 'sm' | 'md', showStatus?: boolean }> = ({ size = 'sm', showStatus = false }) => {
   const { profile } = useUser();
@@ -50,7 +65,34 @@ const AvatarBadge: React.FC<{ size?: 'sm' | 'md', showStatus?: boolean }> = ({ s
 
 const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeHarbour, setActiveHarbour] = useState('Mumbai Harbor Q3');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const portFromUrl = searchParams.get('port');
+  const initialPort = getPort(portFromUrl);
+  const [selectedPortId, setSelectedPortIdState] = useState<string>(initialPort.id);
+
+  // Sync state if URL changes externally (e.g. browser back/forward or link)
+  useEffect(() => {
+    const currentParam = searchParams.get('port');
+    if (currentParam) {
+      const resolved = getPort(currentParam);
+      if (resolved.id !== selectedPortId) {
+        setSelectedPortIdState(resolved.id);
+      }
+    }
+  }, [searchParams, selectedPortId]);
+
+  const setSelectedPortId = useCallback((portIdOrName: string) => {
+    const resolved = getPort(portIdOrName);
+    setSelectedPortIdState(resolved.id);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('port', resolved.id);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  const selectedPort = PORTS[selectedPortId] || getPort(selectedPortId);
+
   const { theme, setTheme } = useTheme();
   const [anomalyUpdates, setAnomalyUpdates] = useState<Record<string, Partial<Anomaly>>>({});
   const location = useLocation();
@@ -78,27 +120,34 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = subscribeToRealTimeAnomalies(
-      activeHarbour,
+      selectedPort.id,
       (id, updates) => {
         setAnomalyUpdates(prev => ({ ...prev, [id]: { ...prev[id], ...updates } }));
       },
       () => { }
     );
     return () => unsubscribe();
-  }, [activeHarbour]);
+  }, [selectedPort.id]);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const harbourContextValue = React.useMemo(
-    () => ({ activeHarbour, setActiveHarbour }),
-    [activeHarbour]
+  const portContextValue = React.useMemo(
+    () => ({
+      selectedPortId: selectedPort.id,
+      selectedPort,
+      setSelectedPortId,
+      ports: Object.values(PORTS),
+      activeHarbour: selectedPort.name,
+      setActiveHarbour: setSelectedPortId,
+    }),
+    [selectedPort, setSelectedPortId]
   );
 
   return (
-    <HarbourContext.Provider value={harbourContextValue}>
+    <PortContext.Provider value={portContextValue}>
       <RealTimeAnomalyContext.Provider value={anomalyUpdates}>
         {/* ── Root shell: Technical Pane Architecture ── */}
         <div className="flex h-screen w-full overflow-hidden font-sans relative text-text-primary bg-void">
@@ -184,13 +233,16 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <div className="flex flex-col items-end gap-1">
                       <div className="flex items-center gap-1.5 text-[8px] leading-none text-text-muted tracking-[0.2em] uppercase font-light">
                         <span className="w-1 h-1 bg-accent rounded-full animate-glow-pulse shadow-[var(--glow-accent)]" />
-                        Active Sector
+                        Active Port / Sector
                       </div>
-                      <div key={activeHarbour} className="text-[12px] leading-none text-text-primary font-medium tracking-[0.02em] animate-in fade-in zoom-in duration-500">
-                        {activeHarbour}
+                      <div key={selectedPort.id} className="text-[12px] leading-none text-text-primary font-medium tracking-[0.02em] animate-in fade-in zoom-in duration-500 flex items-center gap-1.5">
+                        <span>{selectedPort.name}</span>
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-surface/80 border border-glass-border font-mono text-text-muted">
+                          {selectedPort.code}
+                        </span>
                       </div>
                       <div className="text-[8px] leading-none text-text-muted font-mono tracking-widest opacity-80">
-                        {formatCoordinates(HARBOURS[activeHarbour].lat, HARBOURS[activeHarbour].lng)}
+                        {formatCoordinates(selectedPort.lat, selectedPort.lng)}
                       </div>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`text-text-muted transition-transform duration-300 ${isHarbourMenuOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -198,23 +250,41 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
                   {/* Dropdown Menu */}
                   {isHarbourMenuOpen && (
-                    <div className="absolute top-full right-0 mt-3 w-64 bg-void/80 backdrop-blur-3xl border border-glass-border rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.6)] py-2 overflow-hidden z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200">
-                      <div className="max-h-64 overflow-y-auto divide-y divide-glass-border">
-                        {Object.keys(HARBOURS).sort().map((harbour, idx) => (
+                    <div className="absolute top-full right-0 mt-3 w-72 bg-void/90 backdrop-blur-3xl border border-glass-border rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.6)] py-2 overflow-hidden z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-3 py-1.5 border-b border-glass-border flex items-center justify-between text-[10px] text-text-muted uppercase tracking-wider font-mono">
+                        <span>Select Operational Port</span>
+                        <span>{Object.keys(PORTS).length} Ports</span>
+                      </div>
+                      <div className="max-h-72 overflow-y-auto divide-y divide-glass-border/40">
+                        {Object.values(PORTS).map((port, idx) => (
                           <div 
-                            key={harbour}
-                            className="p-3 hover:bg-glass-strong hover:backdrop-blur-md cursor-pointer transition-all duration-300 flex items-center justify-between group animate-in slide-in-from-right-4 fade-in fill-mode-both rounded-lg mx-1 my-0.5"
-                            style={{ animationDelay: `${idx * 50}ms` }}
+                            key={port.id}
+                            className={`p-3 hover:bg-glass-strong hover:backdrop-blur-md cursor-pointer transition-all duration-300 flex items-center justify-between group animate-in slide-in-from-right-4 fade-in fill-mode-both rounded-lg mx-1 my-0.5 ${port.id === selectedPort.id ? 'bg-glass-strong/60' : ''}`}
+                            style={{ animationDelay: `${idx * 30}ms` }}
                             onClick={() => {
-                              setActiveHarbour(harbour);
+                              setSelectedPortId(port.id);
                               setIsHarbourMenuOpen(false);
                             }}
                           >
                             <div className="flex flex-col">
-                              <span className={`text-[12px] font-light tracking-wide transition-colors ${harbour === activeHarbour ? 'text-accent' : 'text-text-primary group-hover:text-accent'}`}>{harbour}</span>
-                              <span className="text-[9px] font-mono text-text-muted tracking-widest mt-0.5">{formatCoordinates(HARBOURS[harbour].lat, HARBOURS[harbour].lng)}</span>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[12px] font-medium tracking-wide transition-colors ${port.id === selectedPort.id ? 'text-accent font-semibold' : 'text-text-primary group-hover:text-accent'}`}>
+                                  {port.name}
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface/80 border border-glass-border font-mono text-text-muted">
+                                  {port.code}
+                                </span>
+                              </div>
+                              <span className="text-[9px] font-mono text-text-muted tracking-widest mt-0.5">
+                                {formatCoordinates(port.lat, port.lng)}
+                              </span>
                             </div>
-                            {harbour === activeHarbour && <span className="w-1.5 h-1.5 bg-accent rounded-full shadow-[var(--glow-accent)]" />}
+                            {port.id === selectedPort.id && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-accent font-mono uppercase tracking-wider">Active</span>
+                                <span className="w-1.5 h-1.5 bg-accent rounded-full shadow-[var(--glow-accent)]" />
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -336,7 +406,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </main>
         </div>
       </RealTimeAnomalyContext.Provider>
-    </HarbourContext.Provider>
+    </PortContext.Provider>
   );
 };
 

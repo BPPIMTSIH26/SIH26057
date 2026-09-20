@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "test": "npx tsx tests/test_port_anomaly_sync.ts",
     "preview": "vite preview",
     "prepare": "node -e \"if(process.env.CI || !require('fs').existsSync('.git')) process.exit(0)\" && husky || true"
   },
