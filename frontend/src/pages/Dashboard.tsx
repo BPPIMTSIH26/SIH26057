@@ -183,10 +183,9 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [isAutoPatrol, selectedPortId, setSelectedPortId, ports]);
 
-  // Priority queue anomalies (filtered to selected port only)
   const priorityAnomalies = useMemo(() =>
     portAnomalies
-      .filter(a => a.priority === 'immediate' || a.priority === 'high' || a.priority === 'medium')
+      .filter(a => (a.priority === 'immediate' || a.priority === 'high' || a.priority === 'medium') && a.reviewStatus !== 'false_positive')
       .sort((a, b) => b.overallScore - a.overallScore),
     [portAnomalies]
   );
@@ -485,9 +484,12 @@ export default function Dashboard() {
                 ) : selectedAnomaly ? (
                   <div className="flex flex-col gap-5 animate-in fade-in duration-300">
                     <div className="flex items-center justify-between border-b border-glass-border pb-2">
-                      <span className="font-display font-medium text-xs text-text-primary uppercase tracking-wider">
-                        {selectedAnomaly.label}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-display font-medium text-xs text-text-primary uppercase tracking-wider">
+                          {selectedAnomaly.label}
+                        </span>
+                        <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest font-mono">DEMO DATA</span>
+                      </div>
                       <span className="text-[10px] font-mono text-text-muted">
                         PORT ID: {selectedAnomaly.portId || selectedPortId}
                       </span>

@@ -126,9 +126,30 @@ export default function ReviewReport() {
  }, [page, fetchAnomalies]);
 
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
- setShowToast({ message, type });
- setTimeout(() => setShowToast(null), 3000);
- };
+    setShowToast({ message, type });
+    setTimeout(() => setShowToast(null), 3000);
+  };
+
+  const handleExport = async (type: 'pdf' | 'csv' | 'json') => {
+    triggerToast(`Generating ${type.toUpperCase()}...`, 'info');
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      const surveyId = 'surv_001'; // Demo fallback
+      const res = await fetch(`${API_URL}/reports/${surveyId}/generate?report_type=${type}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('sagar_token')}`
+        }
+      });
+      if (res.ok) {
+        triggerToast(`Exported ${type.toUpperCase()} successfully.`);
+      } else {
+        throw new Error('Failed');
+      }
+    } catch(e) {
+      triggerToast(`Error exporting ${type.toUpperCase()}`, 'error');
+    }
+  };
 
  const handleDecision = async (decision: 'confirmed_unknown' | 'known_object' | 'false_positive') => {
  if (!selectedId) return;
@@ -227,7 +248,10 @@ export default function ReviewReport() {
  `}
  >
  <div className="flex items-center justify-between">
- <span className={`font-display text-[12px] font-light uppercase tracking-[0.1em] ${selectedId === anomaly.id ? 'text-accent shadow-[var(--glow-accent)]' : 'text-text-primary group-hover:text-white transition-colors'}`}>{anomaly.label}</span>
+ <div className="flex items-center gap-2">
+   <span className={`font-display text-[12px] font-light uppercase tracking-[0.1em] ${selectedId === anomaly.id ? 'text-accent shadow-[var(--glow-accent)]' : 'text-text-primary group-hover:text-white transition-colors'}`}>{anomaly.label}</span>
+   <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest font-mono">DEMO DATA</span>
+ </div>
  {anomaly.reviewStatus === 'pending' ? (
  <div className="w-1.5 h-1.5 bg-warning animate-glow-pulse shadow-[var(--glow-accent)] rounded-full"></div>
  ) : (
@@ -268,7 +292,10 @@ export default function ReviewReport() {
  <div className="flex flex-col p-6 gap-6 max-w-4xl mx-auto w-full">
  <div className="flex justify-between items-start">
  <div>
- <h3 className="text-xl font-display font-light uppercase tracking-[0.15em] text-text-primary mb-2">{selectedAnomaly.label} Evidence</h3>
+ <h3 className="text-xl font-display font-light uppercase tracking-[0.15em] text-text-primary mb-2 flex items-center gap-3">
+  {selectedAnomaly.label} Evidence
+  <span className="text-[9px] bg-accent/20 text-accent px-1.5 py-0.5 rounded border border-accent/30 tracking-widest font-mono">DEMO DATA</span>
+ </h3>
  <div className="flex items-center gap-4 text-[11px] font-mono text-text-secondary">
  <button 
  onClick={() => navigate('/map', { state: { selectedAnomalyId: selectedAnomaly.id } })}
@@ -459,22 +486,22 @@ export default function ReviewReport() {
  {/* Report Actions */}
  <div className="flex gap-2">
  <button 
- onClick={() => {
- triggerToast('Generating PDF...');
- setTimeout(() => { triggerToast('Downloaded PDF'); }, 1500);
- }}
+ onClick={() => handleExport('pdf')}
  className="bg-surface hover:bg-border border border-border text-text-primary text-[10px] font-bold uppercase tracking-widest px-4 py-2 transition-colors flex items-center gap-2"
  >
  <Download className="w-3 h-3" /> Export PDF
  </button>
  <button 
- onClick={() => {
- triggerToast('Generating CSV...');
- setTimeout(() => { triggerToast('Downloaded CSV'); }, 1000);
- }}
+ onClick={() => handleExport('csv')}
  className="bg-surface hover:bg-border border border-border text-text-primary text-[10px] font-bold uppercase tracking-widest px-4 py-2 transition-colors flex items-center gap-2"
  >
  <FileText className="w-3 h-3" /> Export CSV
+ </button>
+ <button 
+ onClick={() => handleExport('json')}
+ className="bg-surface hover:bg-border border border-border text-text-primary text-[10px] font-bold uppercase tracking-widest px-4 py-2 transition-colors flex items-center gap-2"
+ >
+ <FileText className="w-3 h-3" /> Export JSON
  </button>
  <button onClick={async () => {
  try { await navigator.clipboard.writeText(window.location.href); triggerToast('Link copied!'); } 
