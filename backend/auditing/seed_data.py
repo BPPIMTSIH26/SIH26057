@@ -23,11 +23,24 @@ HARBOURS = {
     'Paradip Port': {'lat': 20.2662, 'lng': 86.6775, 'vessel': 'R/V Anveshani'},
 }
 
-def generate_random_coordinate(center_lat, center_lng, radius_km=5):
-    # Rough approximation for geo-radius offset
-    lat_offset = (random.uniform(-1, 1) * radius_km) / 111.0
-    lng_offset = (random.uniform(-1, 1) * radius_km) / (111.0 * math.cos(math.radians(center_lat)))
-    return center_lat + lat_offset, center_lng + lng_offset
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.water_coordinates import get_random_water_coordinate, DEMO_SEEDS
+
+def get_port_id_from_name(port_name):
+    port_mapping = {
+        'Mumbai Harbor Q3': 'mumbai',
+        'Chennai Port': 'chennai',
+        'Kochi Harbor': 'kochi',
+        'Visakhapatnam Port': 'visakhapatnam',
+        'Jawaharlal Nehru Port': 'jawaharlal-nehru',
+        'Kolkata Port': 'kolkata',
+        'Paradip Port': 'paradip',
+        'Thunder Bay, Lake Huron': 'thunder-bay'
+    }
+    return port_mapping.get(port_name, 'mumbai')
+
 
 def seed_database():
     print("Initializing Database Tables...")
@@ -91,7 +104,8 @@ def seed_database():
                 
                 print(f"Seeding {num_to_seed} anomalies for {harbour_name}...")
                 for i, target in enumerate(sampled_targets):
-                    lat, lng = generate_random_coordinate(data['lat'], data['lng'], 5)
+                    port_id = get_port_id_from_name(harbour_name)
+                    lat, lng = get_random_water_coordinate(port_id, random)
                     confidence = random.uniform(0.75, 0.98)
                     
                     det = Detection(

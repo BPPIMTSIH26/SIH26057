@@ -1,0 +1,14 @@
+{
+  "total_anomalies_inspected": 40,
+  "total_anomalies_repaired": 40,
+  "ports_affected": [
+    "kochi",
+    "mumbai",
+    "chennai",
+    "paradip",
+    "thunder-bay",
+    "jawaharlal-nehru",
+    "kolkata",
+    "visakhapatnam"
+  ]
+}
