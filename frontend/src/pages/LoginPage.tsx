@@ -250,17 +250,23 @@ export default function LoginPage() {
           </h1>
           
           <p className="text-sm text-text-muted leading-relaxed font-light mb-8 max-w-md">
-            The System for Autonomous Geographical Analysis and Reconnaissance (S.A.G.A.R.) provides real-time geospatial intelligence, anomaly detection, and temporal mapping for coastal and harbour security.
+            The System for Autonomous Geographical Analysis and Reconnaissance (S.A.G.A.R.) provides geospatial intelligence, anomaly detection, and temporal mapping for coastal and harbour security.
           </p>
 
           <div className="grid grid-cols-2 gap-6 pt-8 border-t border-glass-border/50">
             <div>
-              <div className="text-2xl font-display font-bold text-text-primary mb-1">100%</div>
-              <div className="text-[10px] text-text-muted font-mono tracking-widest uppercase">Coverage Area</div>
+              <div className="text-2xl font-display font-bold text-text-primary mb-1 flex items-center gap-2">
+                5.2K
+                <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest">DEMO DATA</span>
+              </div>
+              <div className="text-[10px] text-text-muted font-mono tracking-widest uppercase">Sonar Tiles Indexed</div>
             </div>
             <div>
-              <div className="text-2xl font-display font-bold text-accent mb-1 drop-shadow-[var(--glow-accent)]">&lt;0.5s</div>
-              <div className="text-[10px] text-text-muted font-mono tracking-widest uppercase">Detection Latency</div>
+              <div className="text-2xl font-display font-bold text-accent mb-1 drop-shadow-[var(--glow-accent)] flex items-center gap-2">
+                14
+                <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest">RESULT</span>
+              </div>
+              <div className="text-[10px] text-text-muted font-mono tracking-widest uppercase">Processing Stages</div>
             </div>
           </div>
         </div>
