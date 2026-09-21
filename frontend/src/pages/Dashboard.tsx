@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { CheckCircle, AlertTriangle, AlertCircle, TrendingUp, Anchor, Zap, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertTriangle, AlertCircle, TrendingUp, Anchor, Zap, RefreshCw, Ship, MapPin, Waves, Building2 } from 'lucide-react';
 
 import MetricCard from '../components/ui/MetricCard';
 import PriorityQueue from '../components/ui/PriorityQueue';
@@ -263,6 +263,56 @@ export default function Dashboard() {
                   trendDirection="down" 
                   isLoading={isLoading} 
                 />
+              </div>
+            </div>
+
+            {/* Port Intel Card */}
+            <div className="shrink-0 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
+              <div className="px-5 py-3 border-b border-glass-border bg-glass-strong flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-3.5 h-3.5 text-accent" />
+                  <h3 className="font-display font-bold text-[10px] uppercase tracking-[0.15em] text-text-primary">Port Intel</h3>
+                </div>
+                <span className="text-[9px] font-mono text-text-muted px-1.5 py-0.5 rounded bg-surface border border-glass-border">
+                  {selectedPort.authority || 'N/A'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-glass-strong">
+                <div className="bg-glass p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3 text-text-muted" />
+                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Survey Area</span>
+                  </div>
+                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.areaSqKm ?? 'N/A'} <span className="text-[9px] text-text-muted">km²</span></div>
+                </div>
+                <div className="bg-glass p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Waves className="w-3 h-3 text-text-muted" />
+                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Max Depth</span>
+                  </div>
+                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.maxDepthMeters ?? 'N/A'} <span className="text-[9px] text-text-muted">m</span></div>
+                </div>
+                <div className="bg-glass p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <TrendingUp className="w-3 h-3 text-text-muted" />
+                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Throughput</span>
+                  </div>
+                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.annualThroughputTEU != null ? `${(selectedPort.annualThroughputTEU * 10000).toLocaleString()}` : 'N/A'} <span className="text-[9px] text-text-muted">TEU/yr</span></div>
+                </div>
+                <div className="bg-glass p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Ship className="w-3 h-3 text-text-muted" />
+                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Vessel</span>
+                  </div>
+                  <div className="text-text-primary font-mono text-[11px] font-light truncate" title={selectedPort.vessel}>{selectedPort.vessel}</div>
+                </div>
+                <div className="bg-glass p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Anchor className="w-3 h-3 text-text-muted" />
+                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Seed Points</span>
+                  </div>
+                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.waterCoordinates?.length ?? 0} <span className="text-[9px] text-text-muted">coords</span></div>
+                </div>
               </div>
             </div>
 
