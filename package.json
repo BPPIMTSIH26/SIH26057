@@ -14,5 +14,8 @@
     "demo:reset": "cd backend && rm -f netrasonar.db && python3 auditing/seed_all.py",
     "healthcheck": "curl -s -f http://localhost:8000/api/health || exit 1",
     "verify:demo": "npm --prefix frontend run build && npx tsx scripts/verify_demo.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2"
   }
 }
