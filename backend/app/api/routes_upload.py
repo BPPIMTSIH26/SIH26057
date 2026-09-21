@@ -29,7 +29,8 @@ router = APIRouter()
 settings = get_settings()
 
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tif", ".tiff"}
-
+ALLOWED_MIME_TYPES = {"image/png", "image/jpeg", "image/tiff"}
+MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
 
 def sha256_file(path: str) -> str:
     h = hashlib.sha256()
@@ -54,6 +55,12 @@ async def upload_image(
             status_code=400,
             detail=f"Unsupported file type '{ext}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
         )
+        
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported mime-type '{file.content_type}'. Allowed: {', '.join(ALLOWED_MIME_TYPES)}"
+        )
 
     safe_filename = os.path.basename(file.filename)
     file_path = os.path.join(settings.UPLOAD_DIR, f"{int(time.time())}_{safe_filename}")
@@ -69,6 +76,10 @@ async def upload_image(
     if file_size == 0:
         os.remove(file_path)
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        
+    if file_size > MAX_FILE_SIZE:
+        os.remove(file_path)
+        raise HTTPException(status_code=400, detail="File exceeds 25MB limit.")
 
     try:
         provider = model_manager.get_provider()
