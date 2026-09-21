@@ -24,6 +24,32 @@ import {
 import { useHarbour } from '../contexts/AppContext';
 import { HARBOURS } from '../data/mockData';
 import { imageProcessingApi, ImageProcessingJobResponse } from '../services/imageProcessingApi';
+import { getRandomWaterCoordinate } from '../utils/waterCoordinates';
+
+type ProcessingUiStatus =
+  | 'idle'
+  | 'file_selected'
+  | 'submitting'
+  | 'processing'
+  | 'completed'
+  | 'assessed'
+  | 'failed';
+
+function deriveProcessingUiStatus(args: {
+  file: File | null;
+  jobId: string | null;
+  result: ImageProcessingJobResponse | null;
+  requestState: 'idle' | 'submitting' | 'polling' | 'error';
+}): ProcessingUiStatus {
+  if (args.requestState === 'error' || args.result?.status === 'failed') return 'failed';
+  if (args.result?.status === 'assessed') return 'assessed';
+  if (args.result?.status === 'completed') return 'completed';
+  if (args.requestState === 'submitting') return 'submitting';
+  if (args.jobId && args.requestState === 'polling') return 'processing';
+  if (args.file) return 'file_selected';
+  return 'idle';
+}
+
 
 // ── Seabed composition helpers ──────────────────────────────────────────────
 function deriveSeabedProfile(result: import('../services/imageProcessingApi').ImageProcessingJobResponse) {
@@ -70,7 +96,7 @@ const ImageProcessing: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [result, setResult] = useState<ImageProcessingJobResponse | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [requestState, setRequestState] = useState<'idle' | 'submitting' | 'polling' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<ImageProcessingJobResponse[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -87,6 +113,9 @@ const ImageProcessing: React.FC = () => {
   
   const { activeHarbour } = useHarbour();
   const anomalyQueueRef = useRef<HTMLDivElement>(null);
+
+  const uiStatus = deriveProcessingUiStatus({ file, jobId, result, requestState });
+  const isProcessing = uiStatus === 'submitting' || uiStatus === 'processing';
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -120,21 +149,23 @@ const ImageProcessing: React.FC = () => {
       setResult(null);
       setJobId(null);
       setError(null);
+      setRequestState('idle');
       setFailedImages({});
     }
   };
 
   const handleProcess = async () => {
     if (!file) return;
-    setIsProcessing(true);
+    setRequestState('submitting');
     setError(null);
     setFailedImages({});
     try {
       const { jobId } = await imageProcessingApi.createJob(file) as any;
       setJobId(jobId);
+      setRequestState('polling');
     } catch (err: any) {
       setError(err.message || 'Failed to start processing');
-      setIsProcessing(false);
+      setRequestState('error');
     }
   };
 
@@ -145,14 +176,8 @@ const ImageProcessing: React.FC = () => {
     try {
       let location = undefined;
       const harborConfig = HARBOURS[activeHarbour];
-      if (harborConfig) {
-        // Scatter slightly around the harbor's water center
-        const r1 = (Math.random() - 0.5) * harborConfig.spread;
-        const r2 = (Math.random() - 0.5) * harborConfig.spread;
-        location = {
-          latitude: harborConfig.waterCenter.lat + r1,
-          longitude: harborConfig.waterCenter.lng + r2
-        };
+      if (harborConfig && harborConfig.waterCoordinates && harborConfig.waterCoordinates.length > 0) {
+        location = getRandomWaterCoordinate(harborConfig);
       }
       await imageProcessingApi.publishJob(jobId, location);
       setPublishSuccess(true);
@@ -167,39 +192,40 @@ const ImageProcessing: React.FC = () => {
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    if (jobId && isProcessing) {
+    if (jobId && requestState === 'polling') {
       interval = setInterval(async () => {
         try {
           const status = await imageProcessingApi.getJobStatus(jobId);
           setResult(status);
           if (status.status === 'completed' || status.status === 'failed' || status.status === 'assessed') {
-            setIsProcessing(false);
+            setRequestState('idle');
             clearInterval(interval);
             setImgKey(Date.now());
             fetchHistory();
           }
         } catch (err: any) {
           setError(err.message || 'Failed to fetch status');
-          setIsProcessing(false);
+          setRequestState('error');
           clearInterval(interval);
         }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [jobId, isProcessing, fetchHistory]);
+  }, [jobId, requestState, fetchHistory]);
 
-  const getMediaUrl = (path?: string) => {
+  const resolveMediaUrl = (path?: string | null, cacheKey?: string) => {
     if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return `${path}?t=${imgKey}`;
-    }
-    const apiBase = import.meta.env.VITE_API_URL || '';
-    if (apiBase && path.startsWith('/api/')) {
-      const origin = apiBase.replace(/\/api\/?$/, '');
-      return `${origin}${path}?t=${imgKey}`;
-    }
-    return `${path}?t=${imgKey}`;
+    const configuredApi = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const apiOrigin = configuredApi.replace(/\/api\/?$/, '');
+    const url = /^https?:\/\//i.test(path)
+      ? new URL(path)
+      : new URL(path.startsWith('/') ? path : `/${path}`, apiOrigin);
+
+    if (cacheKey) url.searchParams.set('t', cacheKey);
+    return url.toString();
   };
+
+  const getMediaUrl = (path?: string | null) => resolveMediaUrl(path, imgKey.toString());
 
   // Slider dragging logic
   const handleSliderMove = useCallback((clientX: number) => {
@@ -238,9 +264,13 @@ const ImageProcessing: React.FC = () => {
         <p className="text-sm text-text-muted mt-1">Pre-process, assess, denoise, and enhance side-scan sonar waterfall imagery with CLAHE and robust normalization.</p>
         <div className="mt-2 text-xs font-mono flex items-center gap-2">
           <span>Pipeline Status:</span>
-          <span className={result?.status === 'completed' ? 'text-success font-semibold flex items-center gap-1' : result?.status === 'failed' ? 'text-danger font-semibold' : isProcessing ? 'text-accent font-semibold animate-pulse' : 'text-text-muted'}>
-            {result?.status ? result.status.toUpperCase() : (file ? 'READY TO ENHANCE' : 'WAITING FOR FILE')}
-            {result?.status === 'completed' && <CheckCircle className="w-3.5 h-3.5 inline" />}
+          <span className={(uiStatus === 'completed' || uiStatus === 'assessed') ? 'text-success font-semibold flex items-center gap-1' : uiStatus === 'failed' ? 'text-danger font-semibold' : isProcessing ? 'text-accent font-semibold animate-pulse' : 'text-text-muted'}>
+            {uiStatus === 'idle' ? 'WAITING FOR FILE' : 
+             uiStatus === 'file_selected' ? 'READY TO ENHANCE' : 
+             uiStatus === 'submitting' ? 'SUBMITTING...' :
+             uiStatus === 'processing' ? `PROCESSING... ${result?.progress ? `(${result.progress}%)` : ''}` :
+             uiStatus.toUpperCase()}
+            {(uiStatus === 'completed' || uiStatus === 'assessed') && <CheckCircle className="w-3.5 h-3.5 inline" />}
           </span>
         </div>
       </div>
@@ -884,10 +914,18 @@ const ImageProcessing: React.FC = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-12 bg-void/70 rounded flex items-center justify-center overflow-hidden shrink-0 border border-glass-border">
-                    {job.processedImageUrl ? (
-                      <img src={getMediaUrl(job.processedImageUrl)} alt="Processed" className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity" />
+                    {job.processedImageUrl && !failedImages[`hist_${job.jobId}`] ? (
+                      <img 
+                        src={getMediaUrl(job.processedImageUrl)} 
+                        alt="Processed" 
+                        className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity"
+                        onError={() => setFailedImages(prev => ({ ...prev, [`hist_${job.jobId}`]: true }))}
+                      />
                     ) : (
-                      <ImageIcon className="w-6 h-6 text-glass-border-strong" />
+                      <div className="flex flex-col items-center justify-center text-glass-border-strong w-full h-full bg-void/50" title="Preview unavailable">
+                        <ImageIcon className="w-5 h-5 opacity-60" />
+                        <span className="text-[8px] font-mono mt-0.5 opacity-60">Unavailable</span>
+                      </div>
                     )}
                   </div>
                   <div>

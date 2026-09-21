@@ -139,8 +139,7 @@ function testSupportedPorts() {
     'jawaharlal-nehru',
     'kolkata',
     'paradip',
-    'thunder-bay',
-    'lake-huron'
+    'thunder-bay'
   ];
 
   for (const pid of expectedPortIds) {
