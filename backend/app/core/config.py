@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     MODEL_PROVIDER: str = "demo"
     CONFIDENCE_THRESHOLD: float = 0.5
     
+    # Celery / Redis
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
     # Security & Auth
     JWT_SECRET_KEY: str = "sagar-dev-secret-key-change-in-prod-min-32-chars"
     JWT_ALGORITHM: str = "HS256"

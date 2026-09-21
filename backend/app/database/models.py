@@ -42,6 +42,7 @@ class SonarImage(Base):
     filename = Column(String)
     original_path = Column(String)
     processed_path = Column(String, nullable=True)
+    preprocess_applied = Column(Boolean, default=False)
     width = Column(Integer, nullable=True)
     height = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=get_utc_now)

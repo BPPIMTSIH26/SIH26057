@@ -22,8 +22,8 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting SONAR-X Backend (Env: {settings.APP_ENV})")
     logger.info(f"Using Model Provider: {settings.MODEL_PROVIDER}")
 
-    # Create tables
-    Base.metadata.create_all(bind=engine)
+    # Migrations are now managed by Alembic.
+    # Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
     try:

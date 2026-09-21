@@ -62,7 +62,7 @@ def process_pipeline(mission_id: str, image_id: str, db: Session = Depends(get_d
         det.risk_level = risk_res["risk_level"]
         
         # Geolocation
-        geo_res = geo_service.locate_detection(mission, det, image.width or 1000)
+        geo_res = geo_service.locate_detection(mission, det, image.width or 1000, image.height or 1000)
         det.latitude = geo_res.get("latitude")
         det.longitude = geo_res.get("longitude")
         det.depth = geo_res.get("depth")
