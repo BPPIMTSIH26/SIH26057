@@ -8,7 +8,7 @@ import uuid
 
 from app.database.database import get_db
 from app.database.models import User, ImageProcessingJob
-from app.api.routes_auth import get_current_user_optional
+from app.api.routes_auth import get_current_user
 from app.schemas.image_processing import JobCreateResponse, ImageProcessingJobResponse
 from app.services.image_processing_service import ImageProcessingService
 from app.services.s3_service import S3Service
@@ -25,11 +25,8 @@ async def create_processing_job(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
-    if os.environ.get("PYTEST_CURRENT_TEST") and not request.headers.get("authorization"):
-        raise HTTPException(status_code=401, detail="Authentication required")
-
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
     
@@ -80,7 +77,8 @@ async def create_processing_job(
     db.commit()
     db.refresh(job)
     
-    background_tasks.add_task(ImageProcessingService.process_job, job.id, file_path)
+    from app.worker import process_image_pipeline_task
+    process_image_pipeline_task.delay(job.id, file_path)
     
     return JobCreateResponse(
         jobId=job.id,
@@ -92,10 +90,10 @@ async def create_processing_job(
 @router.get("/jobs/history", response_model=list[ImageProcessingJobResponse])
 def get_job_history(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
     jobs = db.query(ImageProcessingJob).filter(
-        (ImageProcessingJob.user_id == current_user.id) | (ImageProcessingJob.user_id == None)
+        (ImageProcessingJob.user_id == current_user.id)
     ).order_by(ImageProcessingJob.created_at.desc()).all()
     responses = []
     for job in jobs:

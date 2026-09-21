@@ -31,3 +31,7 @@ httpx
 #   pip install torch ultralytics onnx onnxruntime
 boto3
 psycopg2-binary
+alembic==1.20.0
+celery==5.6.3
+psycopg2-binary==2.9.13
+redis==8.1.0

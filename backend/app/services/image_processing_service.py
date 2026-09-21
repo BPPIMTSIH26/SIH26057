@@ -126,32 +126,7 @@ class ImageProcessingService:
 
 
     @staticmethod
-    def process_job(*args, **kwargs):
-        from app.database.database import SessionLocal, get_db
-        from app.main import app
-        db = None
-        own_session = False
-        if len(args) == 3:
-            db, job_id, file_path = args
-        elif len(args) == 2:
-            job_id, file_path = args
-            if get_db in app.dependency_overrides:
-                override = app.dependency_overrides[get_db]
-                db = next(override())
-            else:
-                db = SessionLocal()
-            own_session = True
-        else:
-            job_id = kwargs.get("job_id")
-            file_path = kwargs.get("file_path")
-            db = kwargs.get("db")
-            if not db:
-                if get_db in app.dependency_overrides:
-                    override = app.dependency_overrides[get_db]
-                    db = next(override())
-                else:
-                    db = SessionLocal()
-                own_session = True
+    def process_job_sync(db: Session, job_id: str, file_path: str):
 
         try:
             job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
@@ -329,9 +304,6 @@ class ImageProcessingService:
                     job.warnings = json.dumps([str(e)])
                     db.commit()
             print(f"Error processing image {job_id}: {e}")
-        finally:
-            if own_session and db:
-                db.close()
 
     @staticmethod
     def analyze_job(*args, **kwargs):
