@@ -89,12 +89,23 @@ class ReportService:
             "statistics": stats.model_dump(),
             "anomalies": [
                 {
-                    "anomaly_id": a.anomaly_id,
-                    "type": a.type,
-                    "confidence": a.confidence,
-                    "risk_level": a.risk_level,
+                    "alert_id": a.anomaly_id,
+                    "port": a.port_id or mission.port_id,
+                    "sector": mission.name,
+                    "survey_id": mission.mission_id,
+                    "class": a.type,
+                    "confidence": round(a.confidence * 100, 2) if a.confidence else 0.0,
+                    "priority": a.risk_level,
                     "latitude": a.latitude,
-                    "longitude": a.longitude
+                    "longitude": a.longitude,
+                    "width": None,
+                    "height": None,
+                    "depth": a.depth or mission.depth,
+                    "source_image": a.detection.image.filename if a.detection and a.detection.image else None,
+                    "model_version": a.model_version or "v1.1",
+                    "threshold": 0.5,
+                    "review_status": a.status,
+                    "timestamp": a.created_at.isoformat() if a.created_at else None
                 } for a in anomalies
             ]
         }
@@ -104,9 +115,27 @@ class ReportService:
     def _generate_csv(self, file_path, anomalies):
         with open(file_path, "w", newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(["Anomaly ID", "Type", "Confidence", "Risk Level", "Latitude", "Longitude", "Status"])
+            writer.writerow(["alert_id", "port", "sector", "survey_id", "class", "confidence", "priority", "latitude", "longitude", "width", "height", "depth", "source_image", "model_version", "threshold", "review_status", "timestamp"])
             for a in anomalies:
-                writer.writerow([a.anomaly_id, a.type, round(a.confidence,3), a.risk_level, a.latitude, a.longitude, a.status])
+                writer.writerow([
+                    a.anomaly_id,
+                    a.port_id or (a.mission.port_id if a.mission else None),
+                    a.mission.name if a.mission else None,
+                    a.mission.mission_id if a.mission else None,
+                    a.type,
+                    round(a.confidence * 100, 2) if a.confidence else 0.0,
+                    a.risk_level,
+                    a.latitude,
+                    a.longitude,
+                    None,
+                    None,
+                    a.depth or (a.mission.depth if a.mission else None),
+                    a.detection.image.filename if a.detection and a.detection.image else None,
+                    a.model_version or "v1.1",
+                    0.5,
+                    a.status,
+                    a.created_at.isoformat() if a.created_at else None
+                ])
                 
     def _generate_pdf(self, file_path, mission, stats, anomalies):
         c = canvas.Canvas(file_path, pagesize=letter)
