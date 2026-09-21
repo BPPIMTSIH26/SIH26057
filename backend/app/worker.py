@@ -21,6 +21,12 @@ celery_app.conf.update(
     worker_concurrency=int(os.getenv("CELERY_CONCURRENCY", 2)), # Bound concurrency
 )
 
+if os.environ.get("PYTEST_CURRENT_TEST"):
+    celery_app.conf.update(
+        task_always_eager=True,
+        task_eager_propagates=True,
+    )
+
 # Optional: Auto-discover tasks in specific modules
 celery_app.autodiscover_tasks(["app.services"])
 
