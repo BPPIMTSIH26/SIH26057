@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app.database.database import SessionLocal
 from app.database.models import Mission, Detection, Anomaly
 from auditing.seed_data import get_port_id_from_name
-from utils.water_coordinates import get_random_water_coordinate, DEMO_SEEDS
+from app.utils.water_coordinates import get_random_water_coordinate, DEMO_SEEDS
 
 def repair_coordinates(dry_run=False):
     db = SessionLocal()

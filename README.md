@@ -124,16 +124,20 @@ Generates a pixel-accurate diagnostic overlay over every processed sonar tile:
 
 ```
 SIH26057-OceanX/
-├── backend/                 # FastAPI API, YOLOv8/ONNX Models & Auditing Module
-│   ├── app/                 # Routers, ML inference, services & database models
-│   ├── auditing/            # Audit reports, API specifications, launch scripts & configs
-│   ├── data/                # Bathymetric sonar swaths, imagery, and SQLite db
-│   ├── models/              # Pretrained neural network weights (YOLO / ONNX)
-│   └── tests/               # Auth, security, and image processing test suites
+├── backend/                 # FastAPI API, YOLO/ONNX Models & Services
+│   ├── app/                 # API Routes, services, models, utils
+│   ├── scripts/             # Data seeding, migration, and management scripts
+│   ├── tests/               # Backend tests
+│   ├── data/                # Local databases and uploads (Gitignored)
+│   └── models/              # Model weights (Gitignored)
+├── deploy/                  # Deployment configurations
+├── docs/                    # Centralized project documentation
 ├── frontend/                # React 19 + TypeScript + Vite + MapLibre GL 3D
-│   ├── src/                 # Tactical dashboard, map workspace, processing lab
-│   └── public/              # High-resolution hydrographic assets and UI icons
-├── package.json             # Root unified launcher scripts (npm start, npm stop)
+│   ├── src/                 # Components, pages, hooks, services
+│   └── public/              # Static assets
+├── scripts/                 # Root level scripts
+├── tests/                   # Root level tests and fixtures
+├── .github/                 # CI/CD Workflows
 └── README.md                # System documentation & technical specification
 ```
 
