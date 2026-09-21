@@ -5,7 +5,7 @@ import json
 import requests
 
 API_BASE = "http://localhost:8000"
-HG_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "HG_DATA")
+HG_DATA_DIR = "/Users/narayanjha/Documents/NetraSonar/HG_DATA"
 
 def main():
     print("=" * 60)

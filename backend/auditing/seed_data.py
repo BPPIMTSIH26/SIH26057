@@ -26,7 +26,7 @@ HARBOURS = {
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.water_coordinates import get_random_water_coordinate, DEMO_SEEDS
+from app.utils.water_coordinates import get_random_water_coordinate, DEMO_SEEDS
 
 def get_port_id_from_name(port_name):
     port_mapping = {

@@ -38,8 +38,8 @@ backend/HG_DATA/
 backend/drishti_best.onnx
 
 # Large binary test artifacts
-test.jpg
-test.png
+tests/fixtures/*.jpg
+tests/fixtures/*.png
 HG_DATA/
 
 # Model training checkpoints & weights (large binaries)
