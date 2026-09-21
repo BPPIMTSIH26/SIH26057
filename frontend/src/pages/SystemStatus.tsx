@@ -15,7 +15,7 @@ export default function SystemStatus() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+        const res = await fetch(`${API_BASE_URL}/health`);
         if (res.ok) {
           const response = await res.json();
           setHealth(prev => ({
