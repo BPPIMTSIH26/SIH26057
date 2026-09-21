@@ -139,13 +139,26 @@ SIH26057-OceanX/
 
 ### Core Technologies
 - **Frontend**: React 19, TypeScript, Vite 5, Tailwind CSS v4, MapLibre GL JS, Recharts, Lucide Icons.
-- **Backend API**: Python 3.11+, FastAPI, Uvicorn, SQLAlchemy, Pydantic v2, SQLite.
+- **Backend API**: Python 3.11+, FastAPI, Uvicorn, SQLAlchemy, Pydantic v2.
 - **Computer Vision & AI**: OpenCV (`cv2`), PyTorch, Ultralytics YOLO11, ONNX Runtime, NumPy, SciPy, Pillow.
 - **Geospatial Processing**: Shapely, PyProj, GeoPandas, Turf.js.
 - **Security**: Argon2/PBKDF2 password hashing, JWT bearer tokens, SMTP Gmail OTP integration.
-- **DevOps & Deployment**: Docker Compose, Shell Automation (`start.sh`, `stop.sh`, `run.py`).
+- **DevOps & Deployment**: Docker Compose, Vercel (frontend), Render (backend), Shell Automation (`start.sh`, `stop.sh`).
+
+### ☁️ Cloud Data Storage
+
+All production data is stored on **Neon** — a serverless, auto-scaling cloud platform:
+
+| Layer | Service | Details |
+| :--- | :--- | :--- |
+| **Relational Database** | [Neon Serverless PostgreSQL](https://neon.tech) | Stores all mission records, anomaly detections, user accounts, image processing jobs, and audit logs via SQLAlchemy ORM. Connection pooling is handled by Neon's built-in PgBouncer (`-pooler` endpoint). |
+| **Blob / Object Storage** | Neon S3-Compatible Blob Store | All uploaded sonar imagery, processed outputs (enhanced tiles, quality masks, inference overlays), and report assets are stored in an S3-compatible bucket (`assets`) hosted on Neon's integrated blob storage. Accessed via `boto3` with S3v4 signatures. |
+| **Local Fallback** | Filesystem (`data/uploads/`) | When cloud storage is unavailable (e.g., local development without credentials), the backend gracefully falls back to the local `data/uploads/` directory. All API image URLs are transparently served from either source. |
+
+> **Configuration**: All cloud credentials are set via environment variables (`DATABASE_URL`, `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET_NAME`). See `.env.example` for the full template.
 
 ---
+
 
 ## 🗄️ S.A.G.A.R. Side-Scan Sonar Dataset
 
