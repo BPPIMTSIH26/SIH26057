@@ -11,12 +11,13 @@ from app.database.models import Mission, Detection, Anomaly
 from auditing.seed_data import get_port_id_from_name
 from utils.water_coordinates import get_random_water_coordinate, DEMO_SEEDS
 
-def repair_coordinates():
+def repair_coordinates(dry_run=False):
     db = SessionLocal()
     report = {
         'total_anomalies_inspected': 0,
         'total_anomalies_repaired': 0,
-        'ports_affected': set()
+        'ports_affected': set(),
+        'dry_run': dry_run
     }
     
     try:
@@ -49,7 +50,11 @@ def repair_coordinates():
                 except ValueError as e:
                     print(f"Skipping repair for {mission.mission_id}: {e}")
                     
-        db.commit()
+        if not dry_run:
+            db.commit()
+        else:
+            db.rollback()
+            print("[DRY RUN] Changes were rolled back.")
         
         # Write report
         report['ports_affected'] = list(report['ports_affected'])
@@ -65,4 +70,8 @@ def repair_coordinates():
         db.close()
 
 if __name__ == "__main__":
-    repair_coordinates()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dry-run", action="store_true", help="Do not commit changes to the database")
+    args = parser.parse_args()
+    repair_coordinates(dry_run=args.dry_run)
