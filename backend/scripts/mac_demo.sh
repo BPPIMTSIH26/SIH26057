@@ -26,9 +26,12 @@ else
     echo "   Native Redis server found."
 fi
 
+echo "-> Fetching Hugging Face Dataset (if missing)..."
+python scripts/fetch_huggingface_dataset.py
+
 echo "-> Running Dataset & Pipeline Verification..."
-if [ ! -f "data/dataset/DATASET_VERIFICATION.json" ]; then
-    echo "   DATASET_VERIFICATION.json not found. Run scripts/verify_drishti_dataset.py"
+if [ ! -d "HG_DATA" ]; then
+    echo "   HG_DATA not found. Fetch script failed or was skipped."
 fi
 
 if [ ! -f "models/drishti_best.onnx" ]; then
