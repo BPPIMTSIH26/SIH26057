@@ -24,6 +24,7 @@ S.A.G.A.R. (Sonar Anomaly Geospatial Analytical Reconnaissance) is an end-to-end
 - **Backend**: FastAPI, SQLAlchemy, Celery (via Redis), Uvicorn.
 - **Machine Learning**: PyTorch (MPS accelerated on macOS), Ultralytics YOLOv8, ONNX Runtime.
 - **Data Persistence**: SQLite (dev) / PostgreSQL (prod).
+- **Dataset Integration**: The heavy side-scan sonar image dataset (~2GB) is strictly decoupled from this repository to avoid Git LFS quotas. It is dynamically pulled directly from the Canonical Hugging Face Hub during system startup, ensuring rapid cloning and zero large-file bloat.
 
 ---
 
