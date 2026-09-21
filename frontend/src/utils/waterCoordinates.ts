@@ -1,5 +1,6 @@
 import { PortDefinition } from '../data/mockData';
-import { point, polygon, Feature, Polygon } from '@turf/helpers';
+import { point, polygon } from '@turf/helpers';
+import type { Feature, Polygon } from 'geojson';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { DEMO_SEEDS, mulberry32 } from './seededRandom';
 
