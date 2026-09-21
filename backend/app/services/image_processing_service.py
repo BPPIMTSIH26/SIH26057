@@ -267,7 +267,7 @@ class ImageProcessingService:
             job.progress = 90
             db.commit()
 
-            regions = ImageProcessingService._detect_regions(normalized, orig_h, orig_w)
+            regions = ImageProcessingService._detect_regions(img_gray, orig_h, orig_w)
             job.region_analysis = json.dumps(regions)
 
             # Inference binary mask
@@ -350,12 +350,19 @@ class ImageProcessingService:
             job.progress = 75
             db.commit()
 
-            processed_file_path = os.path.join(settings.UPLOAD_DIR, "processing_results", os.path.basename(job.processed_image_path))
-            img = cv2.imread(processed_file_path, cv2.IMREAD_GRAYSCALE)
+            original_file_path = os.path.join(settings.UPLOAD_DIR, os.path.basename(job.original_image_path))
+            img = cv2.imread(original_file_path, cv2.IMREAD_GRAYSCALE)
             if img is None:
-                raise ValueError("Processed image not found for analysis.")
+                raise ValueError("Original image not found for analysis.")
             
             orig_h, orig_w = img.shape[:2]
+            max_dim = 1280
+            if max(orig_h, orig_w) > max_dim:
+                scale = max_dim / float(max(orig_h, orig_w))
+                new_w, new_h = int(orig_w * scale), int(orig_h * scale)
+                img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                orig_h, orig_w = img.shape[:2]
+
             regions = ImageProcessingService._detect_regions(img, orig_h, orig_w)
             job.region_analysis = json.dumps(regions)
             
