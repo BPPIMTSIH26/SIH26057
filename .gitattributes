@@ -1,2 +1,4 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+backend/HG_DATA/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+backend/HG_DATA/**/*.png filter=lfs diff=lfs merge=lfs -text
+backend/HG_DATA/**/*.yaml filter=lfs diff=lfs merge=lfs -text
+backend/HG_DATA/**/*.txt filter=lfs diff=lfs merge=lfs -text
