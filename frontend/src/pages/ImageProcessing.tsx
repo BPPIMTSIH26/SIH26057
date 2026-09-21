@@ -169,6 +169,29 @@ const ImageProcessing: React.FC = () => {
     }
   };
 
+  const handlePublishAndNavigate = async () => {
+    if (!jobId) return;
+    if (!publishSuccess) {
+      setIsPublishing(true);
+      try {
+        let location = undefined;
+        const harborConfig = HARBOURS[activeHarbour];
+        if (harborConfig && harborConfig.waterCoordinates && harborConfig.waterCoordinates.length > 0) {
+          location = getRandomWaterCoordinate(harborConfig);
+        }
+        await imageProcessingApi.publishJob(jobId, location);
+        setPublishSuccess(true);
+      } catch (err: any) {
+        console.error(err);
+        alert('Failed to publish: ' + (err.message || 'Unknown error'));
+        setIsPublishing(false);
+        return;
+      }
+      setIsPublishing(false);
+    }
+    navigate('/review');
+  };
+
   const handlePublish = async () => {
     if (!jobId) return;
     setIsPublishing(true);
@@ -208,7 +231,7 @@ const ImageProcessing: React.FC = () => {
           setRequestState('error');
           clearInterval(interval);
         }
-      }, 1000);
+      }, 400); // reduced from 1000 to 400ms for faster feedback
     }
     return () => clearInterval(interval);
   }, [jobId, requestState, fetchHistory]);
@@ -670,15 +693,39 @@ const ImageProcessing: React.FC = () => {
                     <Sparkles className="w-4 h-4 text-cyan" /> Feature & Acoustic Shadow Detections
                   </h3>
                   <div className="space-y-3">
-                    {result.regionAnalysis.map(region => (
-                      <div key={region.id} className="p-3 bg-glass-strong rounded-lg border border-glass-border text-xs flex flex-col gap-1">
-                        <div className="flex justify-between items-center">
-                           <span className="font-mono text-accent font-semibold">{region.label.toUpperCase()}</span>
-                           <span className="text-text-muted font-mono">Conf: {(region.objectConfidence * 100).toFixed(1)}% | Area: {Math.round(region.boundingBox.width)}×{Math.round(region.boundingBox.height)}px</span>
+                    {result.regionAnalysis.map(region => {
+                      const bw = Math.max(1, region.boundingBox.width);
+                      const bh = Math.max(1, region.boundingBox.height);
+                      const ow = result.metadata?.originalWidth || bw;
+                      const oh = result.metadata?.originalHeight || bh;
+                      return (
+                        <div key={region.id} className="p-3 bg-glass-strong rounded-lg border border-glass-border text-xs flex gap-3">
+                          <div className="w-16 h-12 rounded overflow-hidden relative shrink-0 border border-glass-border bg-void/50">
+                            {result.processedImageUrl && (
+                              <img
+                                src={getMediaUrl(result.processedImageUrl)}
+                                alt="Anomaly Thumbnail"
+                                style={{
+                                  position: 'absolute',
+                                  left: `-${(region.boundingBox.x / bw) * 100}%`,
+                                  top: `-${(region.boundingBox.y / bh) * 100}%`,
+                                  width: `${(ow / bw) * 100}%`,
+                                  height: `${(oh / bh) * 100}%`,
+                                  maxWidth: 'none'
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1 flex flex-col justify-center">
+                            <div className="flex justify-between items-center">
+                               <span className="font-mono text-accent font-semibold">{region.label.toUpperCase()}</span>
+                               <span className="text-text-muted font-mono">Conf: {(region.objectConfidence * 100).toFixed(1)}% | Area: {Math.round(bw)}×{Math.round(bh)}px</span>
+                            </div>
+                            <p className="text-text-muted mt-1">{region.explanation}</p>
+                          </div>
                         </div>
-                        <p className="text-text-muted">{region.explanation}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -788,10 +835,11 @@ const ImageProcessing: React.FC = () => {
                       {flagged.length > 0 && (
                         <button
                           id="goto-human-review-btn"
-                          onClick={() => navigate('/review')}
-                          className="flex items-center gap-1.5 px-3.5 py-2 bg-danger/15 hover:bg-danger/25 border border-danger/40 hover:border-danger/70 text-danger rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(255,77,77,0.25)]"
+                          onClick={handlePublishAndNavigate}
+                          disabled={isPublishing}
+                          className="flex items-center gap-1.5 px-3.5 py-2 bg-danger/15 hover:bg-danger/25 border border-danger/40 hover:border-danger/70 text-danger rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(255,77,77,0.25)] disabled:opacity-50"
                         >
-                          View in Human Review
+                          {isPublishing ? 'Publishing...' : 'View in Human Review'}
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -832,36 +880,57 @@ const ImageProcessing: React.FC = () => {
                                   : 'bg-warning/5 border-warning/20 hover:border-warning/50'
                               }`}
                             >
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2">
-                                  <span className={`w-2 h-2 rounded-full shrink-0 ${isHigh ? 'bg-danger animate-pulse' : 'bg-warning'}`} />
-                                  <span className={`font-mono font-bold uppercase tracking-wide ${ isHigh ? 'text-danger' : 'text-warning'}`}>
-                                    Anomaly #{idx + 1} — {region.label.replace(/_/g, ' ')}
-                                  </span>
+                              <div className="flex gap-3">
+                                <div className="w-16 h-12 rounded overflow-hidden relative shrink-0 border border-glass-border bg-void/50">
+                                  {result.processedImageUrl && (
+                                    <img
+                                      src={getMediaUrl(result.processedImageUrl)}
+                                      alt="Anomaly Thumbnail"
+                                      style={{
+                                        position: 'absolute',
+                                        left: `-${(region.boundingBox.x / region.boundingBox.width) * 100}%`,
+                                        top: `-${(region.boundingBox.y / region.boundingBox.height) * 100}%`,
+                                        width: `${((result.metadata?.originalWidth || region.boundingBox.width) / region.boundingBox.width) * 100}%`,
+                                        height: `${((result.metadata?.originalHeight || region.boundingBox.height) / region.boundingBox.height) * 100}%`,
+                                        maxWidth: 'none'
+                                      }}
+                                    />
+                                  )}
                                 </div>
-                                <div className="flex items-center gap-3 shrink-0">
-                                  <span className="font-mono text-text-muted">
-                                    Conf: <span className={`font-bold ${isHigh ? 'text-danger' : 'text-warning'}`}>{conf}%</span>
-                                  </span>
-                                  <span className="font-mono text-text-muted">
-                                    {Math.round(region.boundingBox.width)}×{Math.round(region.boundingBox.height)}px
-                                  </span>
+                                <div className="flex-1 flex flex-col justify-center">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`w-2 h-2 rounded-full shrink-0 ${isHigh ? 'bg-danger animate-pulse' : 'bg-warning'}`} />
+                                      <span className={`font-mono font-bold uppercase tracking-wide ${ isHigh ? 'text-danger' : 'text-warning'}`}>
+                                        Anomaly #{idx + 1} — {region.label.replace(/_/g, ' ')}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <span className="font-mono text-text-muted">
+                                        Conf: <span className={`font-bold ${isHigh ? 'text-danger' : 'text-warning'}`}>{conf}%</span>
+                                      </span>
+                                      <span className="font-mono text-text-muted">
+                                        {Math.round(region.boundingBox.width)}×{Math.round(region.boundingBox.height)}px
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <p className="text-text-muted leading-relaxed mt-1">{region.explanation}</p>
                                 </div>
                               </div>
-                              <p className="text-text-muted leading-relaxed pl-4">{region.explanation}</p>
-                              <div className="flex items-center justify-between pl-4 mt-0.5">
+                              <div className="flex items-center justify-between pl-20 mt-1">
                                 <span className="text-[10px] font-mono text-text-muted">
                                   Position: ({Math.round(region.boundingBox.x)}, {Math.round(region.boundingBox.y)}) px
                                 </span>
                                 <button
-                                  onClick={() => navigate('/review')}
-                                  className={`text-[10px] font-semibold flex items-center gap-1 px-2.5 py-1 rounded-md border cursor-pointer transition-all ${
+                                  onClick={handlePublishAndNavigate}
+                                  disabled={isPublishing}
+                                  className={`text-[10px] font-semibold flex items-center gap-1 px-2.5 py-1 rounded-md border cursor-pointer transition-all disabled:opacity-50 ${
                                     isHigh
                                       ? 'border-danger/40 bg-danger/10 text-danger hover:bg-danger/20'
                                       : 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/20'
                                   }`}
                                 >
-                                  Inspect Details <ArrowRight className="w-3 h-3" />
+                                  {isPublishing ? 'Publishing...' : 'Inspect Details'} <ArrowRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </div>
@@ -874,10 +943,11 @@ const ImageProcessing: React.FC = () => {
                             AI flagged {flagged.length} region{flagged.length > 1 ? 's' : ''} for expert validation. Review and classify each detection.
                           </p>
                           <button
-                            onClick={() => navigate('/review')}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-danger text-white rounded-lg text-xs font-bold cursor-pointer hover:bg-danger/85 transition-all shadow-md hover:shadow-[0_0_16px_rgba(255,77,77,0.4)]"
+                            onClick={handlePublishAndNavigate}
+                            disabled={isPublishing}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-danger text-white rounded-lg text-xs font-bold cursor-pointer hover:bg-danger/85 transition-all shadow-md hover:shadow-[0_0_16px_rgba(255,77,77,0.4)] disabled:opacity-50"
                           >
-                            Open Human Review <ArrowRight className="w-3.5 h-3.5" />
+                            {isPublishing ? 'Publishing...' : 'Open Human Review'} <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>

@@ -3,9 +3,9 @@
 This report validates that all end-to-end components are present and functioning on this Mac.
 
 - **Dataset Downloaded**: ❌ FAILED
-- **Dataset Verified**: ✅ PASSED
-- **Preprocessing Golden Sample**: ✅ PASSED
-- **Model Trained (best.pt)**: ✅ PASSED
+- **Dataset Verified**: ❌ FAILED
+- **Preprocessing Golden Sample**: ❌ FAILED
+- **Model Trained (best.pt)**: ❌ FAILED
 - **ONNX Model Exported**: ❌ FAILED
 
 ## Summary
