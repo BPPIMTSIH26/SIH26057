@@ -98,7 +98,7 @@ export const getAnomalies = async (filters?: AnomalyFilters, portIdOrName?: stri
       severity: notesData.severity ? notesData.severity.toLowerCase() : (a.risk_level === 'CRITICAL' || a.risk_level === 'HIGH' ? 'high' : a.risk_level === 'MEDIUM' ? 'unusual' : 'normal'),
       reviewStatus: (
         a.status === 'VERIFIED'         ? 'known_object'      :
-        a.status === 'FALSE_POSITIVE'   ? 'false_positive'    :
+        (a.status === 'FALSE_POSITIVE' || a.status === 'false_positive') ? 'false_positive' :
         a.status === 'confirmed_unknown'? 'confirmed_unknown'  :
         'pending'
       ),
@@ -211,11 +211,12 @@ export const getDashboardTrends = async (portIdOrName?: string, signal?: AbortSi
 // Review decisions — persisted to real DB via PATCH
 // ---------------------------------------------------------------------------
 export const submitReview = async (anomalyId: string, decision: ReviewDecision): Promise<Anomaly> => {
+  const backendStatus = decision.status === 'false_positive' ? 'FALSE_POSITIVE' : decision.status === 'known_object' ? 'VERIFIED' : decision.status;
   const res = await fetch(`${API_BASE_URL}/anomalies/${encodeURIComponent(anomalyId)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      status: decision.status,
+      status: backendStatus,
       notes: decision.notes ?? null,
       custom_class_name: decision.newClass ?? null,
     }),
