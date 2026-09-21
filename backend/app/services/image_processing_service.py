@@ -150,6 +150,13 @@ class ImageProcessingService:
             
             orig_h, orig_w = img.shape[:2]
             
+            max_dim = 1280
+            if max(orig_h, orig_w) > max_dim:
+                scale = max_dim / float(max(orig_h, orig_w))
+                new_w, new_h = int(orig_w * scale), int(orig_h * scale)
+                img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                orig_h, orig_w = img.shape[:2]
+            
             if len(img.shape) == 3 and img.shape[2] == 3:
                 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             elif len(img.shape) == 3 and img.shape[2] == 4:
@@ -164,7 +171,7 @@ class ImageProcessingService:
             # 2. Adaptive Speckle/Noise Reduction
             min_dim = min(orig_h, orig_w)
             ksize = 5 if min_dim >= 5 else (3 if min_dim >= 3 else 1)
-            denoised = cv2.medianBlur(img_gray, ksize) if ksize > 1 else img_gray.copy()
+            denoised = cv2.GaussianBlur(img_gray, (ksize, ksize), 0) if ksize > 1 else img_gray.copy()
 
             job.stage = "contrast enhancement"
             job.progress = 40
@@ -252,8 +259,8 @@ class ImageProcessingService:
             color_mask[mask == 4] = [255, 0, 0] # red
 
             base_name = f"job_{job_id}"
-            job.processed_image_path = ImageProcessingService._save_file(normalized, f"{base_name}_processed.png")
-            job.quality_mask_path = ImageProcessingService._save_file(color_mask, f"{base_name}_qmask.png")
+            job.processed_image_path = ImageProcessingService._save_file(normalized, f"{base_name}_processed.jpg")
+            job.quality_mask_path = ImageProcessingService._save_file(color_mask, f"{base_name}_qmask.jpg")
 
             # 7. Anomaly & Object/Shadow Detection
             job.stage = "anomaly detection"
@@ -269,7 +276,7 @@ class ImageProcessingService:
                 bb = reg["boundingBox"]
                 x, y, w, h = int(bb["x"]), int(bb["y"]), int(bb["width"]), int(bb["height"])
                 cv2.rectangle(inf_mask, (max(0, x), max(0, y)), (min(orig_w, x + w), min(orig_h, y + h)), 255, -1)
-            job.inference_mask_path = ImageProcessingService._save_file(inf_mask, f"{base_name}_infmask.png")
+            job.inference_mask_path = ImageProcessingService._save_file(inf_mask, f"{base_name}_infmask.jpg")
 
             meta = {
                 "originalWidth": int(orig_w),
@@ -360,7 +367,7 @@ class ImageProcessingService:
                 cv2.rectangle(inf_mask, (max(0, x), max(0, y)), (min(orig_w, x + w), min(orig_h, y + h)), 255, -1)
                 
             base_name = f"job_{job_id}"
-            job.inference_mask_path = ImageProcessingService._save_file(inf_mask, f"{base_name}_infmask.png")
+            job.inference_mask_path = ImageProcessingService._save_file(inf_mask, f"{base_name}_infmask.jpg")
 
             job.processing_duration_ms = (job.processing_duration_ms or 0) + int((time.time() - start_time) * 1000)
             job.status = "completed"

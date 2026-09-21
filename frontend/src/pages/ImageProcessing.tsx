@@ -659,7 +659,7 @@ const ImageProcessing: React.FC = () => {
                     {result.processedImageUrl && (
                       <a 
                         href={result.processedImageUrl} 
-                        download={`cleaned_${result.jobId.split('-')[0]}.png`}
+                        download={`cleaned_${result.jobId.split('-')[0]}.jpg`}
                         className="px-3.5 py-2 bg-accent/15 hover:bg-accent/25 text-accent rounded-lg text-xs font-medium border border-accent/40 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" /> Download Cleaned Image
@@ -668,7 +668,7 @@ const ImageProcessing: React.FC = () => {
                     {result.qualityMaskUrl && (
                       <a 
                         href={result.qualityMaskUrl} 
-                        download={`mask_${result.jobId.split('-')[0]}.png`}
+                        download={`mask_${result.jobId.split('-')[0]}.jpg`}
                         className="px-3.5 py-2 bg-glass-strong hover:bg-glass-stronger rounded-lg text-xs border border-glass-border flex items-center gap-1.5 transition-all cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" /> Visual Mask
@@ -677,7 +677,7 @@ const ImageProcessing: React.FC = () => {
                     {result.inferenceMaskUrl && (
                       <a 
                         href={result.inferenceMaskUrl} 
-                        download={`infmask_${result.jobId.split('-')[0]}.png`}
+                        download={`infmask_${result.jobId.split('-')[0]}.jpg`}
                         className="px-3.5 py-2 bg-glass-strong hover:bg-glass-stronger rounded-lg text-xs border border-glass-border flex items-center gap-1.5 transition-all cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" /> Binary Inference Mask
