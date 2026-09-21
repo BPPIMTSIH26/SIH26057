@@ -48,7 +48,7 @@ flowchart TD
     D --> E[Multi-Scale Feature Extractor & Baseline Normality]
     
     E --> F{Dual Inference Engine}
-    F -->|Known Hazard Classifier| G[Ultralytics YOLOv8 / ONNX Detector]
+    F -->|Known Hazard Classifier| G[Ultralytics YOLO11 / ONNX Detector]
     F -->|Open-World Novelty Model| H[Mahalanobis Seabed Normality Engine]
     
     G --> I[Candidate Anomaly Georeferencing]
@@ -73,7 +73,7 @@ flowchart TD
 - Robust against variable seabed geologies (mud, sand ripples, rocky reefs, silt).
 
 ### 2. 🎯 Open-World Zero-Shot Anomaly Detection
-- Powered by high-speed **ONNX Runtime** and **Ultralytics YOLOv8** for real-time edge or cloud deployment.
+- Powered by high-speed **ONNX Runtime** and **Ultralytics YOLO11 (trained on AquaScan-1K)** for real-time edge or cloud deployment.
 - Detects high-reflectance acoustic highlights paired with physical acoustic shadows to accurately estimate 3D target height and footprint.
 - Classifies critical hazard categories:
   - **Shipwrecks** (Nordmeer, Grecian, Defiance, Monohansett, John J. Audubon)
@@ -140,7 +140,7 @@ SIH26057-OceanX/
 ### Core Technologies
 - **Frontend**: React 19, TypeScript, Vite 5, Tailwind CSS v4, MapLibre GL JS, Recharts, Lucide Icons.
 - **Backend API**: Python 3.11+, FastAPI, Uvicorn, SQLAlchemy, Pydantic v2, SQLite.
-- **Computer Vision & AI**: OpenCV (`cv2`), PyTorch, Ultralytics YOLOv8, ONNX Runtime, NumPy, SciPy, Pillow.
+- **Computer Vision & AI**: OpenCV (`cv2`), PyTorch, Ultralytics YOLO11, ONNX Runtime, NumPy, SciPy, Pillow.
 - **Geospatial Processing**: Shapely, PyProj, GeoPandas, Turf.js.
 - **Security**: Argon2/PBKDF2 password hashing, JWT bearer tokens, SMTP Gmail OTP integration.
 - **DevOps & Deployment**: Docker Compose, Shell Automation (`start.sh`, `stop.sh`, `run.py`).
@@ -262,6 +262,18 @@ docker-compose up --build
 | **Field Analyst** | `analyst@sonarnetra.mil` | Sonar Swath View, Anomaly Inspection, Optical Verification |
 
 > **Security & Authentication Protocol**: All operator credentials are encrypted with salted hashes (Argon2 / PBKDF2) and validated dynamically via multi-factor Gmail OTP dispatch. Direct plaintext passwords are strictly prohibited across documentation and repositories.
+
+---
+
+## ⚠️ Model Limitations & Prototype Results
+
+> **NOTE:** All performance metrics, confidence scores, and processing benchmarks presented in this documentation and within the application represent **prototype results** derived from controlled testing environments.
+
+### Primary Limitations
+1. **Highly Turbid Environments**: The model struggles in areas with excessive suspended sediment or organic material which causes severe acoustic scattering.
+2. **Depth Constraints**: Operations beyond 100 meters depth or in extreme thermocline layers may result in degraded detection accuracy due to sound velocity profile variations.
+3. **Nadir Blind Spots**: Standard side-scan sonar limitations apply; the model cannot detect objects directly beneath the towfish (the nadir gap) unless complementary downward-facing sensors are fused.
+4. **Novel Geologies**: While the Mahalanobis novelty engine handles most seabeds, extreme volcanic rock formations can currently trigger higher false-positive anomaly rates.
 
 ---
 
