@@ -97,6 +97,13 @@ class DetectorService:
                     "label": det["label"]
                 }
                 
+                if self.noise_filter_pred_cnt <= 1:
+                    final_detections.append({
+                        "label": det["label"],
+                        "confidence": det["confidence"],
+                        "bbox": det["bbox"]
+                    })
+                
         self.temporal_state = new_state
         return final_detections
 

@@ -34,7 +34,7 @@ class ImageProcessingService:
         regions = []
         try:
             from app.ml.model import DetectorService
-            detector = DetectorService(model_path="models/sonar_detector.onnx")
+            detector = DetectorService(model_path="models/sonar_detector.onnx", noise_filter_pred_cnt=1)
             
             img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB) if len(img.shape) == 2 else img
             img_resized = cv2.resize(img_rgb, (640, 640))
