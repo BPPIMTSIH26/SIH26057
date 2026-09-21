@@ -53,7 +53,7 @@ def main():
             continue
             
         job_data = upload_res.json()
-        job_id = job_data["id"]
+        job_id = job_data["jobId"]
         print(f"Job {job_id[:8]}... created.")
         
         # Poll for completion
