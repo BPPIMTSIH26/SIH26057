@@ -122,7 +122,7 @@ def get_job_history(
 def get_job_status(
     job_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
     job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
     if not job:
@@ -153,7 +153,7 @@ def get_job_status(
 def get_job_result(
     job_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
     return get_job_status(job_id, db, current_user)
 
@@ -162,7 +162,7 @@ def analyze_job(
     job_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
     job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
     if not job:
@@ -184,7 +184,7 @@ def analyze_job(
 def delete_job(
     job_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
     job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
     if not job:
@@ -205,7 +205,7 @@ def publish_job(
     job_id: str,
     publish_req: PublishRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
     from app.database.models import Mission, SonarImage, Detection, Anomaly
     from datetime import datetime, timezone
