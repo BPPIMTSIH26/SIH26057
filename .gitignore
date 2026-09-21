@@ -32,3 +32,5 @@ backend/data/processed/*
 !backend/data/processed/.gitkeep
 backend/data/uploads/processing_results/*
 
+*.log
+*.pt
