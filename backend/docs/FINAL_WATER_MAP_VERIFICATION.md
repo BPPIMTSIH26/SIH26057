@@ -1,7 +1,7 @@
 # Final Water Map & Anomaly Distribution Verification
 
 ## Objective
-Verify that S.A.G.A.R. Command's anomaly generation logic places markers explicitly in water and follows a naturally scattered 2D distribution instead of collinear, linear, or heavily centralized clusters. Furthermore, verify the successful relocation of the Hugging Face DRISHTI dataset to a tracked internal folder.
+Verify that S.A.G.A.R. Command's anomaly generation logic places markers explicitly in water and follows a naturally scattered 2D distribution instead of collinear, linear, or heavily centralized clusters. Furthermore, verify the successful relocation of the Hugging Face S.A.G.A.R dataset to a tracked internal folder.
 
 ## Validations Performed
 
@@ -25,7 +25,7 @@ Verify that S.A.G.A.R. Command's anomaly generation logic places markers explici
    - Database entries (both `Detection` and `Anomaly` tables) were successfully committed with their repaired coordinates.
 
 5. **Dataset Handling & Git LFS**
-   - The Hugging Face DRISHTI dataset has been fully migrated from `/tmp` into `backend/HG_DATA/`.
+   - The Hugging Face S.A.G.A.R dataset has been fully migrated from `/tmp` into `backend/HG_DATA/`.
    - `.gitattributes` has been added at the root level to track these large dataset files (jpg, png, txt, yaml) securely via Git Large File Storage (LFS) avoiding regular Git repository limits.
 
 ## Conclusion

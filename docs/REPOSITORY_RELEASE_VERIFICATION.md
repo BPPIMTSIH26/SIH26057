@@ -1,13 +1,13 @@
 # Repository Release Verification
 
-This document confirms the successful completion, integration, and release of all DRISHTI backend specifications and repairs into the Canonical Organization Repository.
+This document confirms the successful completion, integration, and release of all S.A.G.A.R backend specifications and repairs into the Canonical Organization Repository.
 
 ## 1. Release Targets
 - **Canonical Repository**: `BPPIMTSIH26/SIH26057`
 - **Branch**: `main`
 
 ## 2. Model & Verification Integration
-The complete DRISHTI dataset (~5,205 labeled side-scan sonar images) was verified and used to natively train an optimized YOLOv8 model via Apple Metal Performance Shaders (MPS). The weights were subsequently exported to an ONNX graph (`drishti_best.onnx`) to eliminate complex ML dependency issues in production. 
+The complete S.A.G.A.R dataset (~5,205 labeled side-scan sonar images) was verified and used to natively train an optimized YOLOv8 model via Apple Metal Performance Shaders (MPS). The weights were subsequently exported to an ONNX graph (`sagar_best.onnx`) to eliminate complex ML dependency issues in production. 
 
 The verification reports are included in the repository:
 - `MODEL_BASELINE_VERIFICATION.md`

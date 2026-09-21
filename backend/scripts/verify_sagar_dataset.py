@@ -4,7 +4,7 @@ import glob
 
 def verify_dataset(dataset_dir):
     """
-    Verify YOLO formatted DRISHTI dataset.
+    Verify YOLO formatted S.A.G.A.R dataset.
     Generates DATASET_VERIFICATION.json
     """
     classes = {

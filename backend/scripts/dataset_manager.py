@@ -71,7 +71,7 @@ def export_dataset(output_dir: str, name: str, min_confidence: float = 0.5):
     print(f"Manifest saved to: {manifest_path}")
 
 def main():
-    parser = argparse.ArgumentParser(description="DRISHTI Dataset Manager")
+    parser = argparse.ArgumentParser(description="S.A.G.A.R Dataset Manager")
     parser.add_argument("--export", action="store_true", help="Export dataset")
     parser.add_argument("--output", type=str, default="./exports", help="Output directory")
     parser.add_argument("--name", type=str, default="export", help="Dataset name")

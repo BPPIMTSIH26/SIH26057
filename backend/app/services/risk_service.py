@@ -3,14 +3,14 @@ from app.database.models import Detection
 class RiskService:
     def calculate_risk(self, detection: Detection, shadow_confidence: float = None) -> dict:
         """
-        Logistic calibration & DRISHTI risk scoring
+        Logistic calibration & S.A.G.A.R risk scoring
         Uses a logistic curve to calibrate raw confidence into a 0-100 risk score.
         Applies optional acoustic shadow penalty.
         """
         import math
         
         raw_conf = detection.confidence
-        # Logistic Calibration parameters (derived from DRISHTI reference)
+        # Logistic Calibration parameters (derived from S.A.G.A.R reference)
         k = 10.0 # steepness
         x0 = 0.65 # midpoint
         
