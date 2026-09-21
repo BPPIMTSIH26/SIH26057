@@ -52,6 +52,16 @@ MIGRATIONS = [
     ("anomalies", "coordinate_uncertainty",    "REAL"),
     ("anomalies", "sonar_image_path",          "TEXT"),
     ("anomalies", "updated_at",                "DATETIME"),
+    ("anomalies", "coordinate_status",         "TEXT"),
+    ("anomalies", "coordinate_validation_reason", "TEXT"),
+    ("anomalies", "original_latitude",         "REAL"),
+    ("anomalies", "original_longitude",        "REAL"),
+    ("anomalies", "is_water_validated",        "BOOLEAN"),
+    ("anomalies", "optical_image_path",        "TEXT"),
+    ("anomalies", "optical_classification",    "TEXT"),
+    ("anomalies", "optical_confidence",        "REAL"),
+    ("anomalies", "final_classification",      "TEXT"),
+    ("anomalies", "final_confidence",          "REAL"),
     # image_processing_jobs
     ("image_processing_jobs", "model_version", "TEXT"),
 ]
