@@ -1,8 +1,8 @@
 task: detect
 mode: train
 model: yolov8n.pt
-data: /Users/narayanjha/Documents/NetraSonar/backend/data/dataset/hf/data.yaml
-epochs: 100
+data: /Users/narayanjha/Documents/NetraSonar/backend/HG_DATA/data.yaml
+epochs: 5
 time: null
 patience: 10
 batch: 16
@@ -45,7 +45,7 @@ max_det: 300
 quantize: null
 dnn: false
 plots: true
-nms: null
+end2end: null
 source: null
 vid_stride: 1
 stream_buffer: false
@@ -71,6 +71,7 @@ dynamic: false
 simplify: true
 opset: null
 workspace: null
+nms: false
 lr0: 0.01
 lrf: 0.01
 momentum: 0.937
