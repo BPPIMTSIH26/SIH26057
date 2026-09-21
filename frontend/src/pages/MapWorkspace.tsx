@@ -11,6 +11,7 @@ import { usePreferences } from '../contexts/PreferencesContext';
 import StatusBadge from '../components/ui/StatusBadge';
 import { generateGraticule } from '../utils/graticule';
 import { getHarbourViewport, fitMapToHarbourAndPoints } from '../utils/mapUtils';
+import { isConfiguredWaterCoordinate } from '../utils/waterCoordinates';
 
 const paneClass = 'bg-surface';
 
@@ -45,7 +46,19 @@ export default function MapWorkspace() {
     getAnomalies({}, selectedPortId).then(data => {
       if (!active) return;
       const scoped = data.filter(a => !a.portId || a.portId === selectedPortId);
-      setAnomalies(scoped);
+      
+      // Development diagnostics: count and filter rejected land points
+      const validWaterAnomalies = scoped.filter(a => {
+        if (a.latitude === null || a.longitude === null) return false;
+        return isConfiguredWaterCoordinate(selectedPort, { latitude: a.latitude, longitude: a.longitude });
+      });
+      
+      const rejectedCount = scoped.length - validWaterAnomalies.length;
+      if (rejectedCount > 0) {
+        console.warn(`[Diagnostics] Rejected ${rejectedCount} anomaly markers for rendering on land.`);
+      }
+
+      setAnomalies(validWaterAnomalies);
       if (location.state?.selectedAnomalyId) {
         const id = location.state.selectedAnomalyId;
         setSelectedAnomalyId(id);

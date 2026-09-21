@@ -7,12 +7,14 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "npx tsx tests/test_port_anomaly_sync.ts",
+    "test": "npx tsx tests/test_port_anomaly_sync.ts && npx tsx tests/test_water_coordinates.ts",
     "preview": "vite preview",
     "prepare": "node -e \"if(process.env.CI || !require('fs').existsSync('.git')) process.exit(0)\" && husky || true"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@turf/boolean-point-in-polygon": "^7.4.0",
+    "@turf/helpers": "^7.4.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
