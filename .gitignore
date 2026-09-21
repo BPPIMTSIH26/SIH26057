@@ -34,3 +34,5 @@ backend/data/uploads/processing_results/*
 
 *.log
 *.pt
+backend/HG_DATA/
+backend/drishti_best.onnx
