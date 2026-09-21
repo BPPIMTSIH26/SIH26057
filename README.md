@@ -6,278 +6,206 @@
 [![SIH 2026](https://img.shields.io/badge/Smart_India_Hackathon-2026_National_Finals-0284c7?style=flat-square)](https://sih.gov.in)
 [![Organization](https://img.shields.io/badge/Organization-BPPIMTSIH26-4f46e5?style=flat-square)](https://github.com/BPPIMTSIH26)
 [![Problem Statement](https://img.shields.io/badge/Problem_Statement_ID-26057-059669?style=flat-square)](https://github.com/BPPIMTSIH26/SIH26057)
-[![Architecture](https://img.shields.io/badge/Architecture-FastAPI_•_React_19_•_PyTorch_•_MapLibre-0f172a?style=flat-square)](#)
 
 </div>
 
 > **Smart India Hackathon (SIH 2026) | Problem Statement ID: 26057**  
 > **Institution:** B.P. Poddar Institute of Management & Technology (**BPPIMTSIH26**)  
-> **Lead Architect & Deep Learning Engineer:** **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj))
+> **Lead Architect:** **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj))
 
 ---
 
-## 📌 Problem Statement Overview (SIH 26057)
+## 📌 1. Project Overview & Architecture
 
-| Attribute | Specification Details |
-| :--- | :--- |
-| **Problem Statement ID** | **26057** |
-| **Problem Statement Title** | **AI-assisted seabed survey analysis for faster anomaly detection & classification** |
-| **Category** | Software / Maritime Defense / Hydrographic Intelligence |
-| **Domain Bucket** | Smart Automation / Robotics & Autonomous Systems / Earth & Marine Sciences |
-| **Target End-Users** | Hydrographic Surveyors, Naval Defense Units, Port Authorities, Offshore Energy Operators |
-| **Core Innovation** | Zero-Shot Open-World Anomaly Detection + 14-Stage Acoustic Filtering + Multi-Modal Verification |
+S.A.G.A.R. (Sonar Anomaly Geospatial Analytical Reconnaissance) is an end-to-end maritime intelligence command system. It autonomously processes, enhances, detects, and geolocates seabed anomalies using Side-Scan Sonar (SSS) data.
 
-### The Real-World Challenge
-Side-Scan Sonar (SSS) and Synthetic Aperture Sonar (SAS) surveys generate massive volumes of acoustic acoustic backscatter data during seabed mapping operations. Traditional survey analysis faces critical bottlenecks:
-1. **Severe Acoustic Noise & Artifacts**: High speckle noise, non-uniform time-varied gain (TVG) attenuation, blind nadir gaps, and acoustic shadow occlusions.
-2. **Open-World Anomaly Dilemma**: Standard detectors fail on novel or rare underwater objects (unexploded ordnance, severed submarine cables, novel wrecks) not present in rigid training datasets.
-3. **Fatigue & Latency in Manual Review**: Human hydrographers take hours or days to manually scan gigabytes of waterfall acoustic imagery, delaying critical maritime safety decisions.
-4. **Lack of Multi-Modal Confirmation**: Sonar alone cannot definitively confirm target identity without cross-referencing optical / camera sensor feeds from Autonomous Underwater Vehicles (AUVs).
+**Architecture:**
+- **Frontend**: React 19, TypeScript, Vite, MapLibre GL for 3D geospatial rendering.
+- **Backend**: FastAPI, SQLAlchemy, Celery (via Redis), Uvicorn.
+- **Machine Learning**: PyTorch (MPS accelerated on macOS), Ultralytics YOLOv8, ONNX Runtime.
+- **Data Persistence**: SQLite (dev) / PostgreSQL (prod).
 
 ---
 
-## 💡 The S.A.G.A.R. Solution
-**S.A.G.A.R.** (**S**onar **A**nomaly **G**eospatial **A**nalytical **R**econnaissance) is an end-to-end maritime intelligence command system designed to autonomously process, enhance, detect, cross-verify, and report seabed anomalies with sub-meter geospatial accuracy.
+## 🖥️ 2. React Frontend & Backend Startup Instructions
 
-```mermaid
-flowchart TD
-    A[Raw Sonar Swath / Survey Feed] --> B[14-Stage Image Processing Pipeline]
-    B --> C[Acoustic Despeckling & CLAHE]
-    C --> D[Quality Assessment & 5-Class Mask Gen]
-    D --> E[Multi-Scale Feature Extractor & Baseline Normality]
-    
-    E --> F{Dual Inference Engine}
-    F -->|Known Hazard Classifier| G[Ultralytics YOLOv8 / ONNX Detector]
-    F -->|Open-World Novelty Model| H[Mahalanobis Seabed Normality Engine]
-    
-    G --> I[Candidate Anomaly Georeferencing]
-    H --> I
-    
-    I --> J[Temporal Change Engine: Epoch Differential]
-    J --> K[Multi-Modal Optical Cross-Verification]
-    K --> L[Automated Priority Triage Matrix P1 / P2 / P3]
-    
-    L --> M[Interactive MapLibre GIS Workspace]
-    L --> N[Supreme Admin Command & Access Console]
-    L --> O[Automated Hydrographic PDF / JSON Mission Report]
-```
+### Prerequisites (Python, Node, Docker, Redis)
+- **Node.js**: v18.0 or higher
+- **Python**: v3.10 or higher
+- **Redis**: Required for Celery task queuing.
+- **PostgreSQL**: Optional for production, defaults to SQLite.
 
----
-
-## 🌟 The Five Pillars of Intelligence
-
-### 1. 🌐 Local Seabed Baseline Normality Engine
-- Computes acoustic texture, roughness, and intensity statistics across local sliding windows.
-- Calculates **Mahalanobis Distance** against the local geological baseline to answer: *"What is statistically abnormal for this specific seabed patch?"*
-- Robust against variable seabed geologies (mud, sand ripples, rocky reefs, silt).
-
-### 2. 🎯 Open-World Zero-Shot Anomaly Detection
-- Powered by high-speed **ONNX Runtime** and **Ultralytics YOLOv8** for real-time edge or cloud deployment.
-- Detects high-reflectance acoustic highlights paired with physical acoustic acoustic shadows to accurately estimate 3D target height and footprint.
-- Classifies critical hazard categories:
-  - **Shipwrecks** (Nordmeer, Grecian, Defiance, Monohansett, John J. Audubon)
-  - **Ghost Fishing Nets & Marine Entanglements**
-  - **Subsea Pipelines & Structural Leaks**
-  - **Crab Pots & Submerged Navigation Hazards**
-  - **Anthropogenic Marine Debris (Plastics & Heavy Metals)**
-
-### 3. ⏱️ Temporal Change Intelligence (Survey Epoch Co-Registration)
-- Aligns historical baseline passes against newly conducted survey swaths.
-- Calculates pixel-level difference masks and spatial displacement vectors.
-- Immediately isolates newly introduced hazards or shifting seabed debris fields between survey seasons.
-
-### 4. 🔬 14-Stage High-Fidelity Image Processing & Quality Mask Pipeline
-- **Adaptive Despeckling**: Median and bilateral filtering to eliminate reverberation speckle while preserving sharp acoustic shadow boundaries.
-- **CLAHE (Contrast Limited Adaptive Histogram Equalization)**: Dynamic local contrast boosting across variable sonar illumination zones.
-- **Robust Percentile Normalization**: Elimination of extreme sensor dropout and saturation spikes.
-- **Automated QA Scoring**: Real-time evaluation of signal quality, speckle index, contrast rating, and swath coverage.
-- **5-Class Diagnostic Quality Mask**: Generates color-coded spatial masks mapping:
-  - 🟩 **Usable Seabed**
-  - 🟨 **Uncertain / Low SNR**
-  - 🟦 **Acoustic Shadow Regions**
-  - 🟥 **Sensor Dropout / Saturated Pixels**
-  - ⬛ **Nadir / Ignored Regions**
-
-### 5. 🛡️ Military-Grade Access Control & Supreme Admin Console
-- **Multi-Factor Gmail OTP Verification**: High-security email dispatch for operator authentication.
-- **Auto-Lookup Personnel Registry**: Instant pre-filling of registered naval and hydrographic personnel details.
-- **Supreme Admin Authorization Gateway**:
-  - Restricts access until new accounts are explicitly approved by the Supreme Admin (`narayan.nkj@gmail.com`).
-  - Real-time approval, role upgrade (Analyst, Operator, Supreme Admin), or instant revocation.
-
----
-
-## 🖥️ System Architecture & UI Tour
-
-<div align="center">
-
-| Module | Route / Component | Description |
-| :--- | :--- | :--- |
-| **Tactical Dashboard** | `/` (`Dashboard.tsx`) | Real-time mission health, sensor telemetry, active alerts, and priority triage feed. |
-| **Geospatial GIS Map** | `/map` (`MapWorkspace.tsx`) | Full MapLibre GL map with bathymetric layers, swath navigation tracks, and bounding boxes. |
-| **14-Stage Processing Lab** | `/image-processing` (`ImageProcessing.tsx`) | Interactive side-by-side viewer for raw, enhanced, and 5-class QA diagnostic masks. |
-| **Temporal Comparison** | `/temporal` (`TemporalComparison.tsx`) | Epoch-over-epoch differential analysis to detect seabed shifts and newly submerged targets. |
-| **Survey Upload Portal** | `/upload` (`UploadProcess.tsx`) | Ingest raw SSS/SAS waterfalls, side-scan TIFFs, and AUV optical camera survey packages. |
-| **Mission Review & Reports** | `/review` (`ReviewReport.tsx`) | Comprehensive hazard classification, confidence breakdowns, and exportable mission dossiers. |
-| **Supreme Admin Console** | `/settings` (`Settings.tsx`) | Manage operator credentials, grant/revoke clearance, and inspect system audit logs. |
-
-</div>
-
----
-
-## 🛠️ Technology Stack
-
-```
-SIH26057-OceanX/
-├── backend/                 # FastAPI API, YOLOv8/ONNX Models & Auditing Module
-│   ├── app/                 # Routers, ML inference, services & database models
-│   ├── auditing/            # Audit reports, API specifications, launch scripts & configs
-│   ├── data/                # Bathymetric sonar swaths, imagery, and SQLite db
-│   ├── models/              # Pretrained neural network weights (YOLO / ONNX)
-│   └── tests/               # Auth, security, and image processing test suites
-├── frontend/                # React 19 + TypeScript + Vite + MapLibre GL 3D
-│   ├── src/                 # Tactical dashboard, map workspace, processing lab
-│   └── public/              # High-resolution hydrographic assets and UI icons
-├── package.json             # Root unified launcher scripts (npm start, npm stop)
-└── README.md                # System documentation & technical specification
-```
-
-### Core Technologies
-- **Frontend**: React 19, TypeScript, Vite 5, Tailwind CSS v4, MapLibre GL JS, Recharts, Lucide Icons.
-- **Backend API**: Python 3.11+, FastAPI, Uvicorn, SQLAlchemy, Pydantic v2, SQLite.
-- **Computer Vision & AI**: OpenCV (`cv2`), PyTorch, Ultralytics YOLOv8, ONNX Runtime, NumPy, SciPy, Pillow.
-- **Geospatial Processing**: Shapely, PyProj, GeoPandas.
-- **Security**: Argon2/PBKDF2 password hashing, JWT bearer tokens, SMTP Gmail OTP integration.
-- **DevOps & Deployment**: Docker Compose, Shell Automation (`start.sh`, `stop.sh`, `run.py`).
-
----
-
-## 🚀 Quick Start Guide
-
-### Prerequisites
-- **Node.js** (v18.0 or higher)
-- **Python** (v3.10 or higher)
-- **Git**
-- *(Optional)* **Docker & Docker Compose**
-
----
-
-### Option A: One-Command Startup (Recommended)
-
-From the project root directory, execute:
-
+### macOS Setup (Apple Silicon / Intel)
+Ensure Homebrew is installed, then run:
 ```bash
-# Preferred: Launch entire platform (Backend on :8000 & Frontend on :5173)
-npm start
+brew install redis node python
+brew services start redis
 ```
+*Note: PyTorch will automatically utilize `mps` (Metal Performance Shaders) on Apple Silicon.*
 
-*Or directly via the orchestration script:*
+### Startup Commands
+From the project root:
 ```bash
-bash backend/auditing/scripts/start.sh
-```
-
-*To gracefully stop all background services:*
-```bash
-npm stop
-```
-
-- **Frontend Application**: `http://localhost:5173`
-- **Backend Swagger API**: `http://localhost:8000/docs`
-- **Interactive Backend Root**: `http://localhost:8000`
-
----
-
-### Option B: Manual Setup
-
-#### 1. Backend Service (FastAPI)
-```bash
-cd backend
-
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate    # On Windows: venv\Scripts\activate
-
 # Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-
-# Launch FastAPI server
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-#### 2. Frontend Application (React + Vite)
-```bash
-cd frontend
-
-# Install packages
 npm install
 
-# Launch Vite development server
-npm run dev
+# Start both frontend and backend orchestration
+bash backend/scripts/mac_demo.sh
+# Alternatively: npm start
 ```
 
 ---
 
-### Option C: Docker Compose
+## 🔐 3. Environment Variables
 
+Create a `backend/.env` file. **Never commit secrets.**
+```env
+# Example .env (No secret values)
+DATABASE_URL=sqlite:///./sql_app.db
+SECRET_KEY=your_secure_random_string_here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+REDIS_URL=redis://localhost:6379/0
+```
+
+---
+
+## 🔬 4. Image Processing & Swath Enhancement Workflow
+
+The 14-stage processing pipeline includes:
+- **Acoustic Despeckling**: Lee 7x7 filter to reduce reverberation while preserving shadow boundaries.
+- **CLAHE**: Contrast Limited Adaptive Histogram Equalization (clipLimit=3.0, 8x8 grid).
+
+**Workflow**:
+1. User uploads a sonar image via the `/upload` or Image Processing UI.
+2. The UI immediately reflects a `submitting` state.
+3. The image is sent to the FastAPI backend, which creates a background Celery task.
+4. The UI polls `/api/v1/image-processing/jobs/{id}` and displays a loading progress bar.
+5. Thumbnails resolve correctly using absolute API URLs; if broken, a fallback "Preview Unavailable" state is shown.
+6. Once complete, the enhanced image and 5-class QA mask are returned.
+
+---
+
+## 🎯 5. Real Side-Scan Sonar Inference Workflow
+
+1. A real sonar image is passed to the trained ONNX/YOLO model.
+2. The model detects bounding boxes and assigns a class confidence.
+3. Detected pixel coordinates are projected to geographic latitude/longitude.
+4. The frontend fetches anomalies from `/api/anomalies` and renders them on the MapLibre GIS workspace.
+5. If inference fails or yields zero detections, it is reported honestly. We do not invent fake detections.
+
+---
+
+## 🧠 6. Model Training, Calibration & ONNX Export
+
+To train the detector natively on macOS (MPS):
 ```bash
-docker-compose up --build
+# Run a 5-epoch training loop to generate best.pt
+python backend/scripts/train_drishti.py --epochs 5
+
+# Export PyTorch weights to an optimized ONNX graph
+python backend/scripts/export_onnx.py
+```
+The model dynamically creates the dataset configuration (`data.yaml`), trains using YOLOv8n, and exports `backend/models/drishti_best.onnx`.
+
+---
+
+## 🗄️ 7. Dataset Acquisition & Verification
+
+We use the [DRISHTI Side Scan Sonar Dataset](https://huggingface.co/datasets/rehan9599/drishti-sss).
+
+- **Exact Location**: `backend/HG_DATA/`
+- **Revision**: `627849579f6dcee0897a112c6796736eb7900032`
+- **License**: CC BY-NC-SA 4.0 (Attribution to Rehan9599)
+- **Split Counts**:
+  - Train: 3,875 images / labels
+  - Val: 630 images / labels
+  - Test: 700 images / labels
+  - Total: 5,205 images / labels
+- **Classes**: `crab_pot`, `submarine_pipeline`, `shipwreck`, `ghost_net`, `mine_cylinder`.
+
+**To Download & Verify**:
+```bash
+python backend/scripts/download_drishti.py
+python backend/scripts/verify_drishti_dataset.py
+```
+This generates `DATASET_VERIFICATION.json` to prove provenance and bounding-box validity.
+
+---
+
+## 🌊 8. Water-Only Map Validation
+
+To prevent anomalies from rendering on land, we employ **Water-Only Validation**:
+- **Method**: GeoJSON Polygon validation using Turf.js (`booleanPointInPolygon`) and backend coordinate bounding.
+- **Scattered Generation**: The `seed_synthetic_anomalies.py` script samples randomized [longitude, latitude] coordinates within predefined subregions, guaranteeing a scattered 2D distribution instead of collinear lines.
+- **Supported Ports**: Mumbai, Chennai, Kolkata (Hooghly River), Kochi, Visakhapatnam, Jawaharlal Nehru, Paradip, Thunder Bay (Lake Huron).
+
+**Diagnostic Inspection**:
+The frontend logs rejected points. To inspect rejected/invalid points, open the Browser Console and look for:
+`[Diagnostics] Rejected X anomaly markers for rendering on land.`
+
+---
+
+## 🛠️ 9. Database Seed & Coordinate Repair
+
+If legacy demo data contains collinear or land-based points, run the repair script:
+```bash
+# Dry run to inspect repairs
+python backend/scripts/repair_demo_coordinates.py --dry-run
+
+# Apply repairs idempotently
+python backend/scripts/repair_demo_coordinates.py
+```
+*Note: Real production sonar detections are strictly preserved. Only synthetic demo records are moved.*
+
+---
+
+## ✅ 10. Testing & Verification Commands
+
+**Frontend**:
+```bash
+cd frontend && npm test
+npm run build
+```
+
+**Backend**:
+```bash
+cd backend && python -m pytest -q
+python -m compileall .
+```
+
+**Final Verification**:
+```bash
+python backend/scripts/final_verify.py
 ```
 
 ---
 
-## 🛡️ Personnel Access Governance & Clearance Tiers
+## 📦 11. Git LFS & External Storage
 
-| Role | Authorized Identifier | Clearance & Operational Capabilities |
-| :--- | :--- | :--- |
-| **Supreme Admin** | `narayan.nkj@gmail.com` | Full System Governance, Operator Approval & Clearance Delegation, Access Revocation, Mission Triage |
-| **Senior Operator** | `admin@sonarnetra.mil` | Mission Command, 14-Stage Processing, Model Execution, Report Export |
-| **Field Analyst** | `analyst@sonarnetra.mil` | Sonar Swath View, Anomaly Inspection, Optical Verification |
-
-> **Security & Authentication Protocol**: All operator credentials are encrypted with salted hashes (Argon2 / PBKDF2) and validated dynamically via multi-factor Gmail OTP dispatch. Direct plaintext passwords are strictly prohibited across documentation and repositories.
+The DRISHTI dataset (~2.0 GB) is **not** pushed via standard Git to avoid repository size limits.
+- The `backend/HG_DATA/` directory is tracked by `.gitignore`.
+- Users must run `download_drishti.py` to acquire the exact reproducible dataset locally.
+- Git LFS can be used for model binaries (`*.pt`, `*.onnx`) up to your organization's quota limits.
 
 ---
 
-## 📡 REST API Reference
+## 🤝 12. Contribution Guidelines
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/auth/login` | Authenticate operator and generate JWT token |
-| `GET` | `/api/auth/lookup-operator` | Auto-lookup registered personnel by email |
-| `POST` | `/api/auth/send-otp` | Dispatch 6-digit verification code to Gmail |
-| `POST` | `/api/auth/verify-otp` | Validate submitted OTP code |
-| `GET` | `/api/auth/users` | List all registered personnel *(Supreme Admin only)* |
-| `PATCH` | `/api/auth/users/{id}/access` | Grant or revoke operator access clearance |
-| `GET` | `/api/anomalies` | Retrieve all detected seabed anomalies with coordinates |
-| `GET` | `/api/missions` | Query active and archived survey missions |
-| `POST` | `/api/v1/image-processing/jobs` | Submit sonar image for 14-stage enhancement & QA masking |
-| `GET` | `/api/v1/image-processing/jobs/{id}` | Inspect processing progress and download enhanced artifacts |
-| `GET` | `/api/reports/generate/{id}` | Generate formal hydrographic anomaly dossier (PDF/JSON) |
+1. Ensure you have least-privilege contributor access.
+2. Branch from `main`: `git checkout -b feature/your-feature`.
+3. Create meaningful, atomic commits. Do not combine unrelated changes.
+4. Run `npm test` and `pytest -q` before pushing.
+5. Create a Pull Request against `BPPIMTSIH26/SIH26057`.
 
 ---
 
-## 👥 Hackathon Team & Acknowledgements
+## ⚠️ 13. Known Limitations
 
-- **Organization**: **BPPIMTSIH26** (B.P. Poddar Institute of Management and Technology)
-- **Smart India Hackathon 2026**: Problem Statement **26057**
-- **Project Title**: Ocean-X (S.A.G.A.R. Command)
-
-### Team Structure & Contributions:
-
-#### 🌟 Core Project Leadership
-- 👑 **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj)) — **Team Lead, System Architect & Full-Stack Intelligence Lead** *(Supreme Admin)*
-- 💡 **Ahana** ([@I-Lawrence](https://github.com/I-Lawrence)) — **Core Lead: Deep Learning & Acoustic Feature Modeling**
-- 🎯 **Ishika Chowdhury** ([@i5hika0x](https://github.com/i5hika0x)) — **Core Lead: Sonar Vision & Geospatial Intelligence**
-
-#### ⚓ Engineering & Domain Specialists
-- 🌐 **Sayantan Pachal** ([@sayantan-pachal](https://github.com/sayantan-pachal)) — **Full-Stack Development & System Integration Specialist**
-- ⚙️ **Shivam Gupta** ([@shiv2345king](https://github.com/shiv2345king)) — **Backend Infrastructure & Model Optimization Engineer**
-- 🔬 **Shougata Sikder** ([@Shougata2003](https://github.com/Shougata2003)) — **Hydrographic Anomaly Verification & QA Pipeline Specialist**
-
----
-
-<div align="center">
-  <sub>Engineered with precision for Smart India Hackathon 2026. S.A.G.A.R. Command System.</sub>
-</div>
+- **Map Boundary Precision**: The demo water polygons used for spatial isolation are synthetic bounds intended for demonstration. They are **not** survey-grade nautical charts.
+- **Mac Training Speed**: While MPS acceleration is supported, full 100-epoch training may take significant time on base M-series chips.
+- **Zero-Detection Edge Cases**: If the model evaluates an image as purely noise, it will return zero detections. This is correct behavior and not a bug.

@@ -1,0 +1,50 @@
+[
+  {
+    "nameWithOwner": "BPPIMTSIH26/SIH26057",
+    "isPrivate": false,
+    "isArchived": false,
+    "isFork": false,
+    "url": "https://github.com/BPPIMTSIH26/SIH26057",
+    "classification": "CANONICAL_ORGANIZATION_REPOSITORY"
+  },
+  {
+    "nameWithOwner": "narayan-nkj/SagarNetra",
+    "isPrivate": true,
+    "isArchived": false,
+    "isFork": false,
+    "url": "https://github.com/narayan-nkj/SagarNetra",
+    "classification": "TARGET_SYNC_REPOSITORY"
+  },
+  {
+    "nameWithOwner": "narayan-nkj/SagaRSonaR",
+    "isPrivate": false,
+    "isArchived": false,
+    "isFork": false,
+    "url": "https://github.com/narayan-nkj/SagaRSonaR",
+    "classification": "POSSIBLE_DUPLICATE_REQUIRES_CONFIRMATION"
+  },
+  {
+    "nameWithOwner": "narayan-nkj/S.A.G.A.R---version-2",
+    "isPrivate": false,
+    "isArchived": false,
+    "isFork": false,
+    "url": "https://github.com/narayan-nkj/S.A.G.A.R---version-2",
+    "classification": "POSSIBLE_DUPLICATE_REQUIRES_CONFIRMATION"
+  },
+  {
+    "nameWithOwner": "narayan-nkj/S.A.G.A.R---Command-copy",
+    "isPrivate": false,
+    "isArchived": false,
+    "isFork": false,
+    "url": "https://github.com/narayan-nkj/S.A.G.A.R---Command-copy",
+    "classification": "POSSIBLE_DUPLICATE_REQUIRES_CONFIRMATION"
+  },
+  {
+    "nameWithOwner": "Rehan9599/Sonar-Drishti",
+    "isPrivate": false,
+    "isArchived": false,
+    "isFork": false,
+    "url": "https://github.com/Rehan9599/Sonar-Drishti",
+    "classification": "REFERENCE_REPOSITORY"
+  }
+]
