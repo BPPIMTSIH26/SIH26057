@@ -26,6 +26,11 @@ def override_get_db():
     finally:
         db.close()
 
+# Patch SessionLocal globally so eager celery uses TestingSessionLocal
+from unittest.mock import patch
+patcher = patch("app.database.database.SessionLocal", new=TestingSessionLocal)
+patcher.start()
+
 app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture
@@ -52,7 +57,9 @@ def admin_token_headers():
         db.add(user)
         db.commit()
     
-    SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "sagar-dev-secret-key-change-in-prod")
+    from app.core.config import get_settings
+    settings = get_settings()
+    SECRET_KEY = settings.JWT_SECRET_KEY
     expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=60)
     token = jwt.encode({"sub": user.email, "role": user.role, "exp": expire}, SECRET_KEY, algorithm="HS256")
     db.close()

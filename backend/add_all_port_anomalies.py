@@ -65,13 +65,6 @@ WATER_SEEDS = {
         (45.0750, -83.3500), (45.1000, -83.3100), (45.0550, -83.3950),
         (45.0850, -83.3300), (45.0300, -83.4300), (45.0950, -83.3150),
     ],
-    "Lake Huron": [
-        (45.0200, -83.4400), (45.0400, -83.4000), (45.0600, -83.3600),
-        (45.0800, -83.3200), (45.1000, -83.2800), (45.1200, -83.2400),
-        (45.0300, -83.4200), (45.0500, -83.3800), (45.0700, -83.3400),
-        (45.0900, -83.3000), (45.1100, -83.2600), (45.0100, -83.4500),
-        (45.0450, -83.3900), (45.0650, -83.3500), (45.0850, -83.3100),
-    ],
 }
 
 def generate_anomalies_for_port(port_name, count=15):
@@ -95,9 +88,9 @@ def generate_anomalies_for_port(port_name, count=15):
     anomalies = []
 
     for i, (base_lat, base_lng) in enumerate(cyclic_seeds):
-        # Micro jitter (±0.001°, ~110m) — stays firmly inside water polygon
-        lat = round(base_lat + random.uniform(-0.001, 0.001), 6)
-        lng = round(base_lng + random.uniform(-0.002, 0.002), 6)
+        # Use exact base coordinates to avoid accidental land placement
+        lat = base_lat
+        lng = base_lng
 
         atype, aclass, asev = random.choice(anomaly_types)
         anomaly = {

@@ -283,7 +283,7 @@ def run():
             if not raw_port:
                 mission = missions.get(a.mission_id)
                 if mission:
-                    raw_port = mission.port_id or mission.location
+                    raw_port = mission.port_id or mission.mission_id
 
             port_id = PORT_NAME_TO_ID.get(raw_port) if raw_port else None
 

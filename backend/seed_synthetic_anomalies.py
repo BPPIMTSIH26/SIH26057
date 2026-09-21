@@ -12,8 +12,7 @@ def map_port_name(port_name):
         "Jawaharlal Nehru": ("jawaharlal-nehru", "Jawaharlal Nehru Port"),
         "Parade": ("paradip", "Paradip Port"),
         "Chennai": ("chennai", "Chennai Port"),
-        "Thunder Bay": ("thunder-bay", "Thunder Bay, Lake Huron"),
-        "Lake Huron": ("lake-huron", "Lake Huron")
+        "Thunder Bay": ("thunder-bay", "Thunder Bay, Lake Huron")
     }
     return mapping.get(port_name, (port_name.lower().replace(" ", "-"), port_name))
 
