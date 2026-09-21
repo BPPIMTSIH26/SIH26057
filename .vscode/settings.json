@@ -2,5 +2,26 @@
   "python.analysis.extraPaths": [
     "./backend"
   ],
-  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python"
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
+  "explorer.excludeGitIgnore": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.vscode": true,
+    "**/.gitattributes": true,
+    "**/.gitignore": true,
+    "**/.env.example": true,
+    "**/package-lock.json": true,
+    "**/tsconfig.json": true,
+    "**/test.db": true
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, tsconfig*.json, .env*, .git*, README*"
+  }
 }
