@@ -28,7 +28,8 @@ httpx
 
 # ── Optional: ML Inference (only needed for MODEL_PROVIDER=yolo or onnx) ──────
 # Install manually when not deploying to Render:
-#   pip install torch ultralytics onnx onnxruntime
+#   pip install torch ultralytics onnx
+onnxruntime
 boto3
 psycopg2-binary
 alembic==1.20.0
