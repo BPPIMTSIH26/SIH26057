@@ -29,7 +29,7 @@ async function runVerification() {
         console.log(`✅ Demo Data Validated: Found ${data.length} anomalies seeded.`);
         
         // Ensure there are some ghost_net or shipwreck classes as part of demo
-        const classes = new Set(data.map(d => d.classification));
+        const classes = new Set(data.map(d => d.type).filter(t => t));
         if (classes.size > 0) {
           console.log(`✅ Classification breadth verified: ${Array.from(classes).join(', ')}`);
         }
