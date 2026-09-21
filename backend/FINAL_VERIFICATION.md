@@ -6,7 +6,7 @@ This report validates that all end-to-end components are present and functioning
 - **Dataset Verified**: ✅ PASSED
 - **Preprocessing Golden Sample**: ✅ PASSED
 - **Model Trained (best.pt)**: ✅ PASSED
-- **ONNX Model Exported**: ✅ PASSED
+- **ONNX Model Exported**: ❌ FAILED
 
 ## Summary
 > [!WARNING]

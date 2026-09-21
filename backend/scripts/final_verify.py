@@ -8,14 +8,14 @@ def verify_end_to_end():
         "Dataset Downloaded": os.path.exists(os.path.join(base_dir, "data", "dataset", "hf", "data.yaml")),
         "Dataset Verified": os.path.exists(os.path.join(base_dir, "data", "dataset", "DATASET_VERIFICATION.json")),
         "Preprocessing Golden Sample": os.path.exists(os.path.join(base_dir, "data", "dataset", "synthetic_processed.png")),
-        "Model Trained (best.pt)": os.path.exists(os.path.join(base_dir, "models", "drishti_run", "weights", "best.pt")),
-        "ONNX Model Exported": os.path.exists(os.path.join(base_dir, "models", "drishti_best.onnx")),
+        "Model Trained (best.pt)": os.path.exists(os.path.join(base_dir, "models", "sagar_run", "weights", "best.pt")),
+        "ONNX Model Exported": os.path.exists(os.path.join(base_dir, "models", "sagar_best.onnx")),
     }
     
     report_path = os.path.join(base_dir, "FINAL_VERIFICATION.md")
     
     with open(report_path, "w") as f:
-        f.write("# DRISHTI Final Verification Report\n\n")
+        f.write("# S.A.G.A.R Final Verification Report\n\n")
         f.write("This report validates that all end-to-end components are present and functioning on this Mac.\n\n")
         
         all_passed = True

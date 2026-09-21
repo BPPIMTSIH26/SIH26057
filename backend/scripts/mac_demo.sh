@@ -2,7 +2,7 @@
 set -e
 
 echo "======================================"
-echo " DRISHTI Backend: macOS Demo Launcher"
+echo " S.A.G.A.R Backend: macOS Demo Launcher"
 echo "======================================"
 
 # Determine project root
@@ -18,7 +18,7 @@ if ! pgrep -x "redis-server" > /dev/null; then
     echo "   Redis is not running natively."
     if ! docker ps | grep -q "redis"; then
         echo "   Redis Docker container is not running either. Please start Redis."
-        echo "   Example: docker run --name drishti-redis -p 6379:6379 -d redis"
+        echo "   Example: docker run --name sagar-redis -p 6379:6379 -d redis"
         exit 1
     fi
     echo "   Redis container found."
@@ -34,7 +34,7 @@ if [ ! -d "HG_DATA" ]; then
     echo "   HG_DATA not found. Fetch script failed or was skipped."
 fi
 
-if [ ! -f "models/drishti_best.onnx" ]; then
+if [ ! -f "models/sagar_best.onnx" ]; then
     echo "   ONNX model not found. Ensure training and export are complete."
 fi
 

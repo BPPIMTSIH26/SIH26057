@@ -77,8 +77,16 @@ async def create_processing_job(
     db.commit()
     db.refresh(job)
     
-    from app.worker import process_image_pipeline_task
-    process_image_pipeline_task.delay(job.id, file_path)
+    def run_pipeline(j_id: str, path: str):
+        from app.services.image_processing_service import ImageProcessingService
+        from app.database.database import SessionLocal
+        db_session = SessionLocal()
+        try:
+            ImageProcessingService.process_job_sync(db_session, j_id, path)
+        finally:
+            db_session.close()
+            
+    background_tasks.add_task(run_pipeline, job.id, file_path)
     
     return JobCreateResponse(
         jobId=job.id,

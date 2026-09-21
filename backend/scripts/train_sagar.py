@@ -3,7 +3,7 @@ import yaml
 from ultralytics import YOLO
 import torch
 
-def setup_drishti_yaml(dataset_dir):
+def setup_sagar_yaml(dataset_dir):
     """
     Creates the data.yaml for YOLO training pointing to the absolute paths of the dataset.
     """
@@ -29,7 +29,7 @@ def setup_drishti_yaml(dataset_dir):
     return yaml_path
 
 def train_yolo(epochs=5):
-    print("Initializing YOLO training for DRISHTI dataset...")
+    print("Initializing YOLO training for S.A.G.A.R dataset...")
     
     # Define paths
     base_dir = os.path.dirname(os.path.dirname(__file__))
@@ -42,7 +42,7 @@ def train_yolo(epochs=5):
         return
 
     # Create dynamic yaml with absolute paths
-    yaml_path = setup_drishti_yaml(dataset_dir)
+    yaml_path = setup_sagar_yaml(dataset_dir)
     print(f"Created YOLO config at {yaml_path}")
     
     # Device selection (MPS for Mac, fallback to CPU)
@@ -60,7 +60,7 @@ def train_yolo(epochs=5):
         batch=16,
         device=device,
         project=models_dir,
-        name="drishti_run",
+        name="sagar_run",
         exist_ok=True,
         save=True,
         save_period=1,
@@ -68,7 +68,7 @@ def train_yolo(epochs=5):
     )
     
     # Save the final best model specifically
-    best_model_path = os.path.join(models_dir, "drishti_run", "weights", "best.pt")
+    best_model_path = os.path.join(models_dir, "sagar_run", "weights", "best.pt")
     if os.path.exists(best_model_path):
         print(f"Training completed successfully. Best model saved at: {best_model_path}")
     else:
@@ -76,7 +76,7 @@ def train_yolo(epochs=5):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Train YOLO on DRISHTI dataset")
+    parser = argparse.ArgumentParser(description="Train YOLO on S.A.G.A.R dataset")
     parser.add_argument("--epochs", type=int, default=5, help="Number of epochs to train")
     args = parser.parse_args()
     train_yolo(epochs=args.epochs)

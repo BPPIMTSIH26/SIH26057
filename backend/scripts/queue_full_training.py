@@ -68,13 +68,13 @@ def update_checklist():
         print(f"Could not find verify script at {verify_script}")
 
 def run_full_training():
-    train_script = os.path.join(BASE_DIR, "scripts", "train_drishti.py")
+    train_script = os.path.join(BASE_DIR, "scripts", "train_sagar.py")
     print(f"Queueing full training run with {train_script} (100 epochs)...")
     subprocess.Popen(["/Library/Frameworks/Python.framework/Versions/3.14/bin/python3", train_script, "--epochs", "100"])
 
 def main():
     # 1. Wait for the current training run to finish
-    wait_for_process("train_drishti.py")
+    wait_for_process("train_sagar.py")
     
     # 2. Download with exponential backoff
     download_dataset_with_backoff()
