@@ -36,3 +36,13 @@ backend/data/uploads/processing_results/*
 *.pt
 backend/HG_DATA/
 backend/drishti_best.onnx
+
+# Large binary test artifacts
+test.jpg
+test.png
+HG_DATA/
+
+# Model training checkpoints & weights (large binaries)
+backend/models/sagar_run/weights/
+backend/models/*.onnx
+*.onnx
