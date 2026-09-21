@@ -21,9 +21,11 @@ free_port() {
   fi
 }
 
+FRONTEND_PORT=${PORT:-5173}
+
 # Free ports if previously occupied
 free_port 8000
-free_port 5173
+free_port $FRONTEND_PORT
 
 # Trap Ctrl+C (SIGINT), termination (SIGTERM), and normal EXIT
 cleanup() {
@@ -36,9 +38,9 @@ cleanup() {
   if [ -n "$FRONTEND_PID" ]; then
     kill "$FRONTEND_PID" 2>/dev/null || true
   fi
-  # Extra safeguard: ensure processes on ports 8000 and 5173 are released
+  # Extra safeguard: ensure processes on ports 8000 and the frontend port are released
   free_port 8000
-  free_port 5173
+  free_port $FRONTEND_PORT
   echo "✨ All services stopped cleanly."
   exit 0
 }
@@ -58,15 +60,15 @@ cd "$BACKEND_DIR"
 BACKEND_PID=$!
 
 # 2. Start Frontend
-echo "🚀 Starting Frontend (Vite on http://localhost:5173)..."
+echo "🚀 Starting Frontend (Vite on http://localhost:$FRONTEND_PORT)..."
 cd "$FRONTEND_DIR"
-npm run dev -- --host 0.0.0.0 --port 5173 &
+npm run dev -- --host 0.0.0.0 --port $FRONTEND_PORT &
 FRONTEND_PID=$!
 
 echo ""
 echo "========================================================"
 echo "  ✅ Services are running:"
-echo "     • Frontend:     http://localhost:5173"
+echo "     • Frontend:     http://localhost:$FRONTEND_PORT"
 echo "     • Backend API:  http://localhost:8000"
 echo "     • Swagger Docs: http://localhost:8000/docs"
 echo ""
