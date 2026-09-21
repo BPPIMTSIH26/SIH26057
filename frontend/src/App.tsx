@@ -25,6 +25,12 @@ import Settings from './pages/Settings';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import DataUseAndAttribution from './pages/DataUseAndAttribution';
+import Accessibility from './pages/Accessibility';
+import Contact from './pages/Contact';
+import SystemStatus from './pages/SystemStatus';
 import { usePreferences } from './contexts/PreferencesContext';
 import { useTheme } from './contexts/ThemeContext';
 import { useUser, UserProvider } from './contexts/UserContext';
@@ -442,6 +448,13 @@ const AppRouter = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-use" element={<TermsOfUse />} />
+          <Route path="/data-use-and-attribution" element={<DataUseAndAttribution />} />
+          <Route path="/accessibility" element={<Accessibility />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/system-status" element={<SystemStatus />} />
+          <Route path="/health" element={<SystemStatus />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       ) : (
@@ -456,6 +469,13 @@ const AppRouter = () => {
             <Route path="/comparison" element={<TemporalComparison />} />
             <Route path="/review" element={<ReviewReport />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-use" element={<TermsOfUse />} />
+            <Route path="/data-use-and-attribution" element={<DataUseAndAttribution />} />
+            <Route path="/accessibility" element={<Accessibility />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/system-status" element={<SystemStatus />} />
+            <Route path="/health" element={<SystemStatus />} />
             <Route path="/login" element={<Navigate to="/dashboard" replace />} />
             <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
             <Route path="/verify-email" element={<Navigate to="/dashboard" replace />} />
