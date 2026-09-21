@@ -26,6 +26,15 @@ else
     echo "   Native Redis server found."
 fi
 
+echo "-> Running Dataset & Pipeline Verification..."
+if [ ! -f "data/dataset/DATASET_VERIFICATION.json" ]; then
+    echo "   DATASET_VERIFICATION.json not found. Run scripts/verify_drishti_dataset.py"
+fi
+
+if [ ! -f "models/drishti_best.onnx" ]; then
+    echo "   ONNX model not found. Ensure training and export are complete."
+fi
+
 echo "-> Running Database Migrations..."
 alembic upgrade head
 
