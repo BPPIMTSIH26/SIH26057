@@ -1,6 +1,5 @@
-# 🌊 S.A.G.A.R. — Ocean-X Command
-### AI-Assisted Underwater Anomaly Intelligence & Seabed Survey Reconnaissance
-
+<h1 align="center">🌊 S.A.G.A.R. — Ocean-X Command</h1>
+<h3 align="center">AI-Assisted Underwater Anomaly Intelligence & Seabed Survey Reconnaissance</h3>
 <div align="center">
 
 [![SIH 2026](https://img.shields.io/badge/Smart_India_Hackathon-2026_National_Finals-0284c7?style=flat-square)](https://sih.gov.in)
