@@ -1,5 +1,5 @@
 # 🌊 S.A.G.A.R. — Ocean-X Command
-### Autonomous Underwater Anomaly Intelligence & Seabed Survey Reconnaissance
+### AI-Assisted Underwater Anomaly Intelligence & Seabed Survey Reconnaissance
 
 <div align="center">
 
@@ -26,7 +26,7 @@
 | **Category** | Software / Maritime Defense / Hydrographic Intelligence |
 | **Domain Bucket** | Smart Automation / Robotics & Autonomous Systems / Earth & Marine Sciences |
 | **Target End-Users** | Hydrographic Surveyors, Naval Defense Units, Port Authorities, Offshore Energy Operators |
-| **Core Innovation** | Zero-Shot Open-World Anomaly Detection + 14-Stage Acoustic Filtering + Multi-Modal Verification |
+| **Core Innovation** | Open-Set Anomaly Detection & Multi-Class Target Recognition + 14-Stage Acoustic Filtering + Multi-Modal Verification |
 
 ### The Real-World Challenge
 Side-Scan Sonar (SSS) and Synthetic Aperture Sonar (SAS) surveys generate massive volumes of acoustic backscatter data during seabed mapping operations. Traditional survey analysis faces critical bottlenecks:
@@ -59,7 +59,7 @@ flowchart TD
     K --> L[Automated Priority Triage Matrix P1 / P2 / P3]
     
     L --> M[Interactive MapLibre GIS Workspace]
-    L --> N[Supreme Admin Command & Access Console]
+    L --> N[System Administrator Command & Access Console]
     L --> O[Automated Hydrographic PDF / JSON Mission Report]
 ```
 
@@ -93,12 +93,12 @@ Generates a pixel-accurate diagnostic overlay over every processed sonar tile:
 - 🟥 **Sensor Dropout / Saturated Pixels**
 - ⬛ **Nadir / Ignored Regions**
 
-### 5. 🛡️ Military-Grade Access Control & Supreme Admin Console
+### 5. 🛡️ Military-Grade Access Control & System Administrator Console
 - **Multi-Factor Gmail OTP Verification**: High-security email dispatch for operator authentication.
 - **Auto-Lookup Personnel Registry**: Instant pre-filling of registered naval and hydrographic personnel details.
-- **Supreme Admin Authorization Gateway**:
-  - Restricts access until new accounts are explicitly approved by the Supreme Admin (`narayan.nkj@gmail.com`).
-  - Real-time approval, role upgrade (Analyst, Operator, Supreme Admin), or instant revocation.
+- **System Administrator Authorization Gateway**:
+  - Restricts access until new accounts are explicitly approved by the System Administrator (`narayan.nkj@gmail.com`).
+  - Real-time approval, role upgrade (Analyst, Operator, System Administrator), or instant revocation.
 
 ---
 
@@ -114,7 +114,7 @@ Generates a pixel-accurate diagnostic overlay over every processed sonar tile:
 | **Temporal Comparison** | `/temporal` (`TemporalComparison.tsx`) | Epoch-over-epoch differential analysis to detect seabed shifts and newly submerged targets. |
 | **Survey Upload Portal** | `/upload` (`UploadProcess.tsx`) | Ingest raw SSS/SAS waterfalls, side-scan TIFFs, and AUV optical camera survey packages. |
 | **Mission Review & Reports** | `/review` (`ReviewReport.tsx`) | Comprehensive hazard classification, confidence breakdowns, and exportable mission dossiers. |
-| **Supreme Admin Console** | `/settings` (`Settings.tsx`) | Manage operator credentials, grant/revoke clearance, and inspect system audit logs. |
+| **System Administrator Console** | `/settings` (`Settings.tsx`) | Manage operator credentials, grant/revoke clearance, and inspect system audit logs. |
 
 </div>
 
@@ -274,7 +274,7 @@ docker-compose up --build
 
 | Role | Authorized Identifier | Clearance & Operational Capabilities |
 | :--- | :--- | :--- |
-| **Supreme Admin** | `narayan.nkj@gmail.com` | Full System Governance, Operator Approval & Clearance Delegation, Access Revocation, Mission Triage |
+| **System Administrator** | `narayan.nkj@gmail.com` | Full System Governance, Operator Approval & Clearance Delegation, Access Revocation, Mission Triage |
 | **Senior Operator** | `admin@sonarnetra.mil` | Mission Command, 14-Stage Processing, Model Execution, Report Export |
 | **Field Analyst** | `analyst@sonarnetra.mil` | Sonar Swath View, Anomaly Inspection, Optical Verification |
 
@@ -302,13 +302,77 @@ docker-compose up --build
 | `GET` | `/api/auth/lookup-operator` | Auto-lookup registered personnel by email |
 | `POST` | `/api/auth/send-otp` | Dispatch 6-digit verification code to Gmail |
 | `POST` | `/api/auth/verify-otp` | Validate submitted OTP code |
-| `GET` | `/api/auth/users` | List all registered personnel *(Supreme Admin only)* |
+| `GET` | `/api/auth/users` | List all registered personnel *(System Administrator only)* |
 | `PATCH` | `/api/auth/users/{id}/access` | Grant or revoke operator access clearance |
 | `GET` | `/api/anomalies` | Retrieve all detected seabed anomalies with coordinates |
 | `GET` | `/api/missions` | Query active and archived survey missions |
 | `POST` | `/api/v1/image-processing/jobs` | Submit sonar image for 14-stage enhancement & QA masking |
 | `GET` | `/api/v1/image-processing/jobs/{id}` | Inspect processing progress and download enhanced artifacts |
 | `GET` | `/api/reports/generate/{id}` | Generate formal hydrographic anomaly dossier (PDF/JSON) |
+
+---
+
+## Training & Model Details
+
+### Dataset Used
+- **AquaScan-1K Dataset**: 2.7GB side-scan sonar images
+- **SAGAR Training Dataset**: Custom underwater anomaly dataset
+- **Total Classes**: 9 anomaly types
+- **Classes**: human, metal_debris, ghost_net, unknown_man_made_object, crab_pot, submarine_pipeline, shipwreck, mine_cylinder, reef
+- **Total Training Images**: 5,205
+- **Training Strategy**: Unified 9-class mapping with class balancing
+
+### Model Training
+- **Framework**: YOLOv8 → ONNX export
+- **Training Epochs**: 100
+- **Final mAP50**: 0.764
+- **Confidence Threshold**: 80%+ for anomaly detection
+- **Training Time**: 9.5+ hours
+- **Validation Success Rate**: 75%+ detection accuracy
+
+### Model Performance
+The trained model successfully identifies all 9 anomaly classes with:
+- ✅ Average confidence: 80%+
+- ✅ Success rate: 75%+ (tested on validation dataset)
+- ✅ No overfitting detected (validation ≈ training performance)
+- ✅ Ready for production deployment
+
+### Trained Model Access
+- **HuggingFace Repository**: [https://huggingface.co/Narayan-nkj/sagar-sonar-detector](https://huggingface.co/Narayan-nkj/sagar-sonar-detector)
+- **Model File**: sonar_detector.onnx
+- **Model Size**: 12.3 MB
+- **Framework**: ONNX Runtime
+- **Input Format**: RGB images (side-scan sonar)
+- **Output Format**: Bounding boxes + class predictions + confidence scores
+
+### Files Included
+- `backend/models/sonar_detector.onnx` - Trained model weights
+- `validation_report.json` - Validation metrics and results
+- `model_performance_report.json` - Performance statistics
+- `scripts/validate_model.py` - Model validation script
+- `scripts/test_anomaly_detection.py` - Anomaly detection testing
+- `scripts/upload_to_huggingface.py` - HF deployment pipeline
+
+### How to Use the Model
+```python
+import onnxruntime as ort
+import numpy as np
+from PIL import Image
+
+# Load model
+session = ort.InferenceSession("backend/models/sonar_detector.onnx")
+
+# Load and preprocess image
+img = Image.open("sonar_image.jpg")
+img_array = np.array(img) / 255.0
+img_array = np.expand_dims(img_array, 0).astype(np.float32)
+
+# Run inference
+input_name = session.get_inputs()[0].name
+predictions = session.run(None, {input_name: img_array})
+
+# Parse predictions (boxes, confidences, class IDs)
+```
 
 ---
 
@@ -321,7 +385,7 @@ docker-compose up --build
 ### Team Structure & Contributions:
 
 #### 🌟 Core Project Leadership
-- 👑 **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj)) — **Team Lead, System Architect & Full-Stack Intelligence Lead** *(Supreme Admin)*
+- 👑 **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj)) — **Team Lead, System Architect & Full-Stack Intelligence Lead** *(System Administrator)*
 - 💡 **Ahana** ([@I-Lawrence](https://github.com/I-Lawrence)) — **Core Lead: Deep Learning & Acoustic Feature Modeling**
 - 🎯 **Ishika Chowdhury** ([@i5hika0x](https://github.com/i5hika0x)) — **Core Lead: Sonar Vision & Geospatial Intelligence**
 
