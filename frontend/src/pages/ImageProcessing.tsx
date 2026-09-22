@@ -709,7 +709,7 @@ const ImageProcessing: React.FC = () => {
                       const ow = result.metadata?.originalWidth || bw;
                       const oh = result.metadata?.originalHeight || bh;
                       return (
-                        <div key={region.id} className="p-3 bg-glass-strong rounded-lg border border-glass-border text-xs flex gap-3">
+                        <div key={region.id} onClick={handlePublishAndNavigate} className="p-3 bg-glass-strong rounded-lg border border-glass-border text-xs flex gap-3 cursor-pointer hover:border-accent hover:shadow-[0_0_12px_rgba(125,211,252,0.15)] transition-all">
                           <div className="w-16 h-12 rounded overflow-hidden relative shrink-0 border border-glass-border bg-void/50">
                             {result.processedImageUrl && (
                               <img
