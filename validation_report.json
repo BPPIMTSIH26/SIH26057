@@ -1,0 +1,38 @@
+{
+    "total_tests": 5,
+    "success_rate": 1.0,
+    "average_confidence": 0.8830255627632141,
+    "criteria_passed": true,
+    "detections": [
+        {
+            "image": "dummy_sonar_4.jpg",
+            "class": "mine_cylinder",
+            "confidence": 0.8759520649909973,
+            "high_confidence": true
+        },
+        {
+            "image": "dummy_sonar_0.jpg",
+            "class": "mine_cylinder",
+            "confidence": 0.880028486251831,
+            "high_confidence": true
+        },
+        {
+            "image": "dummy_sonar_1.jpg",
+            "class": "mine_cylinder",
+            "confidence": 0.8944391012191772,
+            "high_confidence": true
+        },
+        {
+            "image": "dummy_sonar_3.jpg",
+            "class": "mine_cylinder",
+            "confidence": 0.8918147087097168,
+            "high_confidence": true
+        },
+        {
+            "image": "dummy_sonar_2.jpg",
+            "class": "mine_cylinder",
+            "confidence": 0.8728934526443481,
+            "high_confidence": true
+        }
+    ]
+}
