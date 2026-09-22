@@ -103,8 +103,8 @@ class ImageProcessingService:
 
             candidates.sort(key=lambda c: c[0], reverse=True)
             
-            # Classify based on size and shape
-            for i, (contrast_ratio, area, cnt, x, y, w, h, roi_brightness) in enumerate(candidates[:1]):
+            # Classify based on size and shape (up to 15 candidates)
+            for i, (contrast_ratio, area, cnt, x, y, w, h, roi_brightness) in enumerate(candidates[:15]):
                 # Determine anomaly type based on features
                 aspect = max(w, h) / max(min(w, h), 1)
                 relative_area = area / (orig_h * orig_w)
@@ -148,7 +148,13 @@ class ImageProcessingService:
                         f"Confidence: {obj_confidence*100:.1f}%. Requires human review."
                     )
                 })
-        return regions
+        
+        # Sort regions by confidence (if any) and limit to exactly 1
+        if regions:
+            regions.sort(key=lambda r: max(r.get("objectConfidence", 0), r.get("shadowConfidence", 0)), reverse=True)
+            return regions[:1]
+        
+        return []
 
 
     @staticmethod
