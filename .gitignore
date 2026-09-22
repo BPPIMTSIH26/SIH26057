@@ -40,7 +40,6 @@ backend/drishti_best.onnx
 # Large binary test artifacts
 tests/fixtures/*.jpg
 tests/fixtures/*.png
-HG_DATA/
 
 # Model training checkpoints & weights (large binaries)
 backend/models/sagar_run/weights/
