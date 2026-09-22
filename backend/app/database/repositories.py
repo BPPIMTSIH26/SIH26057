@@ -73,8 +73,11 @@ class AnomalyRepository:
         anomaly = self.db.query(Anomaly).options(joinedload(Anomaly.mission)).filter(
             (Anomaly.id == id) | (Anomaly.anomaly_id == id)
         ).first()
-        if anomaly and not getattr(anomaly, 'port_name', None) and anomaly.mission:
-            anomaly.port_name = anomaly.mission.name or anomaly.mission.mission_id
+        if anomaly:
+            if not getattr(anomaly, 'port_name', None) and anomaly.mission:
+                anomaly.port_name = anomaly.mission.name or anomaly.mission.mission_id
+            if not getattr(anomaly, 'sonar_image_path', None) and anomaly.detection and anomaly.detection.image:
+                anomaly.sonar_image_path = anomaly.detection.image.processed_path or anomaly.detection.image.original_path
         return anomaly
 
     def get_all(
@@ -84,7 +87,9 @@ class AnomalyRepository:
         status: Optional[str] = None,
         risk_level: Optional[str] = None,
         coordinate_status: Optional[str] = None,
-        only_water_validated: bool = False
+        only_water_validated: bool = False,
+        skip: int = 0,
+        limit: int = 50
     ) -> List[Anomaly]:
         query = self.db.query(Anomaly).options(joinedload(Anomaly.mission))
         if port_id:
@@ -105,10 +110,12 @@ class AnomalyRepository:
         elif coordinate_status:
             query = query.filter(Anomaly.coordinate_status == coordinate_status)
 
-        anomalies = query.all()
+        anomalies = query.order_by(Anomaly.created_at.desc()).offset(skip).limit(limit).all()
         for a in anomalies:
             if a.mission and not getattr(a, 'port_name', None):
                 a.port_name = a.mission.name or a.mission.mission_id
+            if not getattr(a, 'sonar_image_path', None) and a.detection and a.detection.image:
+                a.sonar_image_path = a.detection.image.processed_path or a.detection.image.original_path
         return anomalies
 
     def update(self, anomaly: Anomaly) -> Anomaly:

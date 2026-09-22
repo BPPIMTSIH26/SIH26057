@@ -41,26 +41,26 @@ Side-Scan Sonar (SSS) and Synthetic Aperture Sonar (SAS) surveys generate massiv
 **S.A.G.A.R.** (**S**onar **A**nomaly **G**eospatial **A**nalytical **R**econnaissance) is an end-to-end maritime intelligence command system designed to autonomously process, enhance, detect, cross-verify, and report seabed anomalies with sub-meter geospatial accuracy.
 
 ```mermaid
-flowchart TD
-    A[Raw Sonar Swath / Survey Feed] --> B[14-Stage Image Processing Pipeline]
-    B --> C[Acoustic Despeckling & CLAHE]
-    C --> D[Quality Assessment & 5-Class Mask Gen]
-    D --> E[Multi-Scale Feature Extractor & Baseline Normality]
+graph TD
+    A["Raw Sonar Swath / Survey Feed"] --> B["14-Stage Image Processing Pipeline"]
+    B --> C["Acoustic Despeckling & Adaptive CLAHE"]
+    C --> D["Quality Assessment & 9-Class Target Detection"]
+    D --> E["Multi-Scale Feature Extractor & Baseline Normality"]
     
-    E --> F{Dual Inference Engine}
-    F -->|Known Hazard Classifier| G[Ultralytics YOLO11 / ONNX Detector]
-    F -->|Open-World Novelty Model| H[Mahalanobis Seabed Normality Engine]
+    E --> F{"Dual-Core Intelligence Engine"}
+    F -->|"9-Class Known Hazard Classifier"| G["Ultralytics YOLO11 / ONNX Detector"]
+    F -->|"Open-World Novelty Model"| H["Mahalanobis Seabed Normality Engine"]
     
-    G --> I[Candidate Anomaly Georeferencing]
+    G --> I["Candidate Anomaly Georeferencing"]
     H --> I
     
-    I --> J[Temporal Change Engine: Epoch Differential]
-    J --> K[Multi-Modal Optical Cross-Verification]
-    K --> L[Automated Priority Triage Matrix P1 / P2 / P3]
+    I --> J["Temporal Change Engine: Epoch Differential"]
+    J --> K["Multi-Modal Optical Cross-Verification"]
+    K --> L["Automated Priority Triage Matrix (P1/P2/P3)"]
     
-    L --> M[Interactive MapLibre GIS Workspace]
-    L --> N[System Administrator Command & Access Console]
-    L --> O[Automated Hydrographic PDF / JSON Mission Report]
+    L --> M["Interactive MapLibre GIS Workspace"]
+    L --> N["System Administrator Command & Access Console"]
+    L --> O["Automated Hydrographic Mission Dossier (PDF/JSON)"]
 ```
 
 ---
@@ -85,13 +85,17 @@ flowchart TD
 - Compares sonar swaths from sequential survey epochs (e.g., month-over-month) using normalized cross-correlation and structural similarity indexing (SSIM).
 - Automatically flags new objects, disappeared objects, or significant shape/reflectance changes in repeated seabed transects.
 
-### 4. 🔬 5-Class Quality Assurance Mask Generator
-Generates a pixel-accurate diagnostic overlay over every processed sonar tile:
-- 🟩 **Clear Seabed** (background / known geology)
-- 🟨 **Anomalous High-Reflectance Targets**
-- 🟦 **Acoustic Shadow Regions**
-- 🟥 **Sensor Dropout / Saturated Pixels**
-- ⬛ **Nadir / Ignored Regions**
+### 4. 🔬 9-Class Multi-Target Detection & Diagnostics
+Executes comprehensive pixel-accurate diagnostic overlays and classifies hazards across 9 distinct threat vectors:
+- 🧑‍🚀 **human** — Divers or human presence anomalies
+- 🔩 **metal_debris** — Submerged industrial metallic waste
+- 🕸️ **ghost_net** — Discarded fishing gear and marine entanglements
+- 🛸 **unknown_man_made_object** — Unclassified artificial structures
+- 🦀 **crab_pot** — Commercial fishing traps
+- 🚰 **submarine_pipeline** — Undersea energy/telecom infrastructure
+- 🚢 **shipwreck** — Submerged vessels and historic wrecks
+- 🛢️ **mine_cylinder** — Explosive ordnance and defense threats
+- 🪸 **reef** — Natural underwater geological formations
 
 ### 5. 🛡️ Military-Grade Access Control & System Administrator Console
 - **Multi-Factor Gmail OTP Verification**: High-security email dispatch for operator authentication.
@@ -110,7 +114,7 @@ Generates a pixel-accurate diagnostic overlay over every processed sonar tile:
 | :--- | :--- | :--- |
 | **Tactical Dashboard** | `/` (`Dashboard.tsx`) | Real-time mission health, sensor telemetry, active alerts, and priority triage feed. |
 | **Geospatial GIS Map** | `/map` (`MapWorkspace.tsx`) | Full MapLibre GL map with bathymetric layers, swath navigation tracks, and bounding boxes. |
-| **14-Stage Processing Lab** | `/image-processing` (`ImageProcessing.tsx`) | Interactive side-by-side viewer for raw, enhanced, and 5-class QA diagnostic masks. |
+| **14-Stage Processing Lab** | `/image-processing` (`ImageProcessing.tsx`) | Interactive side-by-side viewer for raw, enhanced, and 9-class AI inference overlays. |
 | **Temporal Comparison** | `/temporal` (`TemporalComparison.tsx`) | Epoch-over-epoch differential analysis to detect seabed shifts and newly submerged targets. |
 | **Survey Upload Portal** | `/upload` (`UploadProcess.tsx`) | Ingest raw SSS/SAS waterfalls, side-scan TIFFs, and AUV optical camera survey packages. |
 | **Mission Review & Reports** | `/review` (`ReviewReport.tsx`) | Comprehensive hazard classification, confidence breakdowns, and exportable mission dossiers. |
@@ -182,13 +186,19 @@ The sonar training dataset is maintained separately on Hugging Face by **Narayan
 
 **Detected Classes:**
 
-| ID | Class | Present |
+**Detected 9-Class Topology:**
+
+| ID | Class Category | Detection Status |
 | :--- | :--- | :--- |
-| 0 | `crab_pot` | — (excluded) |
-| 1 | `submarine_pipeline` | ✓ |
-| 2 | `shipwreck` | ✓ |
-| 3 | `ghost_net` | ✓ (100% synthetic) |
-| 4 | `mine_cylinder` | ✓ |
+| 0 | `human` | ✓ Operational |
+| 1 | `metal_debris` | ✓ Operational |
+| 2 | `ghost_net` | ✓ Operational (Synthetic Augmented) |
+| 3 | `unknown_man_made_object` | ✓ Operational |
+| 4 | `crab_pot` | ✓ Operational |
+| 5 | `submarine_pipeline` | ✓ Operational |
+| 6 | `shipwreck` | ✓ Operational |
+| 7 | `mine_cylinder` | ✓ Operational |
+| 8 | `reef` | ✓ Operational |
 
 The dataset is fetched automatically on first startup by `backend/scripts/fetch_huggingface_dataset.py`. No manual download needed.
 
@@ -346,9 +356,9 @@ The trained model successfully identifies all 9 anomaly classes with:
 - **Output Format**: Bounding boxes + class predictions + confidence scores
 
 ### Files Included
-- `backend/models/sonar_detector.onnx` - Trained model weights
+- `src/models/sonar_detector.onnx` - Trained model weights
 - `validation_report.json` - Validation metrics and results
-- `model_performance_report.json` - Performance statistics
+- `reports/model_performance_report.json` - Performance statistics
 - `scripts/validate_model.py` - Model validation script
 - `scripts/test_anomaly_detection.py` - Anomaly detection testing
 - `scripts/upload_to_huggingface.py` - HF deployment pipeline
@@ -360,7 +370,7 @@ import numpy as np
 from PIL import Image
 
 # Load model
-session = ort.InferenceSession("backend/models/sonar_detector.onnx")
+session = ort.InferenceSession("src/models/sonar_detector.onnx")
 
 # Load and preprocess image
 img = Image.open("sonar_image.jpg")

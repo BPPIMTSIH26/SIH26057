@@ -11,8 +11,15 @@ class DetectorService:
         self.input_name = self.session.get_inputs()[0].name
         
         self.labels = {
-            0: "Crab-Pot",
-            1: "Maybe-Crab-Pot"
+            0: "human",
+            1: "metal_debris",
+            2: "ghost_net",
+            3: "unknown_man_made_object",
+            4: "crab_pot",
+            5: "submarine_pipeline",
+            6: "shipwreck",
+            7: "mine_cylinder",
+            8: "reef"
         }
         
         self.temporal_state = {}
@@ -69,7 +76,7 @@ class DetectorService:
     def postprocess(self, output_data, confidence_threshold=0.45):
         raw_detections = []
         for row in output_data:
-            scores = row[4:6]
+            scores = row[4:]
             if len(scores) == 0:
                 continue
                 
@@ -86,7 +93,7 @@ class DetectorService:
                 raw_detections.append({
                     "bbox": [float(x1), float(y1), float(x2), float(y2)],
                     "confidence": conf,
-                    "label": self.labels.get(cls_idx, "Maybe-Crab-Pot")
+                    "label": self.labels.get(cls_idx, "unknown")
                 })
                 
         # Apply NMS
@@ -115,8 +122,7 @@ class DetectorService:
                 
                 combined_conf = (self.alpha * det["confidence"]) + ((1 - self.alpha) * prev_state["conf"])
                 
-                # Reclassify based on combined confidence
-                final_label = "Crab-Pot" if combined_conf > 0.75 else "Maybe-Crab-Pot"
+                final_label = det["label"] if combined_conf > 0.75 else f"Maybe-{det['label']}"
                 
                 new_state[matched_id] = {
                     "bbox": det["bbox"],

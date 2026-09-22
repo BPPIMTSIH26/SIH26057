@@ -20,7 +20,7 @@ const defaultProfile: UserProfile = {
   fullName: 'Narayan',
   email: 'narayan.nkj@gmail.com',
   avatarUrl: null,
-  role: 'Supreme Admin',
+  role: 'System Administrator',
 };
 
 export const UserContext = createContext<UserContextType>({
@@ -80,7 +80,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fullName: name || (email.toLowerCase() === 'narayan.nkj@gmail.com' ? 'Narayan' : 'Operator'),
       email,
       avatarUrl: profile.avatarUrl,
-      role: role || (email.toLowerCase() === 'narayan.nkj@gmail.com' ? 'Supreme Admin' : 'Operator'),
+      role: role || (email.toLowerCase() === 'narayan.nkj@gmail.com' ? 'System Administrator' : 'Operator'),
     };
     setProfile(newProfile);
     setIsAuthenticated(true);

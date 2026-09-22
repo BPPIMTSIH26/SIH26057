@@ -3,7 +3,7 @@ from ultralytics import YOLO
 
 def export_model_to_onnx():
     base_dir = os.path.dirname(os.path.dirname(__file__))
-    model_path = os.path.join(base_dir, "models", "sagar_run", "weights", "best.pt")
+    model_path = os.path.join(base_dir, "models", "unified_run", "weights", "best.pt")
     out_dir = os.path.join(base_dir, "models")
     
     if not os.path.exists(model_path):
@@ -20,7 +20,10 @@ def export_model_to_onnx():
     # By default, YOLOv8 saves the exported model in the same directory as the weights.
     # We want to move it to the main models directory if it's there.
     if exported_path and os.path.exists(exported_path):
-        final_dest = os.path.join(out_dir, "sagar_best.onnx")
+        final_dest = os.path.join(out_dir, "sonar_detector.onnx")
+        # Replace if it exists
+        if os.path.exists(final_dest):
+            os.remove(final_dest)
         os.rename(exported_path, final_dest)
         print(f"ONNX model successfully exported and saved to {final_dest}")
     else:

@@ -6,7 +6,7 @@ a model_registry.json with all provenance fields and real metrics.
 
 Prerequisites:
   1. Ingest the dataset: python3 backend/scripts/ingest_dataset.py
-  2. Verify backend/data/dataset/dataset_metadata.json exists
+  2. Verify backend/data/dataset/dataset_config/metadata.json exists
 
 Output:
   - backend/models/aquascan_model/weights/best.pt  (best checkpoint)
@@ -24,7 +24,7 @@ BACKEND_DIR  = SCRIPT_DIR.parent
 DATASET_DIR  = BACKEND_DIR / "data" / "dataset"
 MODELS_DIR   = BACKEND_DIR / "models"
 REGISTRY_PATH = MODELS_DIR / "model_registry.json"
-METADATA_PATH = DATASET_DIR / "dataset_metadata.json"
+METADATA_PATH = DATASET_DIR / "dataset_config/metadata.json"
 MANIFEST_PATH = DATASET_DIR / "split_manifest.json"
 
 
@@ -39,7 +39,7 @@ def sha256_file(path: Path) -> str:
 def main():
     # 1. Verify real dataset exists and is not synthetic
     if not METADATA_PATH.exists():
-        print("ERROR: dataset_metadata.json not found.")
+        print("ERROR: dataset_config/metadata.json not found.")
         print("Run: python3 backend/scripts/ingest_dataset.py first.")
         raise SystemExit(1)
 
@@ -47,7 +47,7 @@ def main():
         dataset_meta = json.load(f)
 
     if dataset_meta.get("synthetic_data", True):
-        print("ERROR: dataset_metadata.json indicates synthetic data.")
+        print("ERROR: dataset_config/metadata.json indicates synthetic data.")
         print("Re-run: python3 backend/scripts/ingest_dataset.py with the real AquaScan-1K zip.")
         raise SystemExit(1)
 

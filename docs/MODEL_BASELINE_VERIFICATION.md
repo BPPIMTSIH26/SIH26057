@@ -14,6 +14,6 @@ The model was dynamically trained using `backend/scripts/train_sagar.py` running
 - **Output Artifact**: `backend/models/sagar_run/weights/best.pt`
 
 ## ONNX Execution Path
-The `best.pt` model was exported to an ONNX graph (`backend/models/sagar_best.onnx`) via `backend/scripts/export_onnx.py`. The ONNX format acts as a deterministic, framework-agnostic payload optimized for deployment in the edge environment via `onnxruntime`.
+The `best.pt` model was exported to an ONNX graph (`src/models/sonar_detector.onnx`) via `backend/scripts/export_onnx.py`. The ONNX format acts as a deterministic, framework-agnostic payload optimized for deployment in the edge environment via `onnxruntime`.
 
 **Verification Status**: ✅ PASSED. The pipeline functions natively on macOS.

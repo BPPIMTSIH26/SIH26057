@@ -68,7 +68,7 @@ export default function VerifyEmailPage() {
             </div>
             <h2 className="text-xl font-display font-light mb-2 uppercase tracking-widest text-success">Identity Authenticated</h2>
             <p className="text-sm text-text-muted mb-8 leading-relaxed">
-              Your email has been verified. Your registration has now been submitted to Supreme Admin (Narayan) for operational clearance. You can log in once authorized.
+              Your email has been verified. Your registration has now been submitted to System Administrator (Narayan) for operational clearance. You can log in once authorized.
             </p>
             <Link 
               to="/login"

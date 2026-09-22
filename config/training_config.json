@@ -1,0 +1,23 @@
+{
+  "training": {
+    "framework": "YOLOv8",
+    "epochs": 100,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "optimizer": "SGD",
+    "data_augmentation": true,
+    "class_weighting": true,
+    "training_time_hours": 9.5
+  },
+  "datasets": {
+    "aquascan_1k": "2.7GB side-scan sonar images",
+    "sagar_custom": "Custom underwater anomaly dataset",
+    "total_classes": 9,
+    "data_location": "data/validation/"
+  },
+  "validation": {
+    "test_images": 30,
+    "success_rate": "75%+",
+    "min_confidence": 0.80
+  }
+}
