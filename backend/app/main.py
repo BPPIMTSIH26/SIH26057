@@ -17,6 +17,8 @@ logger = logging.getLogger("sonar-x")
 
 settings = get_settings()
 
+from scripts.force_all_to_water import run as fix_water_coordinates
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting SONAR-X Backend (Env: {settings.APP_ENV})")
@@ -28,6 +30,8 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         seed_users(db)
+        logger.info("Running automatic coordinate fix for production database...")
+        fix_water_coordinates()
     finally:
         db.close()
     yield
