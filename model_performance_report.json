@@ -1,0 +1,20 @@
+{
+  "total_images_tested": 5,
+  "images_passed_80_percent": 5,
+  "images_failed_below_80": 0,
+  "success_rate_percentage": 100.0,
+  "average_confidence": 88.3,
+  "classes_detected": [
+    "human",
+    "metal_debris",
+    "ghost_net",
+    "unknown_man_made_object",
+    "crab_pot",
+    "submarine_pipeline",
+    "shipwreck",
+    "mine_cylinder",
+    "reef"
+  ],
+  "status": "WORKING",
+  "timestamp": "2026-09-22T20:36:35.032766"
+}
