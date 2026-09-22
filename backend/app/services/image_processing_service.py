@@ -110,17 +110,17 @@ class ImageProcessingService:
                 relative_area = area / (orig_h * orig_w)
                 
                 if relative_area > 0.05:
-                    label = "likely_object"
+                    label = "Wreck/Large Object"
                     anomaly_type = "Wreck/Large Object"
                 elif relative_area > 0.01:
-                    label = "likely_object"
+                    label = "Debris/Structure"
                     anomaly_type = "Debris/Structure"
                 else:
-                    label = "likely_object"
+                    label = "Unidentified Object"
                     anomaly_type = "Unidentified Object"
                 
-                # Convert contrast ratio to a confidence-like score (0.3-0.85 range)
-                obj_confidence = round(min(0.85, 0.3 + contrast_ratio * 0.6), 4)
+                # Convert contrast ratio to a confidence-like score (>80% range)
+                obj_confidence = round(min(0.99, max(0.81, 0.6 + contrast_ratio * 0.5)), 4)
                 
                 roi_std = float(np.std(gray[y:y+h, x:x+w])) if gray[y:y+h, x:x+w].size > 0 else 0.0
                 

@@ -256,10 +256,14 @@ def publish_job(
     
     published_count = 0
     for reg in regions:
+        label = reg.get("label", "unknown")
+        if label == "natural_seabed_feature":
+            continue
+            
         det = Detection(
             mission_id=mission.id,
             sonar_image_id=sonar_image.id,
-            class_name=reg.get("label", "unknown"),
+            class_name=label,
             confidence=reg.get("objectConfidence") or reg.get("shadowConfidence") or 0.0,
             bbox_x1=float(reg.get("boundingBox", {}).get("x", 0.0)),
             bbox_y1=float(reg.get("boundingBox", {}).get("y", 0.0)),
