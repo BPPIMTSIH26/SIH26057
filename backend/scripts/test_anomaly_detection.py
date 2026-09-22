@@ -2,7 +2,7 @@ import os
 import argparse
 from ultralytics import YOLO
 
-def test_anomaly(image_path, model_path="backend/models/sonar_detector.onnx", conf_threshold=0.80):
+def test_anomaly(image_path, model_path="src/models/sonar_detector.onnx", conf_threshold=0.80):
     print(f"Loading model from {model_path}...")
     model = YOLO(model_path, task='detect')
     

@@ -188,7 +188,7 @@ export default function SignupPage() {
           // Clear pending verification from storage
           sessionStorage.removeItem('sagar_pending_verify');
           
-          setSuccess("Identity authenticated! Your account is now pending security clearance from Supreme Admin (Narayan). Once approved, you can log in.");
+          setSuccess("Identity authenticated! Your account is now pending security clearance from System Administrator (Narayan). Once approved, you can log in.");
           
           setTimeout(() => navigate('/login'), 3500);
       } catch (err: any) {

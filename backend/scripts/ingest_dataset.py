@@ -36,7 +36,7 @@ SCRIPT_DIR   = Path(__file__).resolve().parent
 BACKEND_DIR  = SCRIPT_DIR.parent
 RAW_DIR      = BACKEND_DIR / "data" / "aquascan_raw"
 DATASET_DIR  = BACKEND_DIR / "data" / "dataset"
-METADATA_FILE = DATASET_DIR / "dataset_metadata.json"
+METADATA_FILE = DATASET_DIR / "dataset_config/metadata.json"
 MANIFEST_FILE = DATASET_DIR / "split_manifest.json"
 
 ZENODO_RECORD_ID = "18771165"

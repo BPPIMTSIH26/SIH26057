@@ -51,89 +51,120 @@ export interface ImageProcessingJobResponse {
   warnings?: string[];
 }
 
+const getAuthHeaders = (): Record<string, string> => {
+  const token = sessionStorage.getItem('sagar_token') || localStorage.getItem('sagar_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+const getErrorMessage = async (res: Response, fallback: string): Promise<string> => {
+  try {
+    const data = await res.json();
+    if (typeof data.detail === 'string') return data.detail;
+    if (data.detail?.message) return data.detail.message;
+    if (data.message) return data.message;
+  } catch {
+    // fallback
+  }
+  return fallback;
+};
+
 export const imageProcessingApi = {
   createJob: async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs`, {
       method: 'POST',
       body: formData,
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...getAuthHeaders()
       }
     });
-    if (!res.ok) throw new Error('Failed to create job');
+    if (!res.ok) {
+      const msg = await getErrorMessage(res, 'Failed to create job');
+      throw new Error(msg);
+    }
     return res.json();
   },
   
   getJobStatus: async (jobId: string): Promise<ImageProcessingJobResponse> => {
-    const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/${jobId}`, {
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...getAuthHeaders()
       }
     });
-    if (!res.ok) throw new Error('Failed to fetch status');
+    if (!res.ok) {
+      const msg = await getErrorMessage(res, 'Failed to fetch status');
+      throw new Error(msg);
+    }
     return res.json();
   },
   
   getJobResult: async (jobId: string): Promise<ImageProcessingJobResponse> => {
-    const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/${jobId}/result`, {
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...getAuthHeaders()
       }
     });
-    if (!res.ok) throw new Error('Failed to fetch result');
+    if (!res.ok) {
+      const msg = await getErrorMessage(res, 'Failed to fetch result');
+      throw new Error(msg);
+    }
     return res.json();
   },
   
   getJobHistory: async (): Promise<ImageProcessingJobResponse[]> => {
-    const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/history`, {
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...getAuthHeaders()
       }
     });
-    if (!res.ok) throw new Error('Failed to fetch job history');
+    if (!res.ok) {
+      const msg = await getErrorMessage(res, 'Failed to fetch job history');
+      throw new Error(msg);
+    }
     return res.json();
   },
 
   analyzeJob: async (jobId: string): Promise<ImageProcessingJobResponse> => {
-    const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/${jobId}/analyze`, {
       method: 'POST',
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...getAuthHeaders()
       }
     });
-    if (!res.ok) throw new Error('Failed to analyze job');
+    if (!res.ok) {
+      const msg = await getErrorMessage(res, 'Failed to analyze job');
+      throw new Error(msg);
+    }
     return res.json();
   },
 
   deleteJob: async (jobId: string): Promise<void> => {
-    const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/${jobId}`, {
       method: 'DELETE',
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...getAuthHeaders()
       }
     });
-    if (!res.ok) throw new Error('Failed to delete job');
+    if (!res.ok) {
+      const msg = await getErrorMessage(res, 'Failed to delete job');
+      throw new Error(msg);
+    }
   },
 
   publishJob: async (jobId: string, location?: { latitude: number, longitude: number }): Promise<any> => {
-    const token = sessionStorage.getItem('sagar_token');
     const res = await fetch(`${API_BASE_URL}/v1/image-processing/jobs/${jobId}/publish`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...getAuthHeaders()
       },
       body: location ? JSON.stringify(location) : undefined
     });
-    if (!res.ok) throw new Error('Failed to publish job anomalies');
+    if (!res.ok) {
+      const msg = await getErrorMessage(res, 'Failed to publish job anomalies');
+      throw new Error(msg);
+    }
     return res.json();
   }
 };

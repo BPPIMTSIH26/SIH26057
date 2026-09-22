@@ -29,7 +29,7 @@ def get_anomalies(
     Supports filtering by port_id, mission_id, status, and risk_level.
     """
     repo = AnomalyRepository(db)
-    return repo.get_all(port_id=port_id, mission_id=mission_id, status=status, risk_level=risk_level)
+    return repo.get_all(port_id=port_id, mission_id=mission_id, status=status, risk_level=risk_level, skip=(page - 1) * limit, limit=limit)
 
 
 @router.get("/{anomaly_id}", response_model=AnomalyResponse)

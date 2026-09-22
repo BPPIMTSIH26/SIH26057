@@ -381,12 +381,12 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   >
                     <AvatarBadge size="sm" showStatus />
                     <div className="flex flex-col items-start text-left">
-                      <span className="text-[11px] text-text-primary tracking-wide font-medium">{profile.fullName}</span>
-                      <span className="text-[9px] text-text-muted font-mono tracking-widest">{profile.role}</span>
+                      <span className="text-sm text-text-primary tracking-wide font-medium">{profile.fullName}</span>
+                      <span className="text-xs text-text-muted font-mono tracking-widest">{profile.role}</span>
                     </div>
                   </button>
                   {showUserMenu && (
-                    <div className="absolute right-0 top-full mt-3 w-56 bg-void/80 backdrop-blur-3xl border border-glass-border rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.8)] py-2 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="absolute right-0 top-full mt-3 w-56 bg-void/85 backdrop-blur-3xl border border-glass-border rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.8)] py-2 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
                       <div className="px-4 py-3 border-b border-glass-border mb-2">
                         <p className="text-sm font-medium text-text-primary truncate">{profile.fullName}</p>
                         <p className="text-[10px] text-text-muted font-mono truncate">{profile.email}</p>

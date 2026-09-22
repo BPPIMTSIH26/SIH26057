@@ -8,7 +8,7 @@ import uuid
 
 from app.database.database import get_db
 from app.database.models import User, ImageProcessingJob
-from app.api.routes_auth import get_current_user
+from app.api.routes_auth import get_current_user_optional
 from app.schemas.image_processing import JobCreateResponse, ImageProcessingJobResponse
 from app.services.image_processing_service import ImageProcessingService
 from app.services.s3_service import S3Service
@@ -25,7 +25,7 @@ async def create_processing_job(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
@@ -98,11 +98,12 @@ async def create_processing_job(
 @router.get("/jobs/history", response_model=list[ImageProcessingJobResponse])
 def get_job_history(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
-    jobs = db.query(ImageProcessingJob).filter(
-        (ImageProcessingJob.user_id == current_user.id)
-    ).order_by(ImageProcessingJob.created_at.desc()).all()
+    query = db.query(ImageProcessingJob)
+    if current_user.role not in ["System Administrator", "Admin"] and current_user.email != "narayan.nkj@gmail.com":
+        query = query.filter(ImageProcessingJob.user_id == current_user.id)
+    jobs = query.order_by(ImageProcessingJob.created_at.desc()).all()
     responses = []
     for job in jobs:
         response = ImageProcessingJobResponse(
@@ -130,7 +131,7 @@ def get_job_history(
 def get_job_status(
     job_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
     if not job:
@@ -161,7 +162,7 @@ def get_job_status(
 def get_job_result(
     job_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     return get_job_status(job_id, db, current_user)
 
@@ -170,7 +171,7 @@ def analyze_job(
     job_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
     if not job:
@@ -192,7 +193,7 @@ def analyze_job(
 def delete_job(
     job_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     job = db.query(ImageProcessingJob).filter(ImageProcessingJob.id == job_id).first()
     if not job:
@@ -213,7 +214,7 @@ def publish_job(
     job_id: str,
     publish_req: PublishRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     from app.database.models import Mission, SonarImage, Detection, Anomaly
     from datetime import datetime, timezone

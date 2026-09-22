@@ -1,0 +1,19 @@
+{
+    "model_name": "sagar-sonar-detector",
+    "framework": "YOLOv8 ONNX",
+    "training_epochs": 100,
+    "final_mAP50": 0.764,
+    "classes": [
+        "human",
+        "metal_debris",
+        "ghost_net",
+        "unknown_man_made_object",
+        "crab_pot",
+        "submarine_pipeline",
+        "shipwreck",
+        "mine_cylinder",
+        "reef"
+    ],
+    "confidence_threshold": 0.8,
+    "validation_timestamp": "2026-09-22T14:57:08Z"
+}

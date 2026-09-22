@@ -1,0 +1,27 @@
+{
+  "model": {
+    "name": "SAGAR Sonar Anomaly Detector",
+    "framework": "YOLO",
+    "export_format": "ONNX",
+    "path": "src/models/sonar_detector.onnx",
+    "input_size": [640, 640],
+    "input_format": "RGB",
+    "classes": [
+      "all",
+      "human",
+      "ghost_net",
+      "submarine_pipeline",
+      "shipwreck",
+      "mine_cylinder"
+    ],
+    "num_classes": 9,
+    "confidence_threshold": 0.80,
+    "iou_threshold": 0.5
+  },
+  "training": {
+    "epochs": 100,
+    "final_map50": 0.764,
+    "validation_success_rate": 0.75,
+    "average_confidence": 0.824
+  }
+}

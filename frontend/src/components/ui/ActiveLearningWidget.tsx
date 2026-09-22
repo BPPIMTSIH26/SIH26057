@@ -63,8 +63,8 @@ export default function ActiveLearningWidget({
             <div className="flex flex-col items-center gap-2 px-1">
               <ArrowRight className="w-4 h-4 text-accent" />
               <div className="flex flex-col gap-0.5 text-center">
-                <div className="text-[9px] font-mono text-text-muted">{feedbackSamples} fb</div>
-                <div className="text-[9px] font-mono text-text-muted">{potentialRetrainingSet} pnd</div>
+                <div className="text-xs font-mono text-text-muted">{feedbackSamples} Feedback</div>
+                <div className="text-xs font-mono text-text-muted">{potentialRetrainingSet} Pending</div>
               </div>
             </div>
 
@@ -88,7 +88,7 @@ export default function ActiveLearningWidget({
             </div>
             <div className="w-full h-1 bg-glass-strong rounded-full overflow-hidden">
               <div
-                className="h-full bg-accent rounded-full transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] shadow-[var(--glow-accent)] relative"
+                className={`h-full rounded-full transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] relative ${pct > 0 ? 'bg-accent shadow-[var(--glow-accent)]' : 'bg-glass-border'}`}
                 style={{ width: `${pct}%` }}
               >
                 <div className="absolute top-0 left-0 bottom-0 w-full bg-gradient-to-r from-transparent to-white/30 animate-shimmer" />

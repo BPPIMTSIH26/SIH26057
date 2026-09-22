@@ -12,7 +12,7 @@ def main():
     print("BULK ANOMALY PROCESSING — HG_DATA Images")
     print("=" * 60)
     
-    # Login as Supreme Admin
+    # Login as System Administrator
     print("\n[1/3] Logging in...")
     res = requests.post(f"{API_BASE}/api/auth/login", json={
         "email": "narayan.nkj@gmail.com",

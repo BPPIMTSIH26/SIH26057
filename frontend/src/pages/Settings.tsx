@@ -87,7 +87,7 @@ export default function Settings() {
   const [isAuthorizing, setIsAuthorizing] = useState(false);
 
   const isSupremeOrAdmin = 
-    profile.role === 'Supreme Admin' || 
+    profile.role === 'System Administrator' || 
     profile.role === 'Admin' || 
     profile.email.toLowerCase() === 'narayan.nkj@gmail.com';
 
@@ -188,7 +188,7 @@ export default function Settings() {
 
   const handleRevoke = async (user: ManagedUser) => {
     if (user.email.toLowerCase() === 'narayan.nkj@gmail.com') {
-      showToast('Supreme Admin access cannot be revoked.');
+      showToast('System Administrator access cannot be revoked.');
       return;
     }
 
@@ -387,7 +387,7 @@ export default function Settings() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-cyan uppercase tracking-wider">Supreme Admin Governance</span>
+              <span className="text-xs font-bold text-cyan uppercase tracking-wider">System Administrator Governance</span>
               <span className="text-[8px] font-mono px-2 py-0.5 rounded-full bg-cyan/20 text-cyan border border-cyan/40">
                 ACTIVE
               </span>
@@ -518,7 +518,7 @@ export default function Settings() {
           </div>
         ) : (
           filteredPersonnel.map(user => {
-            const isSupreme = user.email.toLowerCase() === 'narayan.nkj@gmail.com' || user.role === 'Supreme Admin';
+            const isSupreme = user.email.toLowerCase() === 'narayan.nkj@gmail.com' || user.role === 'System Administrator';
             const isAllowed = user.is_approved;
 
             return (
@@ -736,7 +736,7 @@ export default function Settings() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold uppercase tracking-widest text-text-primary">{profile.fullName}</p>
-                    {profile.role === 'Supreme Admin' && (
+                    {profile.role === 'System Administrator' && (
                       <span className="px-2 py-0.5 rounded-full bg-cyan/15 text-cyan border border-cyan/40 text-[9px] font-mono font-bold flex items-center gap-1">
                         <Crown className="w-3 h-3" /> SUPREME ADMIN
                       </span>
@@ -767,7 +767,7 @@ export default function Settings() {
                   <label className="text-[9px] font-bold text-text-secondary uppercase tracking-[0.2em]">Role</label>
                   <div className="relative">
                     <input type="text" value={profile.role} readOnly className={`${inputClass} opacity-70 cursor-not-allowed font-bold text-cyan`} />
-                    {profile.role === 'Supreme Admin' && (
+                    {profile.role === 'System Administrator' && (
                       <Crown className="w-3.5 h-3.5 text-cyan absolute right-3 top-3 pointer-events-none" />
                     )}
                   </div>

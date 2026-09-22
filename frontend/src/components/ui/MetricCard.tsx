@@ -28,7 +28,7 @@ export default function MetricCard({
       hover:bg-glass hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]
     ">
       <div className="flex justify-between items-start">
-        <span className="text-[10px] font-sans font-medium tracking-[0.15em] uppercase text-text-muted">{label}</span>
+        <span className="text-xs font-sans font-medium tracking-wide text-text-muted">{label}</span>
         <Icon className={`w-4 h-4 ${colorClass} opacity-50 group-hover:opacity-100 group-hover:text-accent transition-all duration-500`} />
       </div>
       

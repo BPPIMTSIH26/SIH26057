@@ -46,3 +46,11 @@ HG_DATA/
 backend/models/sagar_run/weights/
 backend/models/*.onnx
 *.onnx
+
+data/training/
+data/validation/
+*.egg-info/
+__pycache__/
+.env
+large_files/
+*.zip

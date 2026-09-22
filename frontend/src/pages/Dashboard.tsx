@@ -269,48 +269,48 @@ export default function Dashboard() {
             <div className="shrink-0 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
               <div className="px-5 py-3 border-b border-glass-border bg-glass-strong flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-3.5 h-3.5 text-accent" />
-                  <h3 className="font-display font-bold text-[10px] uppercase tracking-[0.15em] text-text-primary">Port Intel</h3>
+                  <Building2 className="w-4 h-4 text-accent" />
+                  <h2 className="font-display font-bold text-base tracking-wide text-text-primary">Port Intel</h2>
                 </div>
-                <span className="text-[9px] font-mono text-text-muted px-1.5 py-0.5 rounded bg-surface border border-glass-border">
+                <span className="text-xs font-mono text-text-muted px-2 py-0.5 rounded bg-surface border border-glass-border">
                   {selectedPort.authority || 'N/A'}
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-glass-strong">
                 <div className="bg-glass p-4 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3 h-3 text-text-muted" />
-                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Survey Area</span>
+                    <MapPin className="w-4 h-4 text-text-muted" />
+                    <span className="text-xs text-text-secondary tracking-wide font-medium">Survey Area</span>
                   </div>
-                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.areaSqKm ?? 'N/A'} <span className="text-[9px] text-text-muted">km²</span></div>
+                  <div className="text-text-primary font-mono text-sm font-light mt-1">{selectedPort.areaSqKm ?? 'N/A'} <span className="text-xs text-text-muted">km²</span></div>
                 </div>
                 <div className="bg-glass p-4 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5">
-                    <Waves className="w-3 h-3 text-text-muted" />
-                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Max Depth</span>
+                    <Waves className="w-4 h-4 text-text-muted" />
+                    <span className="text-xs text-text-secondary tracking-wide font-medium">Max Depth</span>
                   </div>
-                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.maxDepthMeters ?? 'N/A'} <span className="text-[9px] text-text-muted">m</span></div>
+                  <div className="text-text-primary font-mono text-sm font-light mt-1">{selectedPort.maxDepthMeters ?? 'N/A'} <span className="text-xs text-text-muted">m</span></div>
                 </div>
                 <div className="bg-glass p-4 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-3 h-3 text-text-muted" />
-                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Throughput</span>
+                    <TrendingUp className="w-4 h-4 text-text-muted" />
+                    <span className="text-xs text-text-secondary tracking-wide font-medium">Throughput</span>
                   </div>
-                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.annualThroughputTEU != null ? `${(selectedPort.annualThroughputTEU * 10000).toLocaleString()}` : 'N/A'} <span className="text-[9px] text-text-muted">TEU/yr</span></div>
+                  <div className="text-text-primary font-mono text-sm font-light mt-1">{selectedPort.annualThroughputTEU != null ? `${(selectedPort.annualThroughputTEU * 10000).toLocaleString()}` : 'N/A'} <span className="text-xs text-text-muted">TEU/yr</span></div>
                 </div>
                 <div className="bg-glass p-4 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5">
-                    <Ship className="w-3 h-3 text-text-muted" />
-                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Vessel</span>
+                    <Ship className="w-4 h-4 text-text-muted" />
+                    <span className="text-xs text-text-secondary tracking-wide font-medium">Vessel</span>
                   </div>
-                  <div className="text-text-primary font-mono text-[11px] font-light truncate" title={selectedPort.vessel}>{selectedPort.vessel}</div>
+                  <div className="text-text-primary font-mono text-xs font-light truncate mt-1" title={selectedPort.vessel}>{selectedPort.vessel}</div>
                 </div>
                 <div className="bg-glass p-4 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5">
-                    <Anchor className="w-3 h-3 text-text-muted" />
-                    <span className="text-[9px] text-text-secondary uppercase tracking-widest font-bold">Seed Points</span>
+                    <Anchor className="w-4 h-4 text-text-muted" />
+                    <span className="text-xs text-text-secondary tracking-wide font-medium">Seed Points</span>
                   </div>
-                  <div className="text-text-primary font-mono text-sm font-light">{selectedPort.waterCoordinates?.length ?? 0} <span className="text-[9px] text-text-muted">coords</span></div>
+                  <div className="text-text-primary font-mono text-sm font-light mt-1">{selectedPort.waterCoordinates?.length ?? 0} <span className="text-xs text-text-muted">coords</span></div>
                 </div>
               </div>
             </div>
@@ -319,17 +319,17 @@ export default function Dashboard() {
             <div className="flex-1 bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-1 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.4)] min-h-[300px] md:min-h-[400px] overflow-hidden relative group">
               <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-void/80 backdrop-blur-md border border-glass-border rounded-lg shadow-lg pointer-events-none">
-                  <span className="w-1.5 h-1.5 bg-accent rounded-full animate-glow-pulse" />
-                  <h3 className="font-display font-bold text-xs uppercase tracking-[0.12em] text-text-primary">
+                  <span className="w-2 h-2 bg-accent rounded-full animate-glow-pulse" />
+                  <h3 className="font-display font-medium text-sm tracking-wide text-text-primary">
                     Minimap: {selectedPort.name}
                   </h3>
-                  <span className="text-[9px] px-1 py-0.5 rounded bg-surface border border-glass-border font-mono text-cyan">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-surface border border-glass-border font-mono text-cyan">
                     {selectedPort.code}
                   </span>
                 </div>
                 <button 
                   onClick={() => setIsAutoPatrol(!isAutoPatrol)}
-                  className={`px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors border shadow-lg flex items-center gap-2 ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border shadow-lg flex items-center gap-2 ${
                     isAutoPatrol 
                       ? 'bg-accent/20 border-accent/40 text-accent shadow-[var(--glow-accent)]' 
                       : 'bg-void/80 border-glass-border text-text-muted hover:text-text-primary'
@@ -421,7 +421,8 @@ export default function Dashboard() {
                   </div>
                 ) : chartData.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-4 border border-dashed border-glass-border/40 rounded-xl">
-                    <span className="text-xs font-mono text-text-muted uppercase">No historical trend data recorded for {selectedPort.name}.</span>
+                    <TrendingUp className="w-6 h-6 text-glass-border mb-3" />
+                    <span className="text-sm font-medium text-text-muted">No historical trend data recorded for {selectedPort.name}.</span>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -456,10 +457,10 @@ export default function Dashboard() {
             {/* Inspector Node: Strictly scoped to selectedPortId */}
             <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border p-6 flex flex-col shrink-0 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display font-bold text-sm uppercase tracking-[0.12em] text-text-primary flex items-center gap-2">
+                <h3 className="font-display font-bold text-sm tracking-wide text-text-primary flex items-center gap-2">
                   <Zap className="w-4 h-4 text-cyan" /> Inspector Node
                 </h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-glass-border text-cyan">
+                <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface border border-glass-border text-cyan">
                   {selectedPort.name} [{selectedPort.code}]
                 </span>
               </div>
@@ -472,13 +473,15 @@ export default function Dashboard() {
                   </div>
                 ) : error ? (
                   <div className="h-[120px] flex flex-col items-center justify-center text-center p-4 border border-danger/30 bg-danger/5 rounded-xl">
-                    <AlertCircle className="w-5 h-5 text-danger mb-2" />
-                    <span className="text-xs font-mono text-danger mb-3">{error}</span>
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertCircle className="w-5 h-5 text-danger" />
+                      <span className="text-sm font-medium text-danger text-left">{error}</span>
+                    </div>
                     <button
                       onClick={loadData}
-                      className="px-3 py-1 bg-surface border border-glass-border text-xs rounded hover:bg-glass flex items-center gap-1.5"
+                      className="px-4 py-1.5 bg-accent/20 border border-accent/40 text-accent text-sm rounded-lg hover:bg-accent/30 transition-colors flex items-center gap-2 font-medium"
                     >
-                      <RefreshCw className="w-3 h-3" /> Retry
+                      <RefreshCw className="w-4 h-4" /> Retry Connection
                     </button>
                   </div>
                 ) : selectedAnomaly ? (

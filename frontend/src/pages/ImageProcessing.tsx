@@ -280,21 +280,31 @@ const ImageProcessing: React.FC = () => {
       onTouchEnd={() => setIsDraggingSlider(false)}
     >
       <div className="flex flex-col mb-4">
-        <h1 className="text-2xl font-display text-text-primary tracking-wide flex items-center gap-2">
+        <h2 className="text-2xl font-display text-text-primary tracking-wide flex items-center gap-2">
           <span>Image Processing & Swath Enhancement</span>
           <span className="text-xs px-2.5 py-0.5 rounded-full border border-cyan/30 bg-cyan/10 text-cyan font-mono">v1.1</span>
-        </h1>
+        </h2>
         <p className="text-sm text-text-muted mt-1">Pre-process, assess, denoise, and enhance side-scan sonar waterfall imagery with CLAHE and robust normalization.</p>
-        <div className="mt-2 text-xs font-mono flex items-center gap-2">
-          <span>Pipeline Status:</span>
-          <span className={(uiStatus === 'completed' || uiStatus === 'assessed') ? 'text-success font-semibold flex items-center gap-1' : uiStatus === 'failed' ? 'text-danger font-semibold' : isProcessing ? 'text-accent font-semibold animate-pulse' : 'text-text-muted'}>
-            {uiStatus === 'idle' ? 'WAITING FOR FILE' : 
-             uiStatus === 'file_selected' ? 'READY TO ENHANCE' : 
-             uiStatus === 'submitting' ? 'SUBMITTING...' :
-             uiStatus === 'processing' ? `PROCESSING... ${result?.progress ? `(${result.progress}%)` : ''}` :
-             uiStatus.toUpperCase()}
-            {(uiStatus === 'completed' || uiStatus === 'assessed') && <CheckCircle className="w-3.5 h-3.5 inline" />}
-          </span>
+        <div className="mt-4 flex items-center gap-3">
+          <span className="text-sm text-text-secondary font-medium">Pipeline Status:</span>
+          <div className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2 border ${
+             (uiStatus === 'completed' || uiStatus === 'assessed') ? 'bg-success/10 text-success border-success/30' :
+             uiStatus === 'failed' ? 'bg-danger/10 text-danger border-danger/30' :
+             isProcessing ? 'bg-accent/10 text-accent border-accent/30 animate-pulse' :
+             'bg-glass text-text-muted border-glass-border'
+          }`}>
+             <div className={`w-2 h-2 rounded-full ${
+                (uiStatus === 'completed' || uiStatus === 'assessed') ? 'bg-success' :
+                uiStatus === 'failed' ? 'bg-danger' :
+                isProcessing ? 'bg-accent animate-ping' :
+                'bg-text-muted'
+             }`}></div>
+             {uiStatus === 'idle' ? 'Waiting for file' : 
+              uiStatus === 'file_selected' ? 'Ready to enhance' : 
+              uiStatus === 'submitting' ? 'Submitting...' :
+              uiStatus === 'processing' ? `Processing... ${result?.progress ? `(${result.progress}%)` : ''}` :
+              uiStatus.charAt(0).toUpperCase() + uiStatus.slice(1)}
+          </div>
         </div>
       </div>
 
@@ -302,7 +312,7 @@ const ImageProcessing: React.FC = () => {
         {/* Upload & Controls */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-glass border border-glass-border rounded-xl p-5 shadow-lg">
-            <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
               <UploadCloud className="w-4 h-4 text-accent" /> Upload Sonar Image
             </h2>
             <div className="border-2 border-dashed border-glass-border-strong rounded-lg p-6 text-center hover:bg-glass-strong transition-colors">
@@ -310,7 +320,7 @@ const ImageProcessing: React.FC = () => {
               <label htmlFor="sonar-upload" className="cursor-pointer flex flex-col items-center">
                 <ImageIcon className="w-8 h-8 text-text-muted mb-2" />
                 <span className="text-sm text-text-primary">Click or drag file here</span>
-                <span className="text-xs text-text-muted mt-1">Supported: PNG, JPG, TIFF (High-Res Swaths)</span>
+                <span className="text-xs text-text-secondary mt-1 font-medium">Supported: PNG, JPG, TIFF (High-Res Swaths)</span>
               </label>
             </div>
             {file && (
@@ -323,7 +333,7 @@ const ImageProcessing: React.FC = () => {
               <button 
                 onClick={handleProcess} 
                 disabled={!file || isProcessing}
-                className="w-full bg-accent text-void py-2.5 rounded-lg text-sm font-medium hover:bg-accent/90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+                className={`w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-md ${!file ? 'bg-glass-strong text-text-muted border border-glass-border cursor-not-allowed' : 'bg-accent text-void hover:bg-accent/90 disabled:opacity-50'}`}
               >
                 {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {isProcessing ? 'Enhancing Sonar Imagery...' : 'Process Sonar Image'}
@@ -960,7 +970,10 @@ const ImageProcessing: React.FC = () => {
             <div className="bg-glass border border-glass-border rounded-xl p-5 shadow-lg h-full flex flex-col items-center justify-center text-center min-h-[350px]">
               <Layers className="w-12 h-12 text-glass-border-strong mb-4" />
               <h3 className="text-text-primary text-sm font-medium">Ready for Sonar Processing</h3>
-              <p className="text-xs text-text-muted max-w-sm mt-2">Upload a side-scan sonar image or waterfall survey swath to begin pre-processing. The pipeline applies speckle reduction, adaptive CLAHE contrast enhancement, and pixel normalization.</p>
+              <p className="text-xs text-text-muted max-w-sm mt-2 mb-6">Upload a side-scan sonar image or waterfall survey swath to begin pre-processing. The pipeline applies speckle reduction, adaptive CLAHE contrast enhancement, and pixel normalization.</p>
+              <button onClick={() => document.getElementById('sonar-upload')?.click()} className="px-4 py-2 bg-accent text-void rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors flex items-center gap-2 cursor-pointer shadow-md">
+                <UploadCloud className="w-4 h-4" /> Upload Sonar Image
+              </button>
             </div>
           )}
         </div>
@@ -968,7 +981,7 @@ const ImageProcessing: React.FC = () => {
       
       {/* Examples Gallery */}
       <div className="bg-glass border border-glass-border rounded-xl p-5 shadow-lg">
-        <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4">Previously Processed Sonar Examples</h2>
+        <h2 className="text-sm font-semibold text-text-primary mb-4">Previously Processed Sonar Examples</h2>
         {history.length > 0 ? (
           <div className="flex flex-col gap-3">
             {history.map((job) => (
@@ -1029,8 +1042,8 @@ const ImageProcessing: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="flex items-center justify-center py-10 border-2 border-dashed border-glass-border-strong rounded-lg">
-            <p className="text-xs text-text-muted">No previously processed examples available.</p>
+          <div className="py-6 border-t border-glass-border">
+            <p className="text-sm text-text-muted">No previously processed examples available.</p>
           </div>
         )}
       </div>

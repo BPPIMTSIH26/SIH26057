@@ -23,5 +23,8 @@
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
     "package.json": "package-lock.json, tsconfig*.json, .env*, .git*, README*"
-  }
+  },
+  "gitlens.currentLine.enabled": false,
+  "gitlens.hovers.currentLine.enabled": false,
+  "gitlens.codeLens.enabled": false
 }

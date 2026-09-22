@@ -12,7 +12,7 @@ def upload_model():
         return
         
     repo_id = "Narayan-nkj/sagar-sonar-detector"
-    model_path = "backend/models/sonar_detector.onnx"
+    model_path = "src/models/sonar_detector.onnx"
     
     try:
         api = HfApi(token=hf_token)

@@ -84,7 +84,7 @@ Workflow: login → select port → upload sonar → validate metadata → prepr
 - Rotate public credentials, hash passwords, no frontend secrets, role-based auth, rate limits, input validation, path traversal protection, no private survey logging, CORS/security headers, secret scanning, session timeouts.
 
 ## 14. UI copy rules
-- Remove/qualify: "100% Coverage Area", "<0.5s Detection Latency", "Zero-Shot Open-World Anomaly Detection", "Multi-Modal Verification", "Proven AI + SONAR Pipeline", "National Platform", "Real-Time" (unless benchmarked), "Research shows".
+- Remove/qualify: "100% Coverage Area", "<0.5s Detection Latency", "Open-Set Anomaly Detection & Multi-Class Target Recognition", "Multi-Modal Verification", "Proven AI + SONAR Pipeline", "National Platform", "Real-Time" (unless benchmarked), "Research shows".
 - Labels: RESULT, TARGET, DEMO DATA, LIVE RUN, PLANNED, NOT MEASURED.
 - Metric sources must be explicit.
 

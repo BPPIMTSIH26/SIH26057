@@ -27,7 +27,7 @@ def run_phase_1():
     print("PHASE 1: MODEL VERIFICATION (DO NOT SKIP)")
     print("============================================================")
     
-    model_path = "backend/models/sonar_detector.onnx"
+    model_path = "src/models/sonar_detector.onnx"
     print(f"Loading ONNX model from {model_path}...")
     model = YOLO(model_path, task='detect')
     
@@ -104,10 +104,10 @@ def run_phase_1():
         "timestamp": datetime.datetime.now().isoformat()
     }
     
-    with open("model_performance_report.json", "w") as f:
+    with open("reports/model_performance_report.json", "w") as f:
         json.dump(report, f, indent=2)
         
-    print("\nTASK 1C: Created model_performance_report.json")
+    print("\nTASK 1C: Created reports/model_performance_report.json")
     
     print("\nTASK 1D: Decision Point - CHECK MODEL STATUS")
     if status == "WORKING":

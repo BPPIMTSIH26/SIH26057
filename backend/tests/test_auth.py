@@ -23,7 +23,7 @@ def test_supreme_admin_exists_and_users_list():
     response = client.get("/api/auth/users")
     assert response.status_code == 200
     users = response.json()
-    assert any(u["email"] == "narayan.nkj@gmail.com" and u["role"] == "Supreme Admin" for u in users)
+    assert any(u["email"] == "narayan.nkj@gmail.com" and u["role"] == "System Administrator" for u in users)
 
 def test_cannot_revoke_or_demote_supreme_admin():
     db = get_test_db()
@@ -34,12 +34,12 @@ def test_cannot_revoke_or_demote_supreme_admin():
     # Try revoke
     revoke_res = client.post(f"/api/auth/users/{supreme.id}/revoke")
     assert revoke_res.status_code == 400
-    assert "Cannot revoke Supreme Admin" in revoke_res.json()["detail"]
+    assert "Cannot revoke System Administrator" in revoke_res.json()["detail"]
 
     # Try demote
     role_res = client.post(f"/api/auth/users/{supreme.id}/role", json={"role": "Operator"})
     assert role_res.status_code == 400
-    assert "Cannot demote Supreme Admin" in role_res.json()["detail"]
+    assert "Cannot demote System Administrator" in role_res.json()["detail"]
 
 def test_user_registration_verification_and_approval_flow():
     test_email = "test.cadet@sagar.gov.in"
@@ -78,7 +78,7 @@ def test_user_registration_verification_and_approval_flow():
     })
     assert verify_res.status_code == 200
 
-    # 4. Check that user cannot login before Supreme Admin approval
+    # 4. Check that user cannot login before System Administrator approval
     login_fail_2 = client.post("/api/auth/login", json={
         "email": test_email,
         "password": "SecurePassword123!"
@@ -86,7 +86,7 @@ def test_user_registration_verification_and_approval_flow():
     assert login_fail_2.status_code == 403
     assert "pending" in login_fail_2.json()["detail"].lower()
 
-    # 5. Supreme Admin approves and assigns role 'Senior Analyst'
+    # 5. System Administrator approves and assigns role 'Senior Analyst'
     role_res = client.post(f"/api/auth/users/{cadet.id}/role", json={"role": "Senior Analyst"})
     assert role_res.status_code == 200
 
@@ -131,7 +131,7 @@ def test_auto_record_gmail_attempt_and_authorize_email():
     assert recorded is not None
     assert recorded.is_approved == 0
 
-    # Supreme Admin pre-authorizes or grants access
+    # System Administrator pre-authorizes or grants access
     auth_res = client.post("/api/auth/users/authorize-email", json={
         "email": new_email,
         "role": "Analyst"
@@ -152,13 +152,13 @@ def test_auto_record_gmail_attempt_and_authorize_email():
     db.close()
 
 def test_lookup_operator():
-    # Supreme Admin lookup
+    # System Administrator lookup
     res = client.get("/api/auth/lookup-operator?email=narayan.nkj@gmail.com")
     assert res.status_code == 200
     data = res.json()
     assert data["exists"] is True
     assert data["fullName"] == "Narayan"
-    assert data["role"] == "Supreme Admin"
+    assert data["role"] == "System Administrator"
 
     # Non-existent lookup
     res2 = client.get("/api/auth/lookup-operator?email=unknown.operator.999@gmail.com")

@@ -1,0 +1,25 @@
+{
+  "deployment": {
+    "model_format": "ONNX",
+    "runtime": "onnxruntime",
+    "huggingface_repo": "https://huggingface.co/Narayan-nkj/sagar-sonar-detector",
+    "github_repo": "https://github.com/BPPIMTSIH26/SIH26057",
+    "docker_enabled": true,
+    "backend_port": 8000,
+    "frontend_port": 3000
+  },
+  "backend": {
+    "framework": "FastAPI / Flask",
+    "api_version": "v1",
+    "endpoints": {
+      "predict": "/api/v1/predict",
+      "validate": "/api/v1/validate",
+      "health": "/api/v1/health"
+    }
+  },
+  "deployment_checks": {
+    "model_validation": true,
+    "api_testing": true,
+    "security_scanning": true
+  }
+}

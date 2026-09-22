@@ -55,7 +55,6 @@ export default function PriorityQueue({ anomalies, onSelectAnomaly, onViewDetail
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <CheckCircle2 className="w-8 h-8 text-success mb-4 opacity-40 shadow-[0_0_20px_rgba(74,222,128,0.2)] rounded-full" />
             <span className="text-text-primary font-display font-light tracking-widest text-sm uppercase mb-1.5">Queue Clear</span>
-            <span className="text-text-muted text-[11px] font-sans max-w-[200px]">No anomalies detected in the active sector.</span>
           </div>
         ) : (
           <ul className="divide-y divide-white/5 p-2">

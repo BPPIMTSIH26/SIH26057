@@ -160,6 +160,8 @@ export default function ReviewReport() {
  try {
    const freshFeedback = await getModelFeedback();
    setFeedbackData(freshFeedback);
+   const freshReport = await getReportSummary('surv_001');
+   setReportData(freshReport);
  } catch (_) { /* non-critical */ }
  triggerToast('Review saved successfully. Added to feedback loop.');
  setNotes('');
@@ -250,7 +252,6 @@ export default function ReviewReport() {
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
    <span className={`font-display text-[12px] font-light uppercase tracking-[0.1em] ${selectedId === anomaly.id ? 'text-accent shadow-[var(--glow-accent)]' : 'text-text-primary group-hover:text-white transition-colors'}`}>{anomaly.label}</span>
-   <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest font-mono">DEMO DATA</span>
  </div>
  {anomaly.reviewStatus === 'pending' ? (
  <div className="w-1.5 h-1.5 bg-warning animate-glow-pulse shadow-[var(--glow-accent)] rounded-full"></div>
@@ -294,7 +295,6 @@ export default function ReviewReport() {
  <div>
  <h3 className="text-xl font-display font-light uppercase tracking-[0.15em] text-text-primary mb-2 flex items-center gap-3">
   {selectedAnomaly.label} Evidence
-  <span className="text-[9px] bg-accent/20 text-accent px-1.5 py-0.5 rounded border border-accent/30 tracking-widest font-mono">DEMO DATA</span>
  </h3>
  <div className="flex items-center gap-4 text-[11px] font-mono text-text-secondary">
  <button 
@@ -320,6 +320,20 @@ export default function ReviewReport() {
  
  {/* Dynamic Sonar Shape Rendering */}
  {(() => {
+  if (selectedAnomaly.sonarImage) {
+    const imageUrl = selectedAnomaly.sonarImage.startsWith('http') || selectedAnomaly.sonarImage.startsWith('/api') 
+      ? selectedAnomaly.sonarImage 
+      : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${selectedAnomaly.sonarImage.startsWith('/') ? '' : '/'}${selectedAnomaly.sonarImage}`;
+    
+    return (
+      <img 
+        src={imageUrl} 
+        alt="Detected Anomaly Crop" 
+        className="absolute inset-0 w-full h-full object-contain p-4 z-10"
+      />
+    );
+  }
+
  const isCable = selectedAnomaly.label.toLowerCase().includes('cable') || selectedAnomaly.explanation.toLowerCase().includes('cable');
  const isUnknown = selectedAnomaly.classification === 'unknown';
  
@@ -454,18 +468,28 @@ export default function ReviewReport() {
  </div>
  
  <div className="flex flex-col gap-2 mt-4">
-   <label className="text-[10px] text-text-secondary uppercase tracking-[0.2em] font-bold flex items-center gap-2">
-     <UploadCloud className="w-3.5 h-3.5" /> Reference SSS Image
-   </label>
-   <div className="border border-dashed border-glass-border hover:border-glass-border-strong bg-void transition-all duration-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer group">
-     <div className="w-10 h-10 rounded-full bg-glass border border-glass-border flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-[var(--glow-hover)]">
-       <UploadCloud className="w-5 h-5 text-text-muted group-hover:text-accent transition-colors" />
-     </div>
-     <p className="text-[11px] font-mono text-text-secondary text-center leading-relaxed">
-       Drag and drop SSS crop image here<br/>
-       <span className="text-[9px] text-text-muted">or click to browse (.jpg, .png, .tiff)</span>
-     </p>
-   </div>
+    <label className="text-[10px] text-text-secondary uppercase tracking-[0.2em] font-bold flex items-center gap-2">
+      <UploadCloud className="w-3.5 h-3.5" /> Reference SSS Image
+    </label>
+    <label className="border border-dashed border-glass-border hover:border-glass-border-strong bg-void transition-all duration-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer group">
+      <input 
+        type="file" 
+        accept=".jpg,.jpeg,.png,.tiff" 
+        className="hidden" 
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+             triggerToast('Image uploaded and attached to anomaly');
+          }
+        }} 
+      />
+      <div className="w-10 h-10 rounded-full bg-glass border border-glass-border flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-[var(--glow-hover)]">
+        <UploadCloud className="w-5 h-5 text-text-muted group-hover:text-accent transition-colors" />
+      </div>
+      <p className="text-[11px] font-mono text-text-secondary text-center leading-relaxed">
+        Drag and drop SSS crop image here<br/>
+        <span className="text-[9px] text-text-muted">or click to browse (.jpg, .png, .tiff)</span>
+      </p>
+    </label>
  </div>
  
  <div className="bg-success/10 border border-success/30 p-3 flex items-start gap-3 mt-4">

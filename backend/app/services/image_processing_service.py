@@ -104,7 +104,7 @@ class ImageProcessingService:
             candidates.sort(key=lambda c: c[0], reverse=True)
             
             # Classify based on size and shape
-            for i, (contrast_ratio, area, cnt, x, y, w, h, roi_brightness) in enumerate(candidates[:5]):
+            for i, (contrast_ratio, area, cnt, x, y, w, h, roi_brightness) in enumerate(candidates[:1]):
                 # Determine anomaly type based on features
                 aspect = max(w, h) / max(min(w, h), 1)
                 relative_area = area / (orig_h * orig_w)

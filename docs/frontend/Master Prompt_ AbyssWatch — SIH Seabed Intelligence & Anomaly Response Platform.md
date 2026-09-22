@@ -52,7 +52,7 @@ Upload state:
 
 - A drag-and-drop sonar image/file zone with an illustrative first sonar image already available as a sample.
 - Fields for Survey Name, Vessel/Platform, Area, Survey Date, Depth Range, and Baseline Reference.
-- File cards for `survey_2026_08_27.sl2`, `transect_B_04.png`, and `metadata.json` with file type, size, and validation status.
+- File cards for `survey_2026_08_27.sl2`, `transect_B_04.png`, and `config/metadata.json` with file type, size, and validation status.
 - Primary action: **Start Analysis**.
 - Validation callout: "All required metadata present. Ready for processing."
 

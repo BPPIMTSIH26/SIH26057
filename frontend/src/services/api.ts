@@ -93,7 +93,7 @@ export const getAnomalies = async (filters?: AnomalyFilters, portIdOrName?: stri
       id: a.anomaly_id || a.id,
       portId: assignedPortId,
       portName: a.port_name || portDef.name,
-      label: a.anomaly_id || `Anomaly #${i + 1}`,
+      label: `${a.anomaly_id || `Anomaly #${i + 1}`} - ${a.type ? a.type.toUpperCase() : 'UNKNOWN'}`,
       classification: notesData.classification ? notesData.classification.toLowerCase() : (['human'].includes((a.type || '').toLowerCase()) ? 'known' : 'unknown'),
       severity: notesData.severity ? notesData.severity.toLowerCase() : (a.risk_level === 'CRITICAL' || a.risk_level === 'HIGH' ? 'high' : a.risk_level === 'MEDIUM' ? 'unusual' : 'normal'),
       reviewStatus: (
@@ -143,7 +143,7 @@ export const getAnomalyById = async (id: string, portIdOrName?: string, signal?:
     id: a.anomaly_id || a.id,
     portId: assignedPortId,
     portName: a.port_name || portDef.name,
-    label: a.anomaly_id || 'Unknown',
+    label: `${a.anomaly_id || 'Unknown'} - ${a.type ? a.type.toUpperCase() : 'UNKNOWN'}`,
     classification: 'unknown',
     severity: a.risk_level === 'CRITICAL' ? 'high' : 'normal',
     reviewStatus: a.status === 'VERIFIED' ? 'known_object' : 'pending',

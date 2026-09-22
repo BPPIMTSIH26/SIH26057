@@ -27,27 +27,27 @@ def seed_users(db: Session):
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
-    # Supreme Admin
+    # System Administrator
     supreme = db.query(User).filter(User.email == "narayan.nkj@gmail.com").first()
     if not supreme:
         supreme = User(
             email="narayan.nkj@gmail.com",
             full_name="Narayan",
             hashed_password=get_password_hash("supreme123"),
-            role="Supreme Admin",
+            role="System Administrator",
             is_verified=1,
             is_approved=1,
         )
         db.add(supreme)
         db.commit()
-        logger.info("Supreme Admin (narayan.nkj@gmail.com) created.")
+        logger.info("System Administrator (narayan.nkj@gmail.com) created.")
     else:
-        if supreme.role != "Supreme Admin":
-            supreme.role = "Supreme Admin"
+        if supreme.role != "System Administrator":
+            supreme.role = "System Administrator"
         supreme.is_verified = 1
         supreme.is_approved = 1
         db.commit()
-        logger.info("Supreme Admin (narayan.nkj@gmail.com) verified.")
+        logger.info("System Administrator (narayan.nkj@gmail.com) verified.")
 
     # Baseline operator account
     op = db.query(User).filter(User.email == "operator04@sagar.gov.in").first()
