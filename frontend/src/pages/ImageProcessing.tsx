@@ -1012,7 +1012,11 @@ const ImageProcessing: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <div className="text-xs text-text-primary font-mono font-medium">Job ID: {job.jobId.split('-')[0]}</div>
+                    <div className="text-xs text-text-primary font-mono font-medium uppercase">
+                      {job.regionAnalysis && job.regionAnalysis.length > 0 
+                        ? job.regionAnalysis[0].label.replace(/_/g, ' ') 
+                        : `Job ID: ${job.jobId.split('-')[0]}`}
+                    </div>
                     <div className="text-[10px] capitalize font-semibold mt-1 flex items-center gap-2">
                       {job.status === 'completed' ? (
                         <span className="text-success flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Completed</span>
