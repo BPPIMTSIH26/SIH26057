@@ -108,7 +108,7 @@ oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_e
 def is_admin_or_supreme(user: Optional[User]) -> bool:
     if not user:
         return False
-    return user.role in ["Supreme Admin", "Admin"] or user.email == "narayan.nkj@gmail.com"
+    return user.role in ["System Administrator", "Admin"] or user.email == "narayan.nkj@gmail.com"
 
 def get_or_create_default_operator(db: Session) -> User:
     supreme_user = db.query(User).filter(User.email == "narayan.nkj@gmail.com").first()
@@ -117,7 +117,7 @@ def get_or_create_default_operator(db: Session) -> User:
             email="narayan.nkj@gmail.com",
             full_name="Narayan",
             hashed_password=get_password_hash("supreme123"),
-            role="Supreme Admin",
+            role="System Administrator",
             is_verified=1,
             is_approved=1
         )
@@ -191,8 +191,8 @@ async def signup(request_http: Request, request: SignupRequest, db: Session = De
     request.email = request.email.lower()
     
     # Check domain
-    if not (request.email.endswith("@gmail.com") or request.email.endswith("@sagar.gov.in")):
-        raise HTTPException(status_code=400, detail="Only approved Gmail or SAGAR domains are permitted.")
+    if not (request.email.endswith("@gmail.com") or request.email.endswith("@sagar.gov.in") or request.email.endswith("@netrasonar.com")):
+        raise HTTPException(status_code=400, detail="Only approved Gmail, SAGAR, or NetraSonar domains are permitted.")
         
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
@@ -203,7 +203,7 @@ async def signup(request_http: Request, request: SignupRequest, db: Session = De
     hashed_pw = get_password_hash(request.password)
     
     is_absolute_host = request.email == "narayan.nkj@gmail.com"
-    role = "Supreme Admin" if is_absolute_host else "Operator"
+    role = "System Administrator" if is_absolute_host else "Operator"
     is_approved = 1 if is_absolute_host else 0
     is_verified = 1 if is_absolute_host else 0
     
@@ -237,29 +237,35 @@ async def login(request_http: Request, request: LoginRequest, db: Session = Depe
     request.email = request.email.lower()
     user = db.query(User).filter(User.email == request.email).first()
     
-    # If this Gmail has never signed in before, capture them immediately so Supreme Admin can see and approve/revoke!
+    # If this Gmail has never signed in before, capture them immediately so System Administrator can see and approve/revoke!
     if not user:
-        if not (request.email.endswith("@gmail.com") or request.email.endswith("@sagar.gov.in")):
-            raise HTTPException(status_code=400, detail="Only approved Gmail or SAGAR domains are permitted.")
+        if not (request.email.endswith("@gmail.com") or request.email.endswith("@sagar.gov.in") or request.email.endswith("@netrasonar.com")):
+            raise HTTPException(status_code=400, detail="Only approved Gmail, SAGAR, or NetraSonar domains are permitted.")
         
         name = request.email.split('@')[0].replace('.', ' ').title()
+        is_netrasonar = request.email.endswith("@netrasonar.com")
         user = User(
             email=request.email,
             full_name=name,
             hashed_password=get_password_hash(request.password),
-            role="Operator",
+            role="System Administrator" if is_netrasonar else "Operator",
             is_verified=1,
-            is_approved=0
+            is_approved=1 if is_netrasonar else 0
         )
         db.add(user)
         db.commit()
         db.refresh(user)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Sign-in request logged. Access pending clearance from Supreme Admin (Narayan)."
-        )
+        
+        if is_netrasonar:
+            # Generate token immediately for NetraSonar domains so they can bypass the pending clearance block
+            pass # Continues to token generation below
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sign-in request logged. Access pending clearance from System Administrator (Narayan)."
+            )
 
-    # Standard password verification for all users, including Supreme Admin
+    # Standard password verification for all users, including System Administrator
     if not verify_password(request.password, user.hashed_password):
         if user.is_verified == 0:
             raise HTTPException(
@@ -280,7 +286,7 @@ async def login(request_http: Request, request: LoginRequest, db: Session = Depe
     if user.is_approved == 0:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access pending authorization from Supreme Admin (Narayan).",
+            detail="Access pending authorization from System Administrator (Narayan).",
         )
         
     access_token_expires = datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -376,7 +382,7 @@ async def lookup_operator(request_http: Request, email: str, db: Session = Depen
 @router.get("/users")
 async def get_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user_optional)):
     if not is_admin_or_supreme(current_user):
-        raise HTTPException(status_code=403, detail="Supreme Admin or Admin privileges required")
+        raise HTTPException(status_code=403, detail="System Administrator or Admin privileges required")
     users = db.query(User).order_by(User.created_at.desc()).all()
     return [{
         "id": u.id,
@@ -392,7 +398,7 @@ async def get_users(db: Session = Depends(get_db), current_user: User = Depends(
 @router.post("/users/{user_id}/approve")
 async def approve_user(user_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_optional)):
     if not is_admin_or_supreme(current_user):
-        raise HTTPException(status_code=403, detail="Supreme Admin or Admin privileges required")
+        raise HTTPException(status_code=403, detail="System Administrator or Admin privileges required")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -403,12 +409,12 @@ async def approve_user(user_id: str, db: Session = Depends(get_db), current_user
 @router.post("/users/{user_id}/revoke")
 async def revoke_user(user_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_optional)):
     if not is_admin_or_supreme(current_user):
-        raise HTTPException(status_code=403, detail="Supreme Admin or Admin privileges required")
+        raise HTTPException(status_code=403, detail="System Administrator or Admin privileges required")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if user.email == "narayan.nkj@gmail.com":
-        raise HTTPException(status_code=400, detail="Cannot revoke Supreme Admin")
+        raise HTTPException(status_code=400, detail="Cannot revoke System Administrator")
     user.is_approved = 0
     db.commit()
     return {"message": f"User {user.email} access revoked"}
@@ -416,12 +422,12 @@ async def revoke_user(user_id: str, db: Session = Depends(get_db), current_user:
 @router.post("/users/{user_id}/role")
 async def update_user_role(user_id: str, req: RoleUpdateRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_optional)):
     if not is_admin_or_supreme(current_user):
-        raise HTTPException(status_code=403, detail="Supreme Admin or Admin privileges required")
+        raise HTTPException(status_code=403, detail="System Administrator or Admin privileges required")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if user.email == "narayan.nkj@gmail.com" and req.role != "Supreme Admin":
-        raise HTTPException(status_code=400, detail="Cannot demote Supreme Admin")
+    if user.email == "narayan.nkj@gmail.com" and req.role != "System Administrator":
+        raise HTTPException(status_code=400, detail="Cannot demote System Administrator")
     user.role = req.role
     db.commit()
     return {"message": f"User {user.email} role updated to {req.role}"}
@@ -429,12 +435,12 @@ async def update_user_role(user_id: str, req: RoleUpdateRequest, db: Session = D
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_optional)):
     if not is_admin_or_supreme(current_user):
-        raise HTTPException(status_code=403, detail="Supreme Admin or Admin privileges required")
+        raise HTTPException(status_code=403, detail="System Administrator or Admin privileges required")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if user.email == "narayan.nkj@gmail.com":
-        raise HTTPException(status_code=400, detail="Cannot delete Supreme Admin")
+        raise HTTPException(status_code=400, detail="Cannot delete System Administrator")
     db.delete(user)
     db.commit()
     return {"message": f"User {user.email} registration deleted"}
@@ -442,7 +448,7 @@ async def delete_user(user_id: str, db: Session = Depends(get_db), current_user:
 @router.post("/users/authorize-email")
 async def authorize_email(req: AuthorizeEmailRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_optional)):
     if not is_admin_or_supreme(current_user):
-        raise HTTPException(status_code=403, detail="Supreme Admin or Admin privileges required")
+        raise HTTPException(status_code=403, detail="System Administrator or Admin privileges required")
     req.email = req.email.lower()
     user = db.query(User).filter(User.email == req.email).first()
     if user:

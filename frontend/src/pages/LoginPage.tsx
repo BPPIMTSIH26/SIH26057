@@ -141,8 +141,8 @@ export default function LoginPage() {
       return;
     }
 
-    if (!email.toLowerCase().endsWith('@gmail.com') && !email.toLowerCase().endsWith('@sagar.gov.in')) {
-      setError('Only approved Gmail or SAGAR domains are permitted.');
+    if (!email.toLowerCase().endsWith('@gmail.com') && !email.toLowerCase().endsWith('@sagar.gov.in') && !email.toLowerCase().endsWith('@netrasonar.com')) {
+      setError('Only approved Gmail, SAGAR, or NetraSonar domains are permitted.');
       return;
     }
 
@@ -170,7 +170,7 @@ export default function LoginPage() {
           if (data.detail && data.detail.toLowerCase().includes('not verified')) {
             setError('Account not verified. Please verify your email using the 6-digit OTP code.');
           } else if (data.detail && data.detail.toLowerCase().includes('pending')) {
-            setError('Access Pending: Account authenticated, but awaiting security clearance from Supreme Admin (Narayan).');
+            setError('Access Pending: Account authenticated, but awaiting security clearance from System Administrator (Narayan).');
           } else {
             setError(data.detail || 'Access restricted. Unauthorized account.');
           }
@@ -178,7 +178,7 @@ export default function LoginPage() {
           if (email.toLowerCase() === 'narayan.nkj@gmail.com') {
             setVerified(true);
             setTimeout(() => {
-              login(email, operatorInfo?.fullName || 'Narayan', 'Supreme Admin');
+              login(email, operatorInfo?.fullName || 'Narayan', 'System Administrator');
               navigate('/dashboard', { replace: true });
             }, 700);
             return;
@@ -205,11 +205,11 @@ export default function LoginPage() {
       }, 700);
 
     } catch {
-      // Fallback for offline Supreme Admin
+      // Fallback for offline System Administrator
       if (email.toLowerCase() === 'narayan.nkj@gmail.com') {
         setVerified(true);
         setTimeout(() => {
-          login(email, operatorInfo?.fullName || 'Narayan', 'Supreme Admin');
+          login(email, operatorInfo?.fullName || 'Narayan', 'System Administrator');
           navigate('/dashboard', { replace: true });
         }, 700);
       } else {
