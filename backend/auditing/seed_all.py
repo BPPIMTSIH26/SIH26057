@@ -12,48 +12,56 @@ from app.database.models import Mission, Detection, Anomaly
 
 HARBOURS = {
     'Thunder Bay, Lake Huron': {
+        'port_id': 'thunder_bay',
         'waterCenter': {
             'lat': 45.0500,
             'lng': -83.0000},
         'spread': 0.02,
         'vessel': 'AUV Iver3 (AI4Shipwrecks)'},
     'Mumbai Harbor Q3': {
+        'port_id': 'mumbai',
         'waterCenter': {
             'lat': 18.9300,
             'lng': 72.6500},
         'spread': 0.02,
         'vessel': 'R/V Samudra'},
     'Chennai Port': {
+        'port_id': 'chennai',
         'waterCenter': {
             'lat': 13.0800,
             'lng': 80.4500},
         'spread': 0.02,
         'vessel': 'R/V Sagar Kanya'},
     'Kochi Harbor': {
+        'port_id': 'kochi',
         'waterCenter': {
             'lat': 9.9500,
             'lng': 76.0500},
         'spread': 0.02,
         'vessel': 'R/V Sindhu Sadhana'},
     'Visakhapatnam Port': {
+        'port_id': 'visakhapatnam',
         'waterCenter': {
             'lat': 17.5500,
             'lng': 83.4500},
         'spread': 0.02,
         'vessel': 'R/V Gaveshani'},
     'Jawaharlal Nehru Port': {
+        'port_id': 'jnpt',
         'waterCenter': {
             'lat': 18.8000,
             'lng': 72.8000},
         'spread': 0.02,
         'vessel': 'R/V Sagar Nidhi'},
     'Kolkata Port': {
+        'port_id': 'kolkata',
         'waterCenter': {
             'lat': 21.3000,
             'lng': 88.0000},
         'spread': 0.02,
         'vessel': 'R/V Sagar Manjusha'},
     'Paradip Port': {
+        'port_id': 'paradip',
         'waterCenter': {
             'lat': 20.1000,
             'lng': 86.8500},
@@ -93,6 +101,7 @@ def seed_all():
             mission = Mission(
                 id=mission_id,
                 mission_id=name,
+                port_id=data["port_id"],
                 name=f"{name} Survey",
                 status="COMPLETED",
                 source=data["vessel"],
@@ -159,6 +168,7 @@ def seed_all():
                     anomaly_id=f"ANO-{prefix}-{i + 100}-{random.randint(10, 99)}",
                     mission_id=mission_id,
                     detection_id=det_id,
+                    port_id=data["port_id"],
                     type=cat["type"],
                     confidence=conf,
                     risk_score=cat["base_risk"],

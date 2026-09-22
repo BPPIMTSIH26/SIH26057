@@ -824,7 +824,7 @@ const ImageProcessing: React.FC = () => {
               {/* ══ ANOMALY HUMAN REVIEW QUEUE ══ */}
               {result && (result.status === 'completed' || result.status === 'assessed') && (() => {
                 const flagged = (result.regionAnalysis ?? []).filter(
-                  r => r.label === 'likely_object' || (r.objectConfidence >= 0.25 && r.label !== 'natural_seabed_feature')
+                  r => r.label === 'likely_object' || r.label === 'ACOUSTIC_SHADOW_CANDIDATE' || r.label === 'anomaly' || r.label.toLowerCase().includes('shadow') || (r.objectConfidence >= 0.0 && r.label !== 'natural_seabed_feature')
                 );
                 const highConf  = flagged.filter(r => r.objectConfidence >= 0.5);
                 const medConf   = flagged.filter(r => r.objectConfidence >= 0.25 && r.objectConfidence < 0.5);
