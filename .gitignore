@@ -53,3 +53,4 @@ __pycache__/
 .env
 large_files/
 *.zip
+HG_DATA/
