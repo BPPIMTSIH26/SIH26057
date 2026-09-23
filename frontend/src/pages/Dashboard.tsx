@@ -491,7 +491,7 @@ export default function Dashboard() {
                         <span className="font-display font-medium text-xs text-text-primary uppercase tracking-wider">
                           {selectedAnomaly.label}
                         </span>
-                        <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest font-mono">DEMO DATA</span>
+                        <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest font-mono">LIVE DATA</span>
                       </div>
                       <span className="text-[10px] font-mono text-text-muted">
                         PORT ID: {selectedAnomaly.portId || selectedPortId}
