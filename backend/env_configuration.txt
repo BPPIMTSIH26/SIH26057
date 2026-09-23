@@ -1,0 +1,22 @@
+APP_ENV=development
+DATABASE_URL="sqlite:///./netrasonar.db"
+# AWS / S3 Configuration (Disabled; local storage used via /api/uploads/)
+# AWS_ENDPOINT_URL_S3="https://br-solitary-bird-b4sna7s7.storage.c-6.us-east-2.aws.neon.tech"
+# AWS_ACCESS_KEY_ID="nak_live_27e520ab451c4453ab05d22dd2b6336e"
+# AWS_SECRET_ACCESS_KEY="nsk_live_ad4c042fab03f56d2501d44a1c60d7bfbbc66c0b64a3f4f01691849c40d0df10"
+# AWS_REGION="us-east-2"
+# AWS_BUCKET_NAME="assets"
+UPLOAD_DIR=./data/uploads
+PROCESSED_DIR=./data/processed
+REPORT_DIR=./data/reports
+MODEL_DIR=./models
+MODEL_PROVIDER=yolo
+MODEL_PATH=./models/yolov8n.pt
+CONFIDENCE_THRESHOLD=0.5
+CORS_ORIGINS=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"]
+
+# SMTP Configuration for Email Verification
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=
+SMTP_PASSWORD=
