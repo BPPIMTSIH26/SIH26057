@@ -78,7 +78,7 @@ export default function PriorityQueue({ anomalies, onSelectAnomaly, onViewDetail
                       <div className="flex items-center gap-3 flex-wrap">
                         <div className="flex items-center gap-1.5">
                           <span className={`font-display text-[12px] font-medium tracking-[0.05em] uppercase ${isSelected ? 'text-accent shadow-[var(--glow-accent)]' : 'text-text-primary group-hover/item:text-accent transition-colors'}`}>{anomaly.label}</span>
-                          <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest font-mono">DEMO DATA</span>
+                          <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest font-mono">LIVE DATA</span>
                         </div>
                         <StatusBadge status={anomaly.severity === 'high' ? 'highly_anomalous' : anomaly.severity === 'unusual' ? 'unusual' : 'normal'} />
                       </div>
