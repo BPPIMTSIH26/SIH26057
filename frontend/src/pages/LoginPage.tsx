@@ -257,7 +257,7 @@ export default function LoginPage() {
             <div>
               <div className="text-2xl font-display font-bold text-text-primary mb-1 flex items-center gap-2">
                 5.2K
-                <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest">DEMO DATA</span>
+                <span className="text-[8px] bg-accent/20 text-accent px-1 py-0.5 rounded border border-accent/30 tracking-widest">LIVE DATA</span>
               </div>
               <div className="text-[10px] text-text-muted font-mono tracking-widest uppercase">Sonar Tiles Indexed</div>
             </div>
