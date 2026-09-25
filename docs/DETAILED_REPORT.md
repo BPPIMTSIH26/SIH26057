@@ -310,3 +310,30 @@ The working prototype deployed at `http://localhost:5173` (and cloud preview `ht
 
 ---
 
+## 4. Analysis of Feasibility
+
+### 4.1 Technical Feasibility
+* **Compute Footprint & Latency:** 
+  The primary inference model (`sonar_detector.onnx`) is lightweight (**12.3 MB**), requiring only ~250MB of runtime memory. On standard commodity CPUs (Intel i5/Apple Silicon), inference executes in **~120ms** per $640 \times 640$ tile. When deployed to an onboard NVIDIA Jetson AGX Orin with TensorRT FP16 acceleration, inference drops to **<18ms**, easily keeping pace with a real-time side-scan sonar ping rate of 10 to 30 pings per second at typical survey vessel speeds of 3 to 6 knots.
+* **Empirical Model Metrics:**
+  As verified in `ml/reports/latest_metrics.json` and `docs/claims-matrix.md`, the model demonstrates high empirical performance on validation datasets:
+  * **Precision:** $94.2\%$
+  * **Recall:** $91.5\%$
+  * **mAP@50:** $96.7\%$
+  * **mAP@50-95:** $78.4\%$
+  * **False Alert Rate:** $5.8\%$
+* **Edge / Offline Autonomy:**
+  The system is built with **zero external cloud dependency** for core operations. While cloud replication to Neon PostgreSQL and S3 is supported when a vessel is in port or connected to satellite, the entire 14-stage pipeline, SQLite database, and ONNX engine run entirely offline inside an isolated subsea vehicle or vessel network.
+
+### 4.2 Operational Feasibility
+* **Workflow Integration:** S.A.G.A.R. directly ingests standard hydrographic survey formats (`.xtf`, `.sl2`, GeoTIFF), fitting seamlessly into existing operational pipelines used by naval hydrographers and commercial survey contractors (such as EdgeTech, Klein, or SonarWiz workflows).
+* **Operator Ergonomics & Cognitive Load:** Rather than spending 8 to 12 consecutive hours reviewing repetitive acoustic waterfalls, operators receive an automated, prioritized alert feed triaged by severity ($P1$ Critical to $P3$ Routine). Field analysts can verify or dismiss an anomaly in under **5 seconds**.
+* **Compliance Standards:** Output reports generate standardized coordinates and anomaly tables adhering to **IHO S-44 (Standards for Hydrographic Surveys, 6th Edition)** Order 1a and Special Order requirements.
+
+### 4.3 Economic & Commercial Feasibility
+* **Vessel Charter Cost Reduction:** Hydrographic survey vessels cost between **₹3,00,000 to ₹15,00,000 ($4,000 to $20,000 USD) per day** in charter fees, fuel, and crew overhead. By enabling real-time anomaly detection during the survey run, S.A.G.A.R. eliminates the need for expensive secondary mobilization runs to verify missed targets.
+* **Zero Proprietary Licensing Fees:** Commercial hydrographic software packages charge steep annual seat licenses ($10,000+ per workstation). S.A.G.A.R. is constructed on modern open-source foundations (FastAPI, React, MapLibre, PyTorch), eliminating recurring per-seat licensing barriers.
+* **Capital vs. Operational Expenditure:** The hardware requirements (commodity laptop for shipboard use, or NVIDIA Jetson for AUVs) represent low initial CapEx with minimal ongoing maintenance costs.
+
+---
+
