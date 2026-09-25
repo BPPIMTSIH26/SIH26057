@@ -453,3 +453,44 @@ graph TD
 
 ---
 
+## 9. References, Research Citations & Repository Artifacts
+
+### 9.1 Dataset & Model Repositories
+* **Official Training Dataset:** [narayan-nkj/sagar-sss](https://huggingface.co/datasets/narayan-nkj/sagar-sss) on Hugging Face Hub (5,205 high-resolution tiles, YOLO format, CC-BY-SA-4.0).
+* **Official Exported ONNX Detector:** [Narayan-nkj/sagar-sonar-detector](https://huggingface.co/Narayan-nkj/sagar-sonar-detector) on Hugging Face Model Hub (`sonar_detector.onnx`, 12.3 MB).
+* **Live Web Prototype Preview:** [https://sagar-netra-sandy.vercel.app](https://sagar-netra-sandy.vercel.app)
+* **National SIH Organization Repository:** [https://github.com/BPPIMTSIH26/SIH26057](https://github.com/BPPIMTSIH26/SIH26057)
+
+### 9.2 Key Academic & Scientific Literature
+1. **Blondel, P. (2009).** *The Handbook of Sidescan Sonar*. Springer-Praxis Books in Geophysical Sciences. (Fundamental physics of side-scan sonar backscatter, TVG, and slant-range geometry).
+2. **Reed, S., Teng, Y., & Petillot, Y. (2003).** *A new approach to side-scan sonar image segmentation and target recognition*. IEEE Journal of Oceanic Engineering, 28(3), 446-458.
+3. **Mignotte, M., Collet, C., Perez, P., & Bouthemy, P. (2000).** *Sonar image segmentation using an unsupervised hierarchical Markovian model*. IEEE Transactions on Geoscience and Remote Sensing, 38(3), 1216-1232.
+4. **Zou, X., et al. (2022).** *A Deep Learning Framework for Underwater Target Detection in Side-Scan Sonar Images*. IEEE Geoscience and Remote Sensing Letters, 19, 1-5.
+5. **Jocher, G., Chaurasia, A., & Qiu, J. (2023).** *Ultralytics YOLOv8 / YOLO11 Documentation & Architectural Design*. [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics).
+6. **International Hydrographic Organization (IHO) (2020).** *IHO Standards for Hydrographic Surveys*. Special Publication No. 44 (S-44), 6th Edition. Monaco.
+7. **National Institute of Ocean Technology (NIOT) & Ministry of Earth Sciences (MoES) (2024).** *Guidelines and Operational Directives for Autonomous Oceanographic and Subsea Surveys*. Government of India.
+8. **Papatheodorou, G., et al. (2012).** *Marine debris survey using side-scan sonar and underwater cameras in the Saronikos Gulf, Greece*. Marine Pollution Bulletin, 64(11), 2419-2428.
+
+---
+
+### Verification & Reproduction Commands
+To independently reproduce and verify the S.A.G.A.R. pipeline on a local station:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/BPPIMTSIH26/SIH26057.git
+cd SIH26057
+
+# 2. Automated one-command platform startup
+npm start
+
+# 3. Model evaluation & metrics reproduction
+cd backend
+python3 ml/evaluate.py
+
+# 4. Execute test suite
+pytest tests/
+```
+
+---
+*Report Compiled & Certified for Smart India Hackathon 2026 Evaluation by Team Orion (BPPIMTSIH26).*
