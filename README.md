@@ -268,14 +268,6 @@ docker-compose up --build
 
 #### 🌟 Core Project Leadership
 - 👑 **Narayan Kumar Jha** ([@narayan-nkj](https://github.com/narayan-nkj)) — **Team Lead, System Architect & Full-Stack Intelligence Lead** *(Supreme Admin)*
-- 💡 **Ahana** ([@I-Lawrence](https://github.com/I-Lawrence)) — **Core Lead: Deep Learning & Acoustic Feature Modeling**
-- 🎯 **Ishika Chowdhury** ([@i5hika0x](https://github.com/i5hika0x)) — **Core Lead: Sonar Vision & Geospatial Intelligence**
-
-#### ⚓ Engineering & Domain Specialists
-- 🌐 **Sayantan Pachal** ([@sayantan-pachal](https://github.com/sayantan-pachal)) — **Full-Stack Development & System Integration Specialist**
-- ⚙️ **Shivam Gupta** ([@shiv2345king](https://github.com/shiv2345king)) — **Backend Infrastructure & Model Optimization Engineer**
-- 🔬 **Shougata Sikder** ([@Shougata2003](https://github.com/Shougata2003)) — **Hydrographic Anomaly Verification & QA Pipeline Specialist**
-
 ---
 
 <div align="center">
