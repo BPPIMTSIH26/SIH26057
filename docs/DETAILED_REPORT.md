@@ -217,3 +217,96 @@ Side-scan sonar imagery suffers from severe physical transmission limitations: s
 | Stage | Name | Technical Implementation & Formula | Purpose |
 | :---: | :--- | :--- | :--- |
 | **1** | **File Validation & Integrity Check** | MIME type verification, magic byte parsing (`.xtf`, `.sl2`, `.tif`, `.jpg`), decompression verification, and memory safety checks. | Prevents corrupted file ingestion or buffer overflows during offshore operations. |
+| **2** | **Telemetry & Metadata Parsing** | Extraction of towfish altitude ($h$), slant range ($R_s$), ping rate, navigation coordinates, heading, and speed over ground (SOG). | Establishes geospatial and physical scale bounds ($m/\text{pixel}$). |
+| **3** | **Slant-Range to Ground-Range Correction** | Geometric transform: $Y_g = \sqrt{R_s^2 - h^2}$, remapping non-linear slant-range acoustic pixels into true equidistant ground-range coordinates. | Eliminates geometric compression near the nadir track. |
+| **4** | **Nadir Blind Zone Masking** | Dynamic thresholding and vehicle altitude segmentation to identify and mask the acoustic water column void directly beneath the towfish. | Avoids false detections in unilluminated water column data. |
+| **5** | **Time-Varied Gain (TVG) Normalization** | Empirical Gain Normalization across the range profile: $I_{\text{norm}}(r) = I(r) \cdot r^\alpha \cdot e^{2\beta r}$, balancing transmission loss. | Equalizes brightness between near-nadir and far-range boundaries. |
+| **6** | **Speckle & Acoustic Noise Filtration** | Adaptive 2D Gaussian filtration ($k=5$) combined with selective median filtering across high-gradient interfaces. | Suppresses Rayleigh speckle noise caused by sea surface scattering without blurring target boundaries. |
+| **7** | **Contrast Limited Adaptive Histogram Equalization (CLAHE)** | Local tile-based contrast enhancement with clip limit ($C_l = 2.0$) and adaptive tile grid size: $\text{tile} = \max(2, \min(8, \text{dim}/4))$. | Highlights subtle acoustic shadows of low-relief targets on dark seabeds. |
+| **8** | **Robust Percentile Min-Max Normalization** | Intensity remapping based on the 1st ($p_1$) and 99th ($p_{99}$) percentiles: $I_{\text{out}} = \text{clip}\left(\frac{I - p_1}{p_{99} - p_1}, 0, 1\right) \times 255$. | Eliminates dynamic range distortion caused by hyper-reflective metallic pings or sensor drops. |
+| **9** | **Objective Quality Assessment (QA Scoring)** | Computes saturation percentage ($I \ge 250$), dropout percentage ($I \le 5$), and global contrast deviation ($\sigma$). | Generates an empirical Quality Score ($0 - 100\%$) and warning flags for surveyors. |
+| **10** | **Quality Classification Masking** | 5-tier semantic pixel mask: Usable Seabed (Green), Missing/Dropout (Red), Acoustic Highlight (Yellow), Shadow Candidate (Blue), Saturated (Magenta). | Provides spatial transparency into survey coverage reliability. |
+| **11** | **Adaptive Swath Tiling & Overlap Generation** | Sliding window decomposition into $640 \times 640$ pixel patches with a $20\%$ spatial stride overlap. | Ensures targets bisected by tile boundaries are fully captured in adjacent windows. |
+| **12** | **Multi-Scale Neural Inference** | Forward execution through `sonar_detector.onnx` utilizing optimized FP16 kernels on ONNX Runtime. | Generates raw bounding boxes, multi-class logit distributions, and objectness scores. |
+| **13** | **Non-Maximum Suppression (NMS) & Shadow Verification** | IoU clustering ($\text{threshold} = 0.45$) fused with acoustic shadow geometry validation: confirming that every acoustic highlight is accompanied by a trailing down-range shadow. | Drastically reduces false alarms triggered by natural seabed ripples and sand dunes. |
+| **14** | **Georeferencing & Priority Triage Geotagging** | Computes absolute target latitude and longitude using towfish layback trigonometry and vessel heading, outputting structured JSON/CSV records. | Produces actionable GIS coordinates ready for diver dispatch, ROV intervention, or naval command. |
+
+---
+
+### 3.3 Dual-Core Intelligence Engine (YOLO + Mahalanobis Distance)
+
+S.A.G.A.R. pioneers a **Dual-Core Machine Learning Strategy** to conquer the fundamental dilemma of underwater anomaly detection: identifying both predefined threat targets and unprecedented, novel submerged objects.
+
+```mermaid
+graph TD
+    A["Preprocessed 640x640 Sonar Tile"] --> B["Dual-Core Intelligence Engine"]
+    
+    subgraph Core1 ["Core 1: Supervised 9-Class Detector"]
+        B --> C["Ultralytics YOLOv8s-sagar / ONNX Engine"]
+        C --> D["Feature Pyramid Network (P3, P4, P5)"]
+        D --> E["Bounding Box & Multi-Class Head"]
+        E --> F["Classes: Human, Metal Debris, Ghost Net, Man-Made, Crab Pot, Pipeline, Shipwreck, Mine, Reef"]
+    end
+    
+    subgraph Core2 ["Core 2: Unsupervised Seabed Normality Engine"]
+        B --> G["Texture & Statistical Feature Extractor"]
+        G --> H["Extract Feature Vector x = [Mean, Variance, Skew, GLCM Contrast, Energy, Homogeneity]"]
+        H --> I["Compute Mahalanobis Distance D_M(x) against Local Seabed Distribution"]
+        I --> J{"D_M(x) > Chi-Square Threshold?"}
+        J -->|Yes| K["Flagged as Novel Anomaly / Unclassified Threat"]
+        J -->|No| L["Seabed Homogeneity Confirmed"]
+    end
+
+    F --> M["Fusion & Geometric Shadow Verification Unit"]
+    K --> M
+    M --> N["Consolidated Anomaly Record with Priority Score"]
+```
+
+#### Core 1: Supervised 9-Class Target Recognizer
+Trained on the **5,205-tile** curated side-scan sonar dataset hosted at [narayan-nkj/sagar-sss](https://huggingface.co/datasets/narayan-nkj/sagar-sss), the model identifies 9 distinct maritime target topologies:
+1. `human`: Divers, swimmers, or lost personnel anomalies.
+2. `metal_debris`: Discarded industrial containers, lost anchor chains, structural steel.
+3. `ghost_net`: Abandoned nylon gillnets and trawl gear draped across seabed features.
+4. `unknown_man_made_object`: Unclassified angular geometric artifacts exhibiting high acoustic reflectance.
+5. `crab_pot`: Commercial fishing traps and cages.
+6. `submarine_pipeline`: Subsea hydrocarbons, freshwater, or telecom pipelines and conduits.
+7. `shipwreck`: Sunken hulls, wooden/steel vessel structures, debris fields.
+8. `mine_cylinder`: Cylindrical and spherical unexploded ordnance (UXO) and naval mines.
+9. `reef`: Natural biogenic and rocky geological formations.
+
+#### Core 2: Mahalanobis Seabed Normality Baseline Engine
+Because the ocean seabed is open-world, no supervised dataset can anticipate every foreign object. S.A.G.A.R. characterizes local seabed background statistics across sliding spatial frames. For any local feature vector $\mathbf{x} \in \mathbb{R}^d$ (acoustic intensity, Gray-Level Co-occurrence Matrix [GLCM] contrast, energy, homogeneity, and surface roughness), the engine computes:
+
+$$D_M(\mathbf{x}) = \sqrt{(\mathbf{x} - \boldsymbol{\mu})^T \boldsymbol{\Sigma}^{-1} (\mathbf{x} - \boldsymbol{\mu})}$$
+
+Where $\boldsymbol{\mu}$ is the estimated local seabed mean feature vector and $\boldsymbol{\Sigma}$ is the covariance matrix of the surrounding geological patch. If $D_M(\mathbf{x}) > \chi^2_{d, 1-\alpha}$, the region is designated as statistically anomalous with zero training bias.
+
+#### Acoustic Shadow Height Estimation Formula
+To mathematically separate flat seabed clutter from upright hazards, S.A.G.A.R. incorporates physical acoustic shadow trigonometry:
+
+$$H_t = \frac{h \cdot L_s}{R_s + L_s}$$
+
+Where:
+* $H_t$: Estimated height of the object above the seabed (meters).
+* $h$: Altitude of the towfish/sonar transducer above the seabed (meters).
+* $L_s$: Length of the acoustic shadow cast along the seabed (meters).
+* $R_s$: Slant range from the transducer to the top of the acoustic target highlight.
+
+---
+
+### 3.4 Working Prototype UI & Module Architecture
+
+The working prototype deployed at `http://localhost:5173` (and cloud preview `https://sagar-netra-sandy.vercel.app`) provides a complete, cohesive tactical command environment:
+
+| Module | Route | Primary Capabilities | Technical Architecture |
+| :--- | :--- | :--- | :--- |
+| **Tactical Dashboard** | `/dashboard` | System health overview, real-time telemetry gauges, mission summaries, and active priority queue. | React 19, Recharts telemetry, WebSocket anomaly feed. |
+| **Survey Upload Portal** | `/upload` | Ingestion of raw sonar swaths (`.xtf`, `.sl2`, `.json`) and image tiles (TIFF, PNG, JPG) with metadata validation. | Drag-and-drop file stream, chunked binary upload, metadata parser. |
+| **14-Stage Processing Lab** | `/processing` | Side-by-side comparative inspection of Raw Sonar, Enhanced Denoised Imagery, 5-Color Quality Masks, and AI Inference Bounding Overlays. | Canvas / WebGL multi-layer split viewer, stage progress polling. |
+| **Baseline & Geospatial GIS Map** | `/map` | Interactive nautical chart visualizing vessel tracks, sonar swath coverage swaths, bathymetric contours, and clustered anomaly markers. | MapLibre GL JS, GeoJSON layers, Turf.js spatial clustering. |
+| **Temporal Comparison** | `/comparison` | Epoch-over-epoch differential analysis comparing current surveys with historical baselines to flag displaced or newly deposited targets. | Image registration, normalized cross-correlation, SSIM differential heatmaps. |
+| **Human Review & Dossier** | `/review` | Formal human-in-the-loop review state machine (`pending` $\rightarrow$ `confirmed_unknown` \| `known_object` \| `false_positive` \| `new_class`) and PDF dossier export. | State machine transition engine, ReportLab / pdfmake dossier compiler. |
+| **System Settings & RBAC** | `/settings` | Operator identity management, clearance role delegation (Analyst, Operator, System Administrator), and audit logging. | JWT bearer session management, Gmail OTP multi-factor interface. |
+
+---
+
