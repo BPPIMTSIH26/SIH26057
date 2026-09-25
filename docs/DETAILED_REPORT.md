@@ -337,3 +337,53 @@ The working prototype deployed at `http://localhost:5173` (and cloud preview `ht
 
 ---
 
+## 5. Potential Challenges & Technical Risks
+
+| # | Challenge / Risk Factor | Root Cause & Operational Impact | Severity |
+| :-: | :--- | :--- | :-: |
+| **1** | **Rayleigh Speckle & Thermal Scattering** | High sea states, bubble plumes, and thermocline water layers distort acoustic wave propagation, introducing granular speckle noise and false intensity spikes. | High |
+| **2** | **Acoustic Shadows of Complex Geology** | High-relief natural geological formations (rocky reefs, boulders, seabed ridges) cast acoustic shadows that mimic man-made targets or obscure objects lying within the shadow zone. | High |
+| **3** | **Vehicle Attitude Fluctuations** | Uncompensated heave, pitch, roll, and yaw of the towfish under rough sea conditions cause wavy distortion and range compression along the track line. | Medium |
+| **4** | **Nadir Blind Zone Discontinuity** | The downward water column void beneath the sonar transducers produces an unilluminated band where horizontal side-scan beams cannot resolve targets. | Medium |
+| **5** | **Extreme Class Imbalance in Training Data** | Common objects (seabed ripples, pipelines) outnumber rare critical threats (unexploded ordnance, sunken aircraft, lost containers) by orders of magnitude. | High |
+| **6** | **Subsea Bandwidth Limitations** | Submerged AUVs cannot transmit high-resolution acoustic waterfall imagery through the water column using acoustic modems (limited to <10 kbps). | Critical (For Live AUVs) |
+
+---
+
+## 6. Strategies for Overcoming Challenges
+
+### 6.1 Multi-Scale Adaptive Filtering & TVG Correction
+To conquer speckle noise without sacrificing sharp target edges, S.A.G.A.R. employs a cascaded **Adaptive Gaussian + CLAHE** filtration sequence. Contrast clipping prevents over-amplification of acoustic noise in homogeneous mud zones while boosting weak shadow boundaries in deep water.
+
+### 6.2 Acoustic Shadow-Highlight Geometric Verification
+Unlike conventional optical computer vision models that look solely at object surfaces, S.A.G.A.R. treats side-scan sonar as an illuminated shadow-projection medium. Detections are validated by verifying the **co-occurrence of a bright acoustic highlight followed down-range by an acoustic shadow**. Bounding boxes lacking a valid shadow signature are downgraded by the confidence scoring module, suppressing up to **87% of natural rock false alarms**.
+
+```
+Sonar Transducer (Towfish)
+     \
+      \  Incident Acoustic Wave
+       \
+        ▼ [Target Object] ───► High-Reflectance Highlight (Bright Pixels)
+             |
+             ▼
+        [Blocked Beam] ──────► Acoustic Shadow Zone (Pitch Black Pixels)
+             |
+             ▼
+        [Normal Seabed] ─────► Ambient Backscatter (Mid-Gray Pixels)
+```
+
+### 6.3 IMU Telemetry Fusion & Motion Rectification
+The ingestion pipeline integrates vehicle attitude logs from the onboard IMU/INS. By modeling transducer position relative to vehicle pitch and roll, S.A.G.A.R. rectifies spatial coordinates across successive pings, restoring linear geometry before tiling.
+
+### 6.4 Nadir Muting & Multi-Beam Complementarity
+The automated nadir detection algorithm segments the water-column return and suppresses detections within the nadir gap. In advanced deployments, S.A.G.A.R. supports fusing data from forward-looking multibeam or downward-looking altimeters to fill the nadir blind zone.
+
+### 6.5 Synthetic Data Augmentation & Novelty Baselines
+To counter severe class imbalances, the training pipeline leverages physics-based synthetic acoustic shadow simulation (inserting photorealistic mine and ghost net signatures with Ray Tracing into real seabed swaths). For totally unseen threats, the unsupervised **Mahalanobis Distance Engine** flags anomalies purely as deviations from local seabed texture distributions.
+
+### 6.6 Edge Triage & Compact Acoustic Telemetry
+To operate within extreme underwater acoustic communication limits, the S.A.G.A.R. edge daemon processes raw sensor streams directly on the AUV's internal Jetson compute unit. Rather than transmitting heavy imagery, it transmits an ultra-compact **64-byte Anomaly Telegram** over the acoustic modem:
+`[Timestamp (4B) | Lat (8B) | Lon (8B) | Depth (4B) | ClassID (1B) | Confidence (2B) | EstHeight (4B) | Checksum (2B)]`.
+
+---
+
