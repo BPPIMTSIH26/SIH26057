@@ -95,3 +95,69 @@ NetraSonar / S.A.G.A.R. Workspace
 
 ---
 
+## 2. Technologies to Be Used (Hardware, Sensors & Edge Stack)
+
+For field-grade maritime and naval operational deployment, S.A.G.A.R. interfaces directly with industrial subsea hardware, autonomous robotic carriers, and embedded computing architectures:
+
+```mermaid
+graph LR
+    subgraph Underwater Platform ["Subsea Survey Platform (AUV / ROV / Towfish)"]
+        S1["Side-Scan Sonar (100/400/900 kHz)"]
+        S2["Synthetic Aperture Sonar (SAS)"]
+        S3["IMU / INS (Fiber-Optic Gyro)"]
+        S4["DVL / USBL Acoustic Positioning"]
+        S5["Optical Strobe Camera"]
+    end
+
+    subgraph Edge Compute ["Edge Embedded Brain (IP68 Dry Housing)"]
+        E1["NVIDIA Jetson AGX Orin (64GB)"]
+        E2["TensorRT / ONNX Runtime FP16 Engine"]
+        E3["Local NVMe PCIe Gen4 Storage (4TB)"]
+        E4["S.A.G.A.R. Edge Daemon (FastAPI Lite)"]
+    end
+
+    subgraph Surface Command ["Mothership / Shore Operations Centre"]
+        C1["UHF / Satellite / Acoustic Modem"]
+        C2["S.A.G.A.R. Tactical Command Console"]
+        C3["Neon Cloud / Tactical Mission Server"]
+    end
+
+    S1 -->|Raw Analog/Digital Packets| E1
+    S2 -->|High-Res Swath Chunks| E1
+    S3 -->|Pitch/Roll/Heave Telemetry| E1
+    S4 -->|Lat/Lon/Depth Positioning| E1
+    S5 -->|Target Snapshot Validation| E1
+
+    E1 --> E2
+    E2 --> E4
+    E4 --> E3
+    E4 -->|Acoustic Anomaly Ping / Full Swath Sync| C1
+    C1 --> C2
+    C2 --> C3
+```
+
+### 2.1 Acoustic Sensors & Transducers
+* **Dual-Frequency Side-Scan Sonar (SSS):**
+  * *Low Frequency (100 kHz – 450 kHz):* Long-range seabed mapping (up to 300m range per channel) for wide-area search and large wreckage discovery.
+  * *High Frequency (900 kHz – 1.25 MHz):* Ultra-high resolution acoustic imaging (up to 50m range per channel) with sub-centimeter range resolution for target classification (ghost nets, mine cylinders, pipeline seams).
+* **Synthetic Aperture Sonar (SAS):** For along-track resolution independent of range and frequency, synthesizing virtual apertures up to 10× finer than standard side-scan sonar.
+* **Forward-Looking Obstacle Avoidance Sonar (FLS):** Multibeam real-time acoustic scanning for autonomous vehicle collision avoidance.
+* **Optical Camera & LED Strobe Array:** High-sensitivity 4K underwater low-light camera deployed on AUVs for near-seabed optical cross-verification.
+
+### 2.2 Navigation, Telemetry & Positioning
+* **Inertial Navigation System (INS) & IMU:** High-precision Fiber Optic Gyroscopes (FOG) or Ring Laser Gyroscopes measuring 6-DOF vehicle attitude (surge, sway, heave, roll, pitch, yaw) at 100 Hz.
+* **Doppler Velocity Log (DVL):** Acoustic bottom-tracking sensor measuring bottom-referenced velocity to eliminate dead-reckoning positional drift.
+* **Ultra-Short Baseline (USBL) Acoustic Positioning:** Transceiver mounted on the survey vessel hull paired with a subsea transponder on the towfish/AUV to deliver sub-meter geographic coordinates in depths exceeding 1,000 meters.
+* **GNSS-RTK (Real-Time Kinematic):** Multi-band GPS/NavIC receiver mounted on surface vessels delivering centimeter-level positioning accuracy.
+
+### 2.3 Embedded Edge Computing Hardware
+* **Primary Edge Brain:** **NVIDIA Jetson AGX Orin Industrial Module** (64GB RAM, 275 TOPS INT8 / 138 TFLOPS FP16 AI compute, operating between -40°C to 85°C in subsea atmospheric pressure housings).
+* **Alternative Cost-Effective Edge Unit:** **NVIDIA Jetson Orin Nano / Xavier NX** for compact micro-AUVs and inspection-class ROVs.
+* **Hardware Acceleration Runtime:** NVIDIA TensorRT FP16 / INT8 execution engines delivering sub-15ms inference latency per 640×640 sonar tile.
+* **Subsea Telemetry & Data Link:** 
+  * Acoustic telemetry modems (Evologics / Teledyne Benthos) transmitting compact anomaly coordinate vectors (<128 bytes) through the water column.
+  * High-speed tethered fiber-optic gigabit umbilical (for ROVs and towfish).
+  * 5G / Low-Earth Orbit Satellite (Starlink / NavIC) links upon surface vehicle surfacing.
+
+---
+
