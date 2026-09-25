@@ -161,3 +161,59 @@ graph LR
 
 ---
 
+## 3. Methodology & Process for Implementation
+
+### 3.1 End-to-End Operational Workflow
+
+The S.A.G.A.R. operational workflow bridges raw hydrographic sensor logs with automated tactical decision-making:
+
+```mermaid
+flowchart TD
+    subgraph Ingestion ["1. Data Ingestion & Decode"]
+        A1["Raw Sonar Survey File (.xtf / .sl2 / .json / GeoTIFF)"] --> A2["Header & Telemetry Extraction (GPS, Altitude, Speed)"]
+        A2 --> A3["Slant-Range Distortion Correction & Nadir Mute"]
+    end
+
+    subgraph Stage14 ["2. 14-Stage Deterministic Preprocessing"]
+        A3 --> B1["Noise Reduction (Adaptive Gaussian / Median Filter)"]
+        B1 --> B2["Contrast Optimization (CLAHE Tile Grid)"]
+        B2 --> B3["Pixel Normalization (Robust Percentile Min-Max p1-p99)"]
+        B3 --> B4["Quality Assessment & Metric Masking (Dropout/Saturation)"]
+        B4 --> B5["Sliding-Window Tile Generation (640x640 with 20% Overlap)"]
+    end
+
+    subgraph DualCore ["3. Dual-Core AI Intelligence Engine"]
+        B5 --> C1["Supervised 9-Class Detector (YOLOv8/11 ONNX)"]
+        B5 --> C2["Unsupervised Mahalanobis Seabed Normality Engine"]
+        
+        C1 --> D1{"Confidence >= 0.45?"}
+        D1 -->|Yes| D2["Classified Hazard: Bounding Box & Class ID"]
+        D1 -->|No / Ambiguous| D3["Acoustic Shadow & Highlight Heuristic Evaluator"]
+        
+        C2 --> D4{"Distance > Chi-Square Threshold?"}
+        D4 -->|Yes| D5["Flagged Novel Anomaly (Open-World Candidate)"]
+        D4 -->|No| D6["Normal Geological Seabed Background"]
+    end
+
+    subgraph Fusion ["4. Geotagging & Temporal Analysis"]
+        D2 & D3 & D5 --> E1["Coordinate Georeferencing (Towfish Layback + USBL to WGS84)"]
+        E1 --> E2["Temporal Comparison Engine (SSIM & NCC vs Historic Swaths)"]
+        E2 --> E3["Multi-Criteria Priority Triage Matrix (P1-Critical / P2-High / P3-Routine)"]
+    end
+
+    subgraph TacticalCommand ["5. Operator Review & Mission Dossier"]
+        E3 --> F1["Interactive MapLibre GL 3D Command Console"]
+        F1 --> F2["Human-in-the-Loop Triage (Confirmed / Known / False Positive / New Class)"]
+        F2 --> F3["Automated Hydrographic Dossier Generation (JSON / CSV / PDF)"]
+    end
+```
+
+---
+
+### 3.2 14-Stage Deterministic Acoustic Pipeline
+
+Side-scan sonar imagery suffers from severe physical transmission limitations: sound beam spreading, water column backscatter, towfish velocity fluctuations, and transducer beam pattern non-uniformities. S.A.G.A.R. executes a sequential **14-Stage Processing Pipeline** within `backend/app/services/image_processing_service.py`:
+
+| Stage | Name | Technical Implementation & Formula | Purpose |
+| :---: | :--- | :--- | :--- |
+| **1** | **File Validation & Integrity Check** | MIME type verification, magic byte parsing (`.xtf`, `.sl2`, `.tif`, `.jpg`), decompression verification, and memory safety checks. | Prevents corrupted file ingestion or buffer overflows during offshore operations. |
