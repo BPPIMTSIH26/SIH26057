@@ -205,12 +205,17 @@ export default function LoginPage() {
       }, 700);
 
     } catch {
-      // Fallback for offline mode (Demo Mode)
-      setVerified(true);
-      setTimeout(() => {
-        login(email, operatorInfo?.fullName || 'Operator', email.toLowerCase() === 'narayan.nkj@gmail.com' ? 'System Administrator' : 'Operator');
-        navigate('/dashboard', { replace: true });
-      }, 700);
+      // Fallback for offline System Administrator
+      if (email.toLowerCase() === 'narayan.nkj@gmail.com') {
+        setVerified(true);
+        setTimeout(() => {
+          login(email, operatorInfo?.fullName || 'Narayan', 'System Administrator');
+          navigate('/dashboard', { replace: true });
+        }, 700);
+      } else {
+        setIsVerifying(false);
+        setError('Unable to reach authentication server. Please check your connection.');
+      }
     }
   };
 
