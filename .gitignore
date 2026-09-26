@@ -2,8 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
 venv/
+backend/venv/
+.venv/
+env/
 .env
 .env.*
 !.env.example
@@ -21,9 +23,8 @@ test.db
 backend/test.db
 backend/sonar_x.db
 backend/*.png
-/data/
 
-# SAGAR Storage & Data
+# SAGAR Storage & Data (never push uploads / processed results)
 backend/data/*.db
 backend/*.db
 backend/data/uploads/*
@@ -32,23 +33,37 @@ backend/data/processed/*
 !backend/data/processed/.gitkeep
 backend/data/uploads/processing_results/*
 
-*.log
-*.pt
-backend/drishti_best.onnx
+# Datasets - never push raw / processed datasets
+HG_DATA/
+backend/HG_DATA/
+/data/
+data/training/
+data/validation/
+data/raw/
+data/processed/
 
-# Large binary test artifacts
+# Model weights & ONNX exports - large binaries, never push
+*.pt
+*.onnx
+backend/models/
+backend/drishti_best.onnx
+backend/yolov8n.pt
+
+# Large binary test fixtures
+backend/tests/fixtures/*.jpg
+backend/tests/fixtures/*.png
 tests/fixtures/*.jpg
 tests/fixtures/*.png
 
-# Model training checkpoints & weights (large binaries)
-backend/models/sagar_run/weights/
-backend/models/*.onnx
-*.onnx
+# Shared libraries / compiled extensions
+*.so
+*.dylib
 
-data/training/
-data/validation/
+# Misc
+*.log
 *.egg-info/
-__pycache__/
-.env
 large_files/
 *.zip
+
+# Frontend stray backend folder (Vercel/Vite artefact - contains its own node_modules)
+frontend/backend/
