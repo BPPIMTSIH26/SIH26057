@@ -8,6 +8,7 @@ import logging
 
 from app.api import routes_health, routes_missions, routes_sonar, routes_detection, routes_anomalies, routes_pipeline, routes_reports, routes_upload, routes_auth, routes_image_processing, routes_dashboard
 from app.database.database import engine, Base, SessionLocal
+import app.database.models
 from app.database.seed import seed_users
 from fastapi.staticfiles import StaticFiles
 import os
@@ -24,8 +25,8 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting SONAR-X Backend (Env: {settings.APP_ENV})")
     logger.info(f"Using Model Provider: {settings.MODEL_PROVIDER}")
 
-    # Migrations are now managed by Alembic.
-    # Base.metadata.create_all(bind=engine)
+    # Ensure database schema exists
+    Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
     try:

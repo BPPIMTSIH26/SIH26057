@@ -106,24 +106,25 @@ def get_job_history(
     jobs = query.order_by(ImageProcessingJob.created_at.desc()).all()
     responses = []
     for job in jobs:
-        response = ImageProcessingJobResponse(
-            jobId=job.id,
-            status=job.status,
-            progress=job.progress,
-            stage=job.stage,
-            originalImageUrl=job.original_image_path,
-            processedImageUrl=job.processed_image_path,
-            qualityMaskUrl=job.quality_mask_path,
-            inferenceMaskUrl=job.inference_mask_path,
-            shadowOverlayUrl=job.shadow_overlay_path,
-            processingDurationMs=job.processing_duration_ms
-        )
-        if job.quality_assessment: response.qualityAssessment = json.loads(job.quality_assessment)
-        if job.mask_statistics: response.maskStatistics = json.loads(job.mask_statistics)
-        if job.region_analysis: response.regionAnalysis = json.loads(job.region_analysis)
-        if job.metadata_json: response.metadata = json.loads(job.metadata_json)
-        if job.warnings: response.warnings = json.loads(job.warnings)
-        responses.append(response)
+        kwargs = {
+            "jobId": job.id,
+            "status": job.status,
+            "progress": job.progress,
+            "stage": job.stage,
+            "originalImageUrl": job.original_image_path,
+            "processedImageUrl": job.processed_image_path,
+            "qualityMaskUrl": job.quality_mask_path,
+            "inferenceMaskUrl": job.inference_mask_path,
+            "shadowOverlayUrl": job.shadow_overlay_path,
+            "processingDurationMs": job.processing_duration_ms
+        }
+        if job.quality_assessment: kwargs["qualityAssessment"] = json.loads(job.quality_assessment)
+        if job.mask_statistics: kwargs["maskStatistics"] = json.loads(job.mask_statistics)
+        if job.region_analysis: kwargs["regionAnalysis"] = json.loads(job.region_analysis)
+        if job.metadata_json: kwargs["metadata"] = json.loads(job.metadata_json)
+        if job.warnings: kwargs["warnings"] = json.loads(job.warnings)
+        
+        responses.append(ImageProcessingJobResponse(**kwargs))
     
     return responses
 
@@ -137,26 +138,26 @@ def get_job_status(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
         
-    response = ImageProcessingJobResponse(
-        jobId=job.id,
-        status=job.status,
-        progress=job.progress,
-        stage=job.stage,
-        originalImageUrl=job.original_image_path,
-        processedImageUrl=job.processed_image_path,
-        qualityMaskUrl=job.quality_mask_path,
-        inferenceMaskUrl=job.inference_mask_path,
-        shadowOverlayUrl=job.shadow_overlay_path,
-        processingDurationMs=job.processing_duration_ms
-    )
+    kwargs = {
+        "jobId": job.id,
+        "status": job.status,
+        "progress": job.progress,
+        "stage": job.stage,
+        "originalImageUrl": job.original_image_path,
+        "processedImageUrl": job.processed_image_path,
+        "qualityMaskUrl": job.quality_mask_path,
+        "inferenceMaskUrl": job.inference_mask_path,
+        "shadowOverlayUrl": job.shadow_overlay_path,
+        "processingDurationMs": job.processing_duration_ms
+    }
     
-    if job.quality_assessment: response.qualityAssessment = json.loads(job.quality_assessment)
-    if job.mask_statistics: response.maskStatistics = json.loads(job.mask_statistics)
-    if job.region_analysis: response.regionAnalysis = json.loads(job.region_analysis)
-    if job.metadata_json: response.metadata = json.loads(job.metadata_json)
-    if job.warnings: response.warnings = json.loads(job.warnings)
+    if job.quality_assessment: kwargs["qualityAssessment"] = json.loads(job.quality_assessment)
+    if job.mask_statistics: kwargs["maskStatistics"] = json.loads(job.mask_statistics)
+    if job.region_analysis: kwargs["regionAnalysis"] = json.loads(job.region_analysis)
+    if job.metadata_json: kwargs["metadata"] = json.loads(job.metadata_json)
+    if job.warnings: kwargs["warnings"] = json.loads(job.warnings)
     
-    return response
+    return ImageProcessingJobResponse(**kwargs)
 
 @router.get("/jobs/{job_id}/result", response_model=ImageProcessingJobResponse)
 def get_job_result(
