@@ -19,9 +19,14 @@ PORT_MAX_DEPTHS = {
     'visakhapatnam': 18.1,
     'kolkata': 8.5,
     'jawaharlal-nehru': 15.0,
+    'jawaharlal nehru': 15.0,
+    'jnp': 15.0,
     'paradip': 17.0,
-    'thunder-bay': 40.0,
-    'lake-huron': 45.0
+    'parade': 17.0,
+    'thunder-bay': 55.0,
+    'thunder bay': 55.0,
+    'lake-huron': 55.0,
+    'lake huron': 55.0,
 }
 
 PREFIX_TO_PORT = {
@@ -38,16 +43,12 @@ PREFIX_TO_PORT = {
     "LAK": "lake-huron",
 }
 
-def compute_realistic_depth(port_id: str, anomaly_key: str) -> float:
-    max_d = PORT_MAX_DEPTHS.get(port_id, 15.0)
-    min_d = max(3.5, round(max_d * 0.45, 1))
-    
-    # Deterministic hash ratio between 0.05 and 0.95
-    h = int(hashlib.md5(anomaly_key.encode('utf-8')).hexdigest(), 16)
-    ratio = 0.08 + (h % 84) / 100.0  # ratio in [0.08, 0.91]
-    
-    depth = round(min_d + ratio * (max_d - min_d), 1)
-    return min(depth, max_d)
+def compute_realistic_depth(port_id: str, anomaly_key: str = None) -> float:
+    key = str(port_id).lower().strip().replace(" ", "-")
+    for k, v in PORT_MAX_DEPTHS.items():
+        if k in key or key in k:
+            return v
+    return 14.0
 
 def run():
     print("=" * 60)
