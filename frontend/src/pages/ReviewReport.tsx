@@ -43,6 +43,7 @@ export default function ReviewReport() {
   const [showToast, setShowToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
   const [showNewClassModal, setShowNewClassModal] = useState(false);
   const [newClassName, setNewClassName] = useState('');
+  const [isDraggingReferenceImage, setIsDraggingReferenceImage] = useState(false);
   const mapRef = useRef<any>(null);
   
   const [reportData, setReportData] = useState<ReportSummary | null>(null);
@@ -128,6 +129,47 @@ export default function ReviewReport() {
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setShowToast({ message, type });
     setTimeout(() => setShowToast(null), 3000);
+  };
+
+  const handleReferenceImageUpload = (file: File) => {
+    if (!selectedId) {
+      triggerToast('Select an anomaly from the queue first', 'info');
+      return;
+    }
+    if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|tiff|tif|webp)$/i)) {
+      triggerToast('Unsupported file format. Please upload .jpg, .png, or .tiff', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const resultUrl = e.target?.result as string;
+      if (resultUrl) {
+        setAnomalies(prev => prev.map(a => a.id === selectedId ? { ...a, referenceImageUrl: resultUrl } : a));
+        triggerToast(`Reference SSS crop '${file.name}' attached to anomaly`);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOverRef = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingReferenceImage(true);
+  };
+
+  const handleDragLeaveRef = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingReferenceImage(false);
+  };
+
+  const handleDropRef = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingReferenceImage(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleReferenceImageUpload(e.dataTransfer.files[0]);
+    }
   };
 
   const handleExport = async (type: 'pdf' | 'csv' | 'json') => {
@@ -471,25 +513,80 @@ export default function ReviewReport() {
     <label className="text-[10px] text-text-secondary uppercase tracking-[0.2em] font-bold flex items-center gap-2">
       <UploadCloud className="w-3.5 h-3.5" /> Reference SSS Image
     </label>
-    <label className="border border-dashed border-glass-border hover:border-glass-border-strong bg-void transition-all duration-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer group">
-      <input 
-        type="file" 
-        accept=".jpg,.jpeg,.png,.tiff" 
-        className="hidden" 
-        onChange={(e) => {
-          if (e.target.files && e.target.files.length > 0) {
-             triggerToast('Image uploaded and attached to anomaly');
-          }
-        }} 
-      />
-      <div className="w-10 h-10 rounded-full bg-glass border border-glass-border flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-[var(--glow-hover)]">
-        <UploadCloud className="w-5 h-5 text-text-muted group-hover:text-accent transition-colors" />
-      </div>
-      <p className="text-[11px] font-mono text-text-secondary text-center leading-relaxed">
-        Drag and drop SSS crop image here<br/>
-        <span className="text-[9px] text-text-muted">or click to browse (.jpg, .png, .tiff)</span>
-      </p>
-    </label>
+     {selectedAnomaly?.referenceImageUrl ? (
+       <div className="border border-glass-border bg-void/80 rounded-xl p-3 flex flex-col gap-3">
+         <div className="relative rounded-lg overflow-hidden border border-glass-border aspect-video bg-black/60 flex items-center justify-center group">
+           <img
+             src={selectedAnomaly.referenceImageUrl}
+             alt="Attached Reference SSS Image"
+             className="w-full h-full object-contain"
+           />
+           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+             <label className="px-3 py-1.5 bg-surface hover:bg-elevated border border-glass-border text-text-primary text-[10px] font-mono rounded cursor-pointer transition-colors shadow-sm">
+               Replace Image
+               <input
+                 type="file"
+                 accept=".jpg,.jpeg,.png,.tiff,.webp"
+                 className="hidden"
+                 onChange={(e) => {
+                   if (e.target.files?.[0]) handleReferenceImageUpload(e.target.files[0]);
+                 }}
+               />
+             </label>
+             <button
+               onClick={() => {
+                 setAnomalies(prev => prev.map(a => a.id === selectedId ? { ...a, referenceImageUrl: undefined } : a));
+                 triggerToast('Reference SSS image removed');
+               }}
+               className="px-3 py-1.5 bg-danger/20 hover:bg-danger/40 border border-danger/40 text-danger text-[10px] font-mono rounded transition-colors cursor-pointer"
+             >
+               Remove
+             </button>
+           </div>
+         </div>
+         <div className="flex items-center justify-between text-[10px] font-mono text-text-muted">
+           <span className="text-success font-semibold flex items-center gap-1">
+             <CheckCircle2 className="w-3 h-3 text-success" /> Reference SSS crop attached
+           </span>
+           <span>Model Feedback Active</span>
+         </div>
+       </div>
+     ) : (
+       <div
+         onDragOver={handleDragOverRef}
+         onDragLeave={handleDragLeaveRef}
+         onDrop={handleDropRef}
+         className={`border border-dashed transition-all duration-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer group ${
+           isDraggingReferenceImage
+             ? 'border-accent bg-accent/10 shadow-[0_0_24px_rgba(125,211,252,0.2)] scale-[1.01]'
+             : 'border-glass-border hover:border-glass-border-strong bg-void'
+         }`}
+       >
+         <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+           <input 
+             type="file" 
+             accept=".jpg,.jpeg,.png,.tiff,.webp" 
+             className="hidden" 
+             onChange={(e) => {
+               if (e.target.files && e.target.files.length > 0) {
+                 handleReferenceImageUpload(e.target.files[0]);
+               }
+             }} 
+           />
+           <div className={`w-10 h-10 rounded-full border flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 ${
+             isDraggingReferenceImage
+               ? 'bg-accent/20 border-accent text-accent'
+               : 'bg-glass border-glass-border text-text-muted group-hover:text-accent group-hover:shadow-[var(--glow-hover)]'
+           }`}>
+             <UploadCloud className="w-5 h-5" />
+           </div>
+           <p className="text-[11px] font-mono text-text-secondary text-center leading-relaxed">
+             Drag and drop SSS crop image here<br/>
+             <span className="text-[9px] text-text-muted">or click to browse (.jpg, .png, .tiff)</span>
+           </p>
+         </label>
+       </div>
+     )}
  </div>
  
  <div className="bg-success/10 border border-success/30 p-3 flex items-start gap-3 mt-4">
