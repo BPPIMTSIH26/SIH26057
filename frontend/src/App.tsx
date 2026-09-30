@@ -43,6 +43,7 @@ import { useCopyProtection } from './hooks/useCopyProtection';
 import { CopyrightToast, PersistentCopyrightFooterBadge } from './components/CopyrightBanner';
 
 import { PortContext, RealTimeAnomalyContext } from './contexts/AppContext';
+import { NotificationProvider, useNotifications } from './contexts/NotificationContext';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -102,6 +103,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const selectedPort = PORTS[selectedPortId] || getPort(selectedPortId);
 
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [anomalyUpdates, setAnomalyUpdates] = useState<Record<string, Partial<Anomaly>>>({});
   const location = useLocation();
@@ -334,41 +336,86 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     className="relative p-1.5 text-text-muted hover:text-accent transition-all duration-300"
                   >
                     <Bell className="w-4 h-4" />
-                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-accent shadow-[var(--glow-accent)]" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-danger text-white font-mono font-bold text-[9px] flex items-center justify-center shadow-[0_0_10px_rgba(255,77,77,0.6)] animate-pulse">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </button>
                   {showNotifications && (
-                    <div className="absolute right-0 top-full mt-3 w-80 max-w-[90vw] bg-void/80 backdrop-blur-3xl border border-glass-border rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-                      <div className="px-5 py-4 border-b border-glass-border bg-glass-strong">
-                        <h3 className="font-display font-bold text-text-primary text-[11px] tracking-[0.1em] uppercase">Notifications</h3>
+                    <div className="absolute right-0 top-full mt-3 w-88 max-w-[92vw] bg-surface/98 backdrop-blur-2xl border border-glass-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] overflow-hidden z-[9999] animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-5 py-3.5 border-b border-glass-border bg-elevated/80 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-display font-bold text-text-primary text-[11px] tracking-[0.1em] uppercase">Notifications</h3>
+                          {unreadCount > 0 && (
+                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-accent/20 text-accent border border-accent/30 font-mono font-semibold">
+                              {unreadCount} new
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={markAllAsRead}
+                              className="text-[10px] text-text-muted hover:text-accent transition-colors font-mono"
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                          {notifications.length > 0 && (
+                            <button
+                              onClick={clearAll}
+                              className="text-[10px] text-text-muted hover:text-danger transition-colors font-mono"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="max-h-72 overflow-y-auto divide-y divide-glass-border">
-                        <div className="p-4 hover:bg-glass-strong transition-colors duration-300 cursor-pointer">
-                          <div className="flex gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-danger mt-1.5 shrink-0 shadow-[0_0_10px_rgba(255,77,77,0.3)]" />
-                            <div>
-                              <p className="text-[12px] text-text-primary font-light leading-snug">New high-priority anomaly detected in Sector 7A.</p>
-                              <p className="text-[10px] text-text-muted mt-1.5 font-mono">2 mins ago · Mumbai Harbor Q3</p>
-                            </div>
+                      <div className="max-h-80 overflow-y-auto divide-y divide-glass-border/60 bg-surface/98">
+                        {notifications.length === 0 ? (
+                          <div className="p-8 text-center text-text-muted text-xs font-mono flex flex-col items-center justify-center gap-2">
+                            <Bell className="w-5 h-5 opacity-40 text-text-muted" />
+                            <span>No notifications available</span>
                           </div>
-                        </div>
-                        <div className="p-4 hover:bg-glass transition-colors duration-300 cursor-pointer">
-                          <div className="flex gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-success mt-1.5 shrink-0" />
-                            <div>
-                              <p className="text-[12px] text-text-primary font-light leading-snug">Survey 'Mumbai Harbor Q3' processing complete.</p>
-                              <p className="text-[10px] text-text-muted mt-1.5 font-mono">1 hr ago · System</p>
+                        ) : (
+                          notifications.map((notif) => (
+                            <div
+                              key={notif.id}
+                              onClick={() => {
+                                markAsRead(notif.id);
+                                if (notif.link) {
+                                  navigate(notif.link);
+                                  setShowNotifications(false);
+                                }
+                              }}
+                              className={`p-4 hover:bg-glass-strong transition-colors duration-200 cursor-pointer ${
+                                notif.read ? 'opacity-70 bg-transparent' : 'bg-accent/5'
+                              }`}
+                            >
+                              <div className="flex gap-3 items-start">
+                                <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                                  notif.type === 'danger' ? 'bg-danger shadow-[0_0_10px_rgba(255,77,77,0.5)]' :
+                                  notif.type === 'success' ? 'bg-success shadow-[0_0_10px_rgba(0,255,136,0.3)]' :
+                                  notif.type === 'warning' ? 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]' :
+                                  'bg-accent shadow-[var(--glow-accent)]'
+                                }`} />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[12px] text-text-primary font-medium leading-snug">
+                                    {notif.title}
+                                  </p>
+                                  <p className="text-[11px] text-text-secondary font-light leading-snug mt-0.5">
+                                    {notif.message}
+                                  </p>
+                                  <div className="text-[9px] text-text-muted mt-1.5 font-mono flex items-center justify-between">
+                                    <span>{notif.timeAgo || 'Just now'}</span>
+                                    {notif.portName && <span className="text-accent/80 font-semibold">{notif.portName}</span>}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                        <div className="p-4 hover:bg-glass transition-colors duration-300 cursor-pointer">
-                          <div className="flex gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0 shadow-[var(--glow-accent)]" />
-                            <div>
-                              <p className="text-[12px] text-text-primary font-light leading-snug">Model v1.1 retraining scheduled for 03:00 IST.</p>
-                              <p className="text-[10px] text-text-muted mt-1.5 font-mono">3 hrs ago · AI Pipeline</p>
-                            </div>
-                          </div>
-                        </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   )}
@@ -502,7 +549,9 @@ const AppRouter = () => {
 export default function App() {
   return (
     <UserProvider>
-      <AppRouter />
+      <NotificationProvider>
+        <AppRouter />
+      </NotificationProvider>
     </UserProvider>
   );
 }
