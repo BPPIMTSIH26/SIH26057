@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, File, CheckCircle2, FileJson, Image as ImageIcon, ArrowRight, AlertCircle, Anchor } from 'lucide-react';
 import { startSurveyProcessing } from '../services/api';
+import { useNotifications } from '../contexts/NotificationContext';
 
 type ProcessState = 'upload' | 'processing' | 'complete';
 
@@ -10,6 +11,7 @@ const inputClass = 'w-full bg-glass backdrop-blur-3xl border border-glass-border
 
 export default function UploadProcess() {
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const [appState, setAppState] = useState<ProcessState>('upload');
   const [progress, setProgress] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -51,6 +53,13 @@ export default function UploadProcess() {
         setTerminalLogs(prev => [...prev, `> Pipeline execution finished. Ready for review.`]);
         setAppState('complete');
         clearInterval(interval);
+        addNotification({
+          title: `Survey Pipeline Complete`,
+          message: `Survey '${metadata.surveyName || 'Ingested Hydrographic Survey'}' pipeline complete. Staged for review.`,
+          category: 'processing',
+          type: 'success',
+          link: '/review'
+        });
       }
       setProgress(p);
     }, 200);
