@@ -409,8 +409,10 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </header>
 
             {/* Page content */}
-            <div className="flex-1 overflow-hidden relative flex flex-col">
-              {children}
+            <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto min-h-0 relative flex flex-col">
+                {children}
+              </div>
               <PersistentCopyrightFooterBadge />
             </div>
           </main>
