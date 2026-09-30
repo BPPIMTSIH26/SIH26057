@@ -5,12 +5,13 @@
   "description": "S.A.G.A.R. (Sub-surface Anomaly Grid & Analysis Repository) - Team (ORION)⁶⁹ SIH26057",
   "main": "frontend/src/main.tsx",
   "scripts": {
-    "start": "npm --prefix frontend run dev",
-    "dev": "npm --prefix frontend run dev",
+    "start": "npx -y concurrently -n \"BACKEND,FRONTEND\" -c \"cyan.bold,magenta.bold\" \"npm run backend\" \"npm run frontend\"",
+    "dev": "npx -y concurrently -n \"BACKEND,FRONTEND\" -c \"cyan.bold,magenta.bold\" \"npm run backend\" \"npm run frontend\"",
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "cd backend && (venv/bin/python3 -m uvicorn app.main:app --reload --port 8000 || python3 -m uvicorn app.main:app --reload --port 8000)",
     "build": "npm --prefix frontend run build",
     "test": "npm --prefix frontend run test",
-    "lint": "npm --prefix frontend run lint",
-    "backend": "cd backend && source venv/bin/activate 2>/dev/null || true; uvicorn app.main:app --reload --port 8000"
+    "lint": "npm --prefix frontend run lint"
   },
   "keywords": [
     "ocean-x",
