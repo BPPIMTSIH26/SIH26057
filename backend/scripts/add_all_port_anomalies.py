@@ -6,6 +6,7 @@ import os
 import json
 import random
 import itertools
+from fix_port_anomaly_depths import compute_realistic_depth, PORT_MAX_DEPTHS
 
 # EXACT WATER SEED POINTS — hand-verified to be inside each port's harbor water
 # (lat, lon) pairs that are definitively NOT on land
@@ -95,10 +96,9 @@ def generate_anomalies_for_port(port_name, count=15):
             "anomaly_type": atype,
             "classification": aclass,
             "confidence_percent": random.randint(75, 99),
-            "severity": asev,
-            "depth_m": round(random.uniform(10.0, 45.0), 1),
-            "expected_depth_m": round(random.uniform(10.0, 45.0), 1),
-            "depth_delta_m": round(random.uniform(-5.0, 5.0), 1),
+            "depth_m": compute_realistic_depth(port_name.lower().replace(" ", "-"), f"{port_prefix}-A{i+1:02d}"),
+            "expected_depth_m": PORT_MAX_DEPTHS.get(port_name.lower().replace(" ", "-"), 15.0),
+            "depth_delta_m": round(random.uniform(-1.5, 1.5), 1),
             "backscatter_db": round(random.uniform(-30.0, -10.0), 1),
             "expected_backscatter_db": round(random.uniform(-40.0, -25.0), 1),
             "backscatter_delta_db": round(random.uniform(-10.0, 15.0), 1),
