@@ -58,7 +58,7 @@ export default function CopyrightLicense() {
                 className="text-cyan-400 underline font-mono hover:text-cyan-300 inline-flex items-center gap-1"
               >
                 https://github.com/BPPIMTSIH26/SIH26057 <ExternalLink className="w-3 h-3" />
-              </a>, AI machine learning models, bathymetric data processing algorithms, sonar visualizers, UI designs, and documentation, is the exclusive proprietary property of <strong>Team NetraSonar (S.A.G.A.R.)</strong>.
+              </a>, AI machine learning models, bathymetric data processing algorithms, sonar visualizers, UI designs, and documentation, is the exclusive proprietary property of <strong>Team (ORION)⁶⁹ (NetraSonar - S.A.G.A.R.)</strong>.
             </p>
             <p className="font-semibold text-amber-300 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
               ANY UNAUTHORIZED COPYING, CLONING, REPRODUCING, SCRAPING, DISTRIBUTING, OR CREATING DERIVATIVE WORKS FROM THIS CODEBASE OR APPLICATION IS STRICTLY PROHIBITED AND CONSTITUTES AN INTELLECTUAL PROPERTY INFRINGEMENT.
@@ -79,7 +79,7 @@ export default function CopyrightLicense() {
             </CardHeader>
             <CardContent className="text-slate-300 text-sm space-y-2">
               <p>
-                <strong>Copyright © 2026 Team NetraSonar / S.A.G.A.R. Project.</strong> All Rights Reserved.
+                <strong>Copyright © 2026 Team (ORION)⁶⁹ / S.A.G.A.R. Project.</strong> All Rights Reserved.
               </p>
               <p>
                 All elements of S.A.G.A.R. (Sub-surface Anomaly Grid & Analysis Repository) — including React frontend scripts, Python FastAPI backends, ML anomaly detection pipelines, synthetic sonar dataset generators, and visual themes — are protected by national and international copyright laws.
