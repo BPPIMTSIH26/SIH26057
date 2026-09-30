@@ -25,6 +25,7 @@ import { useHarbour } from '../contexts/AppContext';
 import { HARBOURS } from '../data/mockData';
 import { imageProcessingApi, ImageProcessingJobResponse } from '../services/imageProcessingApi';
 import { getRandomWaterCoordinate } from '../utils/waterCoordinates';
+import { useNotifications } from '../contexts/NotificationContext';
 
 type ProcessingUiStatus =
   | 'idle'
@@ -112,6 +113,7 @@ const ImageProcessing: React.FC = () => {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   
   const { activeHarbour } = useHarbour();
+  const { addNotification } = useNotifications();
   const anomalyQueueRef = useRef<HTMLDivElement>(null);
 
   const uiStatus = deriveProcessingUiStatus({ file, jobId, result, requestState });
@@ -181,6 +183,14 @@ const ImageProcessing: React.FC = () => {
         }
         await imageProcessingApi.publishJob(jobId, location);
         setPublishSuccess(true);
+        addNotification({
+          title: 'Detection Staged for Human Review',
+          message: `Published anomaly detection results for ${activeHarbour} to Human Review Queue.`,
+          category: 'system',
+          portName: activeHarbour,
+          type: 'success',
+          link: '/review'
+        });
       } catch (err: any) {
         console.error(err);
         alert('Failed to publish: ' + (err.message || 'Unknown error'));
@@ -204,6 +214,14 @@ const ImageProcessing: React.FC = () => {
       }
       await imageProcessingApi.publishJob(jobId, location);
       setPublishSuccess(true);
+      addNotification({
+        title: 'Detection Staged for Human Review',
+        message: `Published anomaly detection results for ${activeHarbour} to Human Review Queue.`,
+        category: 'system',
+        portName: activeHarbour,
+        type: 'success',
+        link: '/review'
+      });
       setTimeout(() => setPublishSuccess(false), 3000);
     } catch (err: any) {
       console.error(err);
@@ -225,6 +243,36 @@ const ImageProcessing: React.FC = () => {
             clearInterval(interval);
             setImgKey(Date.now());
             fetchHistory();
+
+            if (status.status === 'completed' || status.status === 'assessed') {
+              const seabed = deriveSeabedProfile(status);
+              const primaryCandidate = status.regionAnalysis?.[0];
+              const detectedLabel = primaryCandidate?.label === 'likely_object' ? 'WRECK / LARGE OBJECT' :
+                                    primaryCandidate?.label === 'likely_shadow' ? 'DEBRIS / STRUCTURE' :
+                                    primaryCandidate?.label === 'natural_seabed_feature' ? 'NATURAL SEABED FEATURE' :
+                                    'WRECK / LARGE OBJECT';
+              const confPercent = primaryCandidate?.objectConfidence
+                ? Math.round(primaryCandidate.objectConfidence * 100)
+                : 81;
+
+              addNotification({
+                title: `AI Model Scan Complete: ${detectedLabel}`,
+                message: `Sonar scan processing finished. Detected ${detectedLabel} (${confPercent}% confidence). Seabed: ${seabed?.substrateType || 'Mixed Substrate'}.`,
+                category: 'detection',
+                portName: activeHarbour,
+                type: confPercent >= 80 ? 'danger' : 'warning',
+                link: '/processing'
+              });
+            } else if (status.status === 'failed') {
+              addNotification({
+                title: `Sonar Processing Failed`,
+                message: `Image processing job ${jobId} encountered an error during swath enhancement.`,
+                category: 'system',
+                portName: activeHarbour,
+                type: 'danger',
+                link: '/processing'
+              });
+            }
           }
         } catch (err: any) {
           setError(err.message || 'Failed to fetch status');
@@ -234,7 +282,7 @@ const ImageProcessing: React.FC = () => {
       }, 400); // reduced from 1000 to 400ms for faster feedback
     }
     return () => clearInterval(interval);
-  }, [jobId, requestState, fetchHistory]);
+  }, [jobId, requestState, fetchHistory, addNotification, activeHarbour]);
 
   const resolveMediaUrl = (path?: string | null, cacheKey?: string) => {
     if (!path) return '';
