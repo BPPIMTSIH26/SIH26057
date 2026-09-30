@@ -30,7 +30,7 @@ export const CopyrightToast: React.FC<CopyrightBannerProps> = ({ warning, onDism
         <p className="text-slate-300 text-xs leading-relaxed">{warning.message}</p>
         <div className="pt-1 text-[10px] text-slate-400 flex items-center gap-1">
           <Copyright className="w-3 h-3 text-cyan-400" />
-          <span>2026 Team NetraSonar (SIH26057). All Rights Reserved.</span>
+          <span>2026 Team (ORION)⁶⁹ (SIH26057). All Rights Reserved.</span>
         </div>
       </div>
     </div>

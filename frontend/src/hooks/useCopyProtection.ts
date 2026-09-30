@@ -94,7 +94,7 @@ export function useCopyProtection(enabled: boolean = true) {
       const target = e.target as HTMLElement;
       if (target.tagName === 'IMG' || target.tagName === 'CANVAS' || target.tagName === 'SVG') {
         e.preventDefault();
-        triggerWarning('Asset dragging disabled: Images and sonar charts are copyrighted property of Team NetraSonar.');
+        triggerWarning('Asset dragging disabled: Images and sonar charts are copyrighted property of Team (ORION)⁶⁹.');
       }
     };
 
@@ -107,7 +107,7 @@ export function useCopyProtection(enabled: boolean = true) {
         if (e.clipboardData) {
           e.clipboardData.setData(
             'text/plain',
-            'S.A.G.A.R. (Sub-surface Anomaly Grid & Analysis Repository) - Copyright (c) 2026 Team NetraSonar (SIH26057). All Rights Reserved. Unauthorized copying is prohibited. Visit https://github.com/BPPIMTSIH26/SIH26057'
+            'S.A.G.A.R. (Sub-surface Anomaly Grid & Analysis Repository) - Copyright (c) 2026 Team (ORION)⁶⁹ (SIH26057). All Rights Reserved. Unauthorized copying is prohibited. Visit https://github.com/BPPIMTSIH26/SIH26057'
           );
         }
         triggerWarning('Selection copied with Copyright Notice watermark. Copying source code is prohibited.');
