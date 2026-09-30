@@ -14,15 +14,16 @@ export function useCopyProtection(enabled: boolean = true) {
   });
 
   const triggerWarning = (msg: string) => {
+    const now = Date.now();
     setWarning({
       show: true,
       message: msg,
-      timestamp: Date.now(),
+      timestamp: now,
     });
-    // Auto-dismiss after 3.5 seconds
+    // Auto-dismiss after 3.0 seconds with smooth animation
     setTimeout(() => {
-      setWarning(prev => (prev.timestamp === Date.now() ? { ...prev, show: false } : prev));
-    }, 3500);
+      setWarning(prev => (prev.timestamp === now ? { ...prev, show: false } : prev));
+    }, 3000);
   };
 
   const dismissWarning = () => {

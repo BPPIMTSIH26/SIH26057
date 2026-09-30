@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldAlert, Lock, Copyright, X } from 'lucide-react';
 import type { CopyWarningState } from '../hooks/useCopyProtection';
@@ -9,10 +9,42 @@ interface CopyrightBannerProps {
 }
 
 export const CopyrightToast: React.FC<CopyrightBannerProps> = ({ warning, onDismiss }) => {
-  if (!warning.show) return null;
+  const [shouldRender, setShouldRender] = useState(warning.show);
+  const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    if (warning.show) {
+      setShouldRender(true);
+      setIsExiting(false);
+    } else if (shouldRender && !isExiting) {
+      setIsExiting(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsExiting(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [warning.show, shouldRender, isExiting]);
+
+  if (!shouldRender) return null;
+
+  const handleManualDismiss = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onDismiss();
+      setShouldRender(false);
+      setIsExiting(false);
+    }, 300);
+  };
 
   return (
-    <div className="fixed bottom-12 right-6 z-[9999] max-w-sm bg-surface/95 border border-glass-border-strong text-text-primary p-3.5 rounded-xl shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-start gap-3 select-none">
+    <div
+      className={`fixed bottom-12 right-6 z-[9999] max-w-sm bg-surface/95 border border-glass-border-strong text-text-primary p-3.5 rounded-xl shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-2xl flex items-start gap-3 select-none transition-all duration-300 transform ${
+        isExiting
+          ? 'opacity-0 translate-y-4 scale-95 pointer-events-none'
+          : 'opacity-100 translate-y-0 scale-100'
+      }`}
+    >
       <div className="p-1.5 bg-glass rounded-lg shrink-0 mt-0.5 border border-glass-border">
         <ShieldAlert className="w-4 h-4 text-text-secondary" />
       </div>
@@ -22,7 +54,7 @@ export const CopyrightToast: React.FC<CopyrightBannerProps> = ({ warning, onDism
             <Lock className="w-3 h-3 text-text-muted" /> Copyright Notice
           </span>
           <button 
-            onClick={onDismiss}
+            onClick={handleManualDismiss}
             className="text-text-muted hover:text-text-primary transition-colors p-0.5 rounded hover:bg-glass"
             title="Dismiss notice"
           >
