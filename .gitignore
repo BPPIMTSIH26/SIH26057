@@ -30,9 +30,10 @@ backend/data/*
 !backend/data/processed/.gitkeep
 backend/*.db
 
-# Datasets - never push raw / processed datasets
-HG_DATA/
-backend/HG_DATA/
+# Datasets - sample demonstration dataset tracked
+!HG_DATA/
+!backend/HG_DATA/
+!frontend/public/HG_DATA/
 /data/
 data/training/
 data/validation/
