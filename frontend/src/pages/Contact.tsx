@@ -15,7 +15,7 @@ export default function Contact() {
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
               <Mail className="w-5 h-5 text-accent" />
-              Team Orion (BPPIMTSIH26)
+              Team (ORION)⁶⁹ (BPPIMTSIH26)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-text-secondary">

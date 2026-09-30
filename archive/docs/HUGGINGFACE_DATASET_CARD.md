@@ -23,7 +23,7 @@ size_categories:
 
 The assembled, preprocessed train / val / test tiles behind the **S.A.G.A.R. detector** — an SIH 2026 (PS 26057) marine-debris and anomaly detector for side-scan sonar. YOLO format, 640 px tiles.
 
-**Curator:** [Narayan Kumar Jha](https://github.com/narayan-nkj) — Team Lead & Deep Learning Engineer, S.A.G.A.R. Command (SIH 2026)  
+**Curator:** [Narayan Kumar Jha](https://github.com/narayan-nkj) — Team Lead & Deep Learning Engineer, Team (ORION)⁶⁹ (S.A.G.A.R. Command SIH 2026)  
 **Project Repository:** [BPPIMTSIH26/SIH26057](https://github.com/BPPIMTSIH26/SIH26057)
 
 ---
