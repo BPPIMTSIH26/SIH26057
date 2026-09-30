@@ -1,11 +1,11 @@
 # Copyright & Proprietary Source License
 
-**Copyright © 2026 Team NetraSonar / S.A.G.A.R. Project (SIH26057). All Rights Reserved.**
+**Copyright © 2026 Team (ORION)⁶⁹ / S.A.G.A.R. Project (SIH26057). All Rights Reserved.**
 
 > [!IMPORTANT]
 > **STRICT PROPRIETARY & VIEW-ONLY LICENSE NOTICE**
 > 
-> This repository ([https://github.com/BPPIMTSIH26/SIH26057](https://github.com/BPPIMTSIH26/SIH26057)) contains proprietary software, sonar imaging algorithms, machine learning models, and interface assets developed for **S.A.G.A.R. (Sub-surface Anomaly Grid & Analysis Repository)**.
+> This repository ([https://github.com/BPPIMTSIH26/SIH26057](https://github.com/BPPIMTSIH26/SIH26057)) contains proprietary software, sonar imaging algorithms, machine learning models, and interface assets developed by **Team (ORION)⁶⁹** for **S.A.G.A.R. (Sub-surface Anomaly Grid & Analysis Repository)**.
 > 
 > **ANY UNAUTHORIZED COPYING, REPRODUCTION, CLONING, SCRAPING, OR REDISTRIBUTION IS STRICTLY PROHIBITED.**
 
@@ -23,7 +23,7 @@ This repository is published on GitHub strictly for **official evaluation, revie
 - Public visibility on GitHub does **NOT** grant any license to copy, reuse, modify, or integrate this code into external projects.
 
 ### 3. Proprietary Rights & Ownership
-All title, ownership rights, and intellectual property rights in and to S.A.G.A.R. (including but not limited to code, frontend React components, FastAPI backend, ML models, sonar image processing pipelines, database schemas, and documentation) shall remain exclusively with **Team NetraSonar**.
+All title, ownership rights, and intellectual property rights in and to S.A.G.A.R. (including but not limited to code, frontend React components, FastAPI backend, ML models, sonar image processing pipelines, database schemas, and documentation) shall remain exclusively with **Team (ORION)⁶⁹**.
 
 ### 4. Violation & Legal Enforcement
 Any unauthorized copying, cloning, re-uploading, or misuse of this codebase will result in:
@@ -36,4 +36,4 @@ Any unauthorized copying, cloning, re-uploading, or misuse of this codebase will
 ## Contact for Licensing & Authorizations
 If you require authorization or have inquiries regarding this software, please contact the repository maintainers:
 - **Repository:** [https://github.com/BPPIMTSIH26/SIH26057](https://github.com/BPPIMTSIH26/SIH26057)
-- **Project:** S.A.G.A.R. (SIH26057 - NetraSonar)
+- **Project:** S.A.G.A.R. (SIH26057 - Team (ORION)⁶⁹)

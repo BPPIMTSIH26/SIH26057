@@ -1,11 +1,11 @@
 # Frontend Copyright & Proprietary Source License
 
-**Copyright © 2026 Team NetraSonar / S.A.G.A.R. Project (SIH26057). All Rights Reserved.**
+**Copyright © 2026 Team (ORION)⁶⁹ / S.A.G.A.R. Project (SIH26057). All Rights Reserved.**
 
 > [!IMPORTANT]
 > **STRICT PROPRIETARY & VIEW-ONLY LICENSE NOTICE**
 > 
-> The S.A.G.A.R. frontend web application source code, components, hooks, styles, UI layouts, and assets are protected by copyright law.
+> The S.A.G.A.R. frontend web application source code, components, hooks, styles, UI layouts, and assets are protected by copyright law and belong exclusively to **Team (ORION)⁶⁹**.
 > 
 > **COPYING, REPRODUCING, OR EXTRACTING FRONTEND CODE/ASSETS IS STRICTLY PROHIBITED.**
 > 
