@@ -51,7 +51,6 @@ const NAV_ITEMS = [
   { id: 'map', label: 'Baseline & Anomalies', path: '/map', icon: Map },
   { id: 'comparison', label: 'Temporal Comparison', path: '/comparison', icon: History },
   { id: 'review', label: 'Human Review', path: '/review', icon: FileCheck },
-  { id: 'copyright', label: 'Copyright & License', path: '/copyright', icon: Anchor },
 ];
 
 
