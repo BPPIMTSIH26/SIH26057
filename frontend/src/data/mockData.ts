@@ -33,6 +33,7 @@ export interface Anomaly {
   sonarImage: string;
   priority: "low" | "medium" | "high" | "immediate";
   notes?: string;
+  referenceImageUrl?: string;
   customClassName?: string;
   locationSource?: string;
   modelVersion?: string;
