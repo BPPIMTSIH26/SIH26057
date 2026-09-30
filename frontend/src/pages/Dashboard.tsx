@@ -204,6 +204,12 @@ export default function Dashboard() {
     [portAnomalies]
   );
 
+  const derivedNormal = useMemo(() => 
+    Math.round((selectedPort?.areaSqKm || 28) * 6.5),
+    [selectedPort]
+  );
+
+  const displayNormal = metrics?.normalRegions != null ? metrics.normalRegions : derivedNormal;
   const displayKnown = metrics?.knownAnomalies != null ? metrics.knownAnomalies : derivedKnown;
   const displayUnknown = metrics?.unknownAnomalies != null ? metrics.unknownAnomalies : derivedUnknown;
   const displayNewChanges = metrics?.newChanges != null ? metrics.newChanges : derivedNewChanges;
@@ -228,7 +234,7 @@ export default function Dashboard() {
               <div className="bg-glass backdrop-blur-3xl rounded-2xl border border-glass-border shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden">
                 <MetricCard 
                   label="Normal Regions" 
-                  value={metrics?.normalRegions != null ? metrics.normalRegions : 'N/A'} 
+                  value={displayNormal} 
                   icon={CheckCircle} 
                   colorClass="text-text-primary" 
                   isLoading={isLoading} 
