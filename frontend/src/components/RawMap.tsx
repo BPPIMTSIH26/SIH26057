@@ -10,6 +10,58 @@ const MapContext = createContext<maplibregl.Map | null>(null);
 let cachedDarkStyle: any = null;
 let cachedLightStyle: any = null;
 
+const CARTO_DARK_STYLE: any = {
+  version: 8,
+  sources: {
+    'carto-dark': {
+      type: 'raster',
+      tiles: [
+        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+        'https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+      ],
+      tileSize: 256,
+      attribution: '© CartoDB, © OpenStreetMap',
+    },
+  },
+  layers: [
+    {
+      id: 'carto-dark-layer',
+      type: 'raster',
+      source: 'carto-dark',
+      minzoom: 0,
+      maxzoom: 20,
+    },
+  ],
+};
+
+const CARTO_LIGHT_STYLE: any = {
+  version: 8,
+  sources: {
+    'carto-light': {
+      type: 'raster',
+      tiles: [
+        'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+        'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+        'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+        'https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+      ],
+      tileSize: 256,
+      attribution: '© CartoDB, © OpenStreetMap',
+    },
+  },
+  layers: [
+    {
+      id: 'carto-light-layer',
+      type: 'raster',
+      source: 'carto-light',
+      minzoom: 0,
+      maxzoom: 20,
+    },
+  ],
+};
+
 export function useMap() {
   return useContext(MapContext);
 }
@@ -19,7 +71,6 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [tileError, setTileError] = useState(false);
 
   useImperativeHandle(ref, () => map, [map]);
 
@@ -37,30 +88,36 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
         } else if (theme === 'light' && cachedLightStyle) {
           jsStyleObject = cachedLightStyle;
         } else {
-          const styleUrl = theme === 'dark' ? 'https://tiles.openfreemap.org/styles/dark' : 'https://tiles.openfreemap.org/styles/positron';
-          const response = await fetch(styleUrl);
-          jsStyleObject = await response.json();
+          try {
+            const styleUrl = theme === 'dark' ? 'https://tiles.openfreemap.org/styles/dark' : 'https://tiles.openfreemap.org/styles/positron';
+            const response = await fetch(styleUrl);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            jsStyleObject = await response.json();
 
-          jsStyleObject.layers.forEach((layer: any) => {
-            if (layer.id === 'background' || layer.type === 'background') {
-              if (!layer.paint) layer.paint = {};
-            }
-            if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
-              layer.layout['text-field'] = [
-                'coalesce',
-                ['get', 'name:en'],
-                ['get', 'name']
-              ];
-            }
-            if (layer.id.includes('state') || layer.id.includes('province')) {
-              layer.minzoom = 4.5;
-            }
-            if (layer.id.includes('city') || layer.id.includes('town') || layer.id.includes('village')) {
-              layer.minzoom = 6;
-            }
-          });
-          if (theme === 'dark') cachedDarkStyle = jsStyleObject;
-          else cachedLightStyle = jsStyleObject;
+            jsStyleObject.layers.forEach((layer: any) => {
+              if (layer.id === 'background' || layer.type === 'background') {
+                if (!layer.paint) layer.paint = {};
+              }
+              if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
+                layer.layout['text-field'] = [
+                  'coalesce',
+                  ['get', 'name:en'],
+                  ['get', 'name']
+                ];
+              }
+              if (layer.id.includes('state') || layer.id.includes('province')) {
+                layer.minzoom = 4.5;
+              }
+              if (layer.id.includes('city') || layer.id.includes('town') || layer.id.includes('village')) {
+                layer.minzoom = 6;
+              }
+            });
+            if (theme === 'dark') cachedDarkStyle = jsStyleObject;
+            else cachedLightStyle = jsStyleObject;
+          } catch (styleErr) {
+            console.warn('[RawMap] Using CartoDB fallback map style:', styleErr);
+            jsStyleObject = theme === 'dark' ? CARTO_DARK_STYLE : CARTO_LIGHT_STYLE;
+          }
         }
 
         if (!isMounted) return;
@@ -89,11 +146,14 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
         });
 
         mapInstance.on('error', (e: any) => {
-          // Catch tile/style fetch errors - show fallback instead of silent black
           const msg = e?.error?.message || '';
-          if (msg.includes('fetch') || msg.includes('Failed') || msg.includes('style')) {
-            console.warn('[RawMap] Tile/style error:', msg);
-            if (isMounted) setTileError(true);
+          if (msg.includes('fetch') || msg.includes('Failed') || msg.includes('404') || msg.includes('style')) {
+            console.warn('[RawMap] Recovering tile error with CartoDB fallback:', msg);
+            try {
+              mapInstance?.setStyle(theme === 'dark' ? CARTO_DARK_STYLE : CARTO_LIGHT_STYLE);
+            } catch {
+              // safe fallback
+            }
           }
         });
         
@@ -130,6 +190,23 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once to initialize the map
+
+  // Dynamically fly to new coordinates when view state props change (e.g. switching port)
+  useEffect(() => {
+    if (!map) return;
+    if (initialViewState?.longitude && initialViewState?.latitude) {
+      try {
+        map.flyTo({
+          center: [initialViewState.longitude, initialViewState.latitude],
+          zoom: initialViewState.zoom || map.getZoom(),
+          duration: 1000,
+          essential: true,
+        });
+      } catch {
+        // safe
+      }
+    }
+  }, [map, initialViewState?.longitude, initialViewState?.latitude, initialViewState?.zoom]);
 
   // Dynamically update map style when theme changes
   useEffect(() => {
@@ -170,7 +247,7 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
       }}
     >
       {/* Loading skeleton — visible until tiles render */}
-      {!isLoaded && !tileError && (
+      {!isLoaded && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
           background: theme === 'dark'
@@ -183,19 +260,6 @@ export const Map = forwardRef(({ initialViewState, children, onIdle }: any, ref:
             borderTop: '2px solid rgba(0,229,255,0.7)', borderRadius: '50%',
             animation: 'spin 1s linear infinite'
           }} />
-        </div>
-      )}
-      {/* Tile error fallback */}
-      {tileError && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 1,
-          background: '#0A0F1A',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: 8, color: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'monospace'
-        }}>
-          <span style={{ fontSize: 20 }}>◫</span>
-          <span>MAP TILES UNAVAILABLE</span>
-          <span style={{ fontSize: 9, opacity: 0.5 }}>Check network / tile server</span>
         </div>
       )}
       {/* Map canvas */}
