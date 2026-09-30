@@ -405,6 +405,21 @@ predictions = session.run(None, {input_name: img_array})
 
 ---
 
+## 🔒 Copyright, Proprietary License & Anti-Copying Policy
+
+**Copyright © 2026 Team NetraSonar (S.A.G.A.R. Project - SIH26057). All Rights Reserved.**
+
+> [!CAUTION]
+> **PROPRIETARY & NON-COPYABLE SOURCE MATERIAL**
+> 
+> - This repository ([https://github.com/BPPIMTSIH26/SIH26057](https://github.com/BPPIMTSIH26/SIH26057)), source code, frontend React components, FastAPI backend services, machine learning models, bathymetric data processing scripts, and visual assets are proprietary.
+> - **ANY UNAUTHORIZED COPYING, REPRODUCTION, CLONING, FORKING, SCRAPING, OR REDISTRIBUTION IS STRICTLY PROHIBITED.**
+> - Viewing access on GitHub is provided exclusively for official review and evaluation under **Smart India Hackathon (SIH26057)**. Public visibility does not convey any right or license to copy, reuse, or adapt any part of this software.
+> - For full legal terms, inspect the [`LICENSE`](LICENSE) and [`LICENSE.md`](LICENSE.md) files or visit the in-app Copyright page at `/copyright`.
+
+---
+
 <div align="center">
-  <sub>Engineered with precision for Smart India Hackathon 2026. S.A.G.A.R. Command System.</sub>
+  <sub>Engineered with precision for Smart India Hackathon 2026. S.A.G.A.R. Command System. Copyright © 2026 Team NetraSonar. All Rights Reserved.</sub>
 </div>
+

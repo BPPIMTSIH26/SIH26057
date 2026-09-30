@@ -31,6 +31,7 @@ import DataUseAndAttribution from './pages/DataUseAndAttribution';
 import Accessibility from './pages/Accessibility';
 import Contact from './pages/Contact';
 import SystemStatus from './pages/SystemStatus';
+import CopyrightLicense from './pages/CopyrightLicense';
 import { usePreferences } from './contexts/PreferencesContext';
 import { useTheme } from './contexts/ThemeContext';
 import { useUser, UserProvider } from './contexts/UserContext';
@@ -38,6 +39,8 @@ import { subscribeToRealTimeAnomalies } from './services/api';
 import { PORTS, getPort } from './data/mockData';
 import type { Anomaly } from './data/mockData';
 import BootScreen from './components/BootScreen';
+import { useCopyProtection } from './hooks/useCopyProtection';
+import { CopyrightToast, PersistentCopyrightFooterBadge } from './components/CopyrightBanner';
 
 import { PortContext, RealTimeAnomalyContext } from './contexts/AppContext';
 
@@ -48,6 +51,7 @@ const NAV_ITEMS = [
   { id: 'map', label: 'Baseline & Anomalies', path: '/map', icon: Map },
   { id: 'comparison', label: 'Temporal Comparison', path: '/comparison', icon: History },
   { id: 'review', label: 'Human Review', path: '/review', icon: FileCheck },
+  { id: 'copyright', label: 'Copyright & License', path: '/copyright', icon: Anchor },
 ];
 
 
@@ -408,6 +412,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {/* Page content */}
             <div className="flex-1 overflow-hidden relative flex flex-col">
               {children}
+              <PersistentCopyrightFooterBadge />
             </div>
           </main>
         </div>
@@ -417,6 +422,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppRouter = () => {
+  const { warning, dismissWarning } = useCopyProtection(true);
   const [booting, setBooting] = useState(() => {
     try {
       return sessionStorage.getItem('sagar_booted') !== 'true';
@@ -443,6 +449,7 @@ const AppRouter = () => {
 
   return (
     <Router>
+      <CopyrightToast warning={warning} onDismiss={dismissWarning} />
       {!isAuthenticated ? (
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -450,6 +457,8 @@ const AppRouter = () => {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-use" element={<TermsOfUse />} />
+          <Route path="/copyright" element={<CopyrightLicense />} />
+          <Route path="/license" element={<CopyrightLicense />} />
           <Route path="/data-use-and-attribution" element={<DataUseAndAttribution />} />
           <Route path="/accessibility" element={<Accessibility />} />
           <Route path="/contact" element={<Contact />} />
@@ -471,6 +480,8 @@ const AppRouter = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-use" element={<TermsOfUse />} />
+            <Route path="/copyright" element={<CopyrightLicense />} />
+            <Route path="/license" element={<CopyrightLicense />} />
             <Route path="/data-use-and-attribution" element={<DataUseAndAttribution />} />
             <Route path="/accessibility" element={<Accessibility />} />
             <Route path="/contact" element={<Contact />} />

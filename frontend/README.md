@@ -89,3 +89,14 @@ npm run dev
 - **Real-Time Map Workspace**: Integrated with MapLibre GL for viewing deep-sea anomaly detections across different harbors with Sonar overlay controls.
 - **Temporal Comparison**: Historical tracking of structural anomalies over time with toggleable baseline modes.
 - **Human Review System**: Dashboard tailored for human validators to verify or reject AI-detected anomalies, training models via an Active Learning loop.
+
+---
+
+## 🔒 Copyright & Non-Copyable Usage License
+
+**Copyright © 2026 Team NetraSonar (S.A.G.A.R. - SIH26057). All Rights Reserved.**
+
+This frontend codebase, components, styling, hooks, and UI assets are proprietary software. **COPYING, CLONING, REPRODUCING, OR EXTRACTING FRONTEND CODE IS STRICTLY PROHIBITED.** 
+
+For full license terms, see [`LICENSE.md`](LICENSE.md) or visit the `/copyright` route in the application.
+
