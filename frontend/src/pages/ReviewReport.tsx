@@ -97,7 +97,7 @@ export default function ReviewReport() {
     setSelectedId('');
     Promise.resolve().then(() => setPage(1));
     Promise.resolve().then(() => fetchAnomalies(1, true));
-    getReportSummary('surv_001', selectedPort?.areaSqKm || 28).then(setReportData);
+    getReportSummary('surv_001', selectedPort?.areaSqKm || 28, selectedPortId).then(setReportData);
     getModelFeedback().then(setFeedbackData);
   }, [selectedPortId, fetchAnomalies, selectedPort]);
 
@@ -753,23 +753,23 @@ export default function ReviewReport() {
  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
  <div className={`${paneClass} p-4`}>
  <div className="text-[9px] text-text-secondary mb-1 font-bold uppercase tracking-[0.2em]">Coverage</div>
- <div className="text-xl font-mono font-bold text-text-primary">{reportData?.surveyCoverage}</div>
+ <div className="text-xl font-mono font-bold text-text-primary">{reportData?.surveyCoverage || `${selectedPort?.areaSqKm || 28} sq.km (100% Swath)`}</div>
  </div>
  <div className={`${paneClass} p-4`}>
  <div className="text-[9px] text-text-secondary mb-1 font-bold uppercase tracking-[0.2em]">Normal</div>
- <div className="text-xl font-mono font-bold text-success">{reportData?.normalRegions}</div>
+ <div className="text-xl font-mono font-bold text-success">{reportData?.normalRegions ?? Math.round((selectedPort?.areaSqKm || 28) * 6.5)}</div>
  </div>
  <div className={`${paneClass} p-4`}>
  <div className="text-[9px] text-text-secondary mb-1 font-bold uppercase tracking-[0.2em]">Known Obj</div>
- <div className="text-xl font-mono font-bold text-cyan">{reportData?.knownAnomalies}</div>
+ <div className="text-xl font-mono font-bold text-cyan">{(reportData?.knownAnomalies && reportData.knownAnomalies > 0) ? reportData.knownAnomalies : anomalies.filter(a => a.classification === 'known' || a.reviewStatus === 'known_object').length}</div>
  </div>
  <div className={`${paneClass} p-4`}>
  <div className="text-[9px] text-text-secondary mb-1 font-bold uppercase tracking-[0.2em]">Unknown</div>
- <div className="text-xl font-mono font-bold text-[#B993FF]">{reportData?.unknownAnomalies}</div>
+ <div className="text-xl font-mono font-bold text-[#B993FF]">{(reportData?.unknownAnomalies && reportData.unknownAnomalies > 0) ? reportData.unknownAnomalies : anomalies.filter(a => a.classification === 'unknown' && a.reviewStatus !== 'known_object').length}</div>
  </div>
  <div className={`${paneClass} p-4`}>
  <div className="text-[9px] text-text-secondary mb-1 font-bold uppercase tracking-[0.2em]">New</div>
- <div className="text-xl font-mono font-bold text-danger">{reportData?.newChanges}</div>
+ <div className="text-xl font-mono font-bold text-danger">{(reportData?.newChanges && reportData.newChanges > 0) ? reportData.newChanges : anomalies.filter(a => a.reviewStatus === 'pending' || a.priority === 'immediate').length}</div>
  </div>
  </div>
  

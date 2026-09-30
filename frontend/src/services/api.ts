@@ -230,24 +230,26 @@ export const submitReview = async (anomalyId: string, decision: ReviewDecision):
 // ---------------------------------------------------------------------------
 // Report summary — derived from real dashboard metrics
 // ---------------------------------------------------------------------------
-export const getReportSummary = async (_surveyId: string, portAreaSqKm: number = 28): Promise<ReportSummary> => {
+export const getReportSummary = async (_surveyId: string, portAreaSqKm: number = 28, portIdOrName?: string): Promise<ReportSummary> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/dashboard/metrics`);
+    const canonicalPortId = portIdOrName ? getPort(portIdOrName).id : '';
+    const queryParam = canonicalPortId ? `?port_id=${encodeURIComponent(canonicalPortId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/dashboard/metrics${queryParam}`);
     const data = res.ok ? await res.json() : {};
     return {
       surveyCoverage: `${portAreaSqKm} sq.km (100% Swath)`,
-      normalRegions: data.normalRegions ?? 184,
-      knownAnomalies: data.knownAnomalies ?? 12,
-      unknownAnomalies: data.unknownAnomalies ?? 3,
-      newChanges: data.newChanges ?? 2,
+      normalRegions: data.normalRegions ?? Math.round(portAreaSqKm * 6.5),
+      knownAnomalies: data.knownAnomalies ?? 0,
+      unknownAnomalies: data.unknownAnomalies ?? 0,
+      newChanges: data.newChanges ?? 0,
     };
   } catch (e) {
     return {
       surveyCoverage: `${portAreaSqKm} sq.km (100% Swath)`,
-      normalRegions: 184,
-      knownAnomalies: 12,
-      unknownAnomalies: 3,
-      newChanges: 2,
+      normalRegions: Math.round(portAreaSqKm * 6.5),
+      knownAnomalies: 0,
+      unknownAnomalies: 0,
+      newChanges: 0,
     };
   }
 };

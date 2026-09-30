@@ -161,7 +161,7 @@ export interface PortDefinition {
 export const PORTS: Record<string, PortDefinition> = {
   'mumbai': {
     id: 'mumbai', name: 'Mumbai Harbor Q3', code: 'MUM',
-    lat: 18.9300, lng: 72.8900,
+    lat: 18.9480, lng: 72.8420,
     waterCenter: { lat: 18.9300, lng: 72.8900 }, spread: 0.04,
     vessel: 'R/V Samudra',
     areaSqKm: 28,
@@ -181,7 +181,7 @@ export const PORTS: Record<string, PortDefinition> = {
   },
   'chennai': {
     id: 'chennai', name: 'Chennai Port', code: 'CHE',
-    lat: 13.0900, lng: 80.3150,
+    lat: 13.0840, lng: 80.2940,
     waterCenter: { lat: 13.0900, lng: 80.3150 }, spread: 0.04,
     vessel: 'R/V Sagar Kanya',
     areaSqKm: 24,
@@ -201,7 +201,7 @@ export const PORTS: Record<string, PortDefinition> = {
   },
   'kochi': {
     id: 'kochi', name: 'Kochi Harbor', code: 'KOC',
-    lat: 9.9650, lng: 76.2100,
+    lat: 9.9575, lng: 76.2620,
     waterCenter: { lat: 9.9650, lng: 76.2100 }, spread: 0.04,
     vessel: 'R/V Sindhu Sadhana',
     areaSqKm: 15,
@@ -221,7 +221,7 @@ export const PORTS: Record<string, PortDefinition> = {
   },
   'visakhapatnam': {
     id: 'visakhapatnam', name: 'Visakhapatnam Port', code: 'VIZ',
-    lat: 17.6900, lng: 83.3150,
+    lat: 17.6950, lng: 83.2980,
     waterCenter: { lat: 17.6900, lng: 83.3150 }, spread: 0.04,
     vessel: 'R/V Gaveshani',
     areaSqKm: 21,
@@ -241,7 +241,7 @@ export const PORTS: Record<string, PortDefinition> = {
   },
   'jawaharlal-nehru': {
     id: 'jawaharlal-nehru', name: 'Jawaharlal Nehru Port', code: 'JAW',
-    lat: 18.9400, lng: 72.9150,
+    lat: 18.9500, lng: 72.9520,
     waterCenter: { lat: 18.9400, lng: 72.9150 }, spread: 0.04,
     vessel: 'R/V Sagar Nidhi',
     areaSqKm: 30,
@@ -261,7 +261,7 @@ export const PORTS: Record<string, PortDefinition> = {
   },
   'kolkata': {
     id: 'kolkata', name: 'Kolkata Port', code: 'KOL',
-    lat: 22.5350, lng: 88.3050,
+    lat: 22.5400, lng: 88.3200,
     waterCenter: { lat: 22.5350, lng: 88.3050 }, spread: 0.04,
     vessel: 'R/V Sagar Manjusha',
     areaSqKm: 8,
@@ -281,7 +281,7 @@ export const PORTS: Record<string, PortDefinition> = {
   },
   'paradip': {
     id: 'paradip', name: 'Paradip Port', code: 'PAR',
-    lat: 20.2650, lng: 86.7250,
+    lat: 20.2620, lng: 86.6720,
     waterCenter: { lat: 20.2650, lng: 86.7250 }, spread: 0.04,
     vessel: 'R/V Anveshani',
     areaSqKm: 18,
@@ -301,7 +301,7 @@ export const PORTS: Record<string, PortDefinition> = {
   },
   'thunder-bay': {
     id: 'thunder-bay', name: 'Thunder Bay, Lake Huron', code: 'THU',
-    lat: 45.0350, lng: -83.3500,
+    lat: 45.0610, lng: -83.4320,
     waterCenter: { lat: 45.0350, lng: -83.3500 }, spread: 0.04,
     vessel: 'AUV Iver3 (AI4Shipwrecks)',
     areaSqKm: 1148,
