@@ -65,3 +65,4 @@ large_files/
 
 # Frontend stray backend folder (Vercel/Vite artefact - contains its own node_modules)
 frontend/backend/
+scratch/
