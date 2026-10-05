@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Server, Database, Brain, HardDrive } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { PageCloseButton } from '../components/ui/PageCloseButton';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
 export default function SystemStatus() {
   const [health, setHealth] = useState({
     frontend: 'OK',
@@ -51,8 +53,9 @@ export default function SystemStatus() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-main text-text-main p-8 pt-24 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="h-full w-full overflow-y-auto bg-void text-text-primary p-6 md:p-10 font-sans select-none scrollbar-thin relative">
+      <PageCloseButton />
+      <div className="max-w-4xl mx-auto space-y-8 pb-12">
         <div className="text-center space-y-4">
           <Server className="w-16 h-16 text-accent mx-auto" />
           <h1 className="text-4xl font-bold tracking-tight">System Status</h1>

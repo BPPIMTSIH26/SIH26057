@@ -1,11 +1,13 @@
 import React from 'react';
 import { Mail, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { PageCloseButton } from '../components/ui/PageCloseButton';
 
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-bg-main text-text-main p-8 pt-24 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="h-full w-full overflow-y-auto bg-void text-text-primary p-6 md:p-10 font-sans select-none scrollbar-thin relative">
+      <PageCloseButton />
+      <div className="max-w-4xl mx-auto space-y-8 pb-12">
         <div className="text-center space-y-4">
           <Users className="w-16 h-16 text-accent mx-auto" />
           <h1 className="text-4xl font-bold tracking-tight">Contact Information</h1>

@@ -11,10 +11,12 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { PageCloseButton } from '../components/ui/PageCloseButton';
 
 export default function CopyrightLicense() {
   return (
-    <div className="h-full w-full overflow-y-auto bg-void text-text-primary p-6 md:p-10 font-sans select-none scrollbar-thin">
+    <div className="h-full w-full overflow-y-auto bg-void text-text-primary p-6 md:p-10 font-sans select-none scrollbar-thin relative">
+      <PageCloseButton />
       <div className="max-w-4xl mx-auto space-y-8 pb-12">
         
         {/* Page Hero Header */}
