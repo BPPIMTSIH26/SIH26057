@@ -879,7 +879,14 @@ export default function ReviewReport() {
  
  {showNewClassModal && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-void backdrop-blur-sm">
- <div className="bg-surface border border-border p-6 w-full max-w-sm flex flex-col gap-4 shadow-2xl">
+ <div className="bg-surface border border-border p-6 w-full max-w-sm flex flex-col gap-4 shadow-2xl relative">
+ <button
+ onClick={() => { setShowNewClassModal(false); setNewClassName(''); }}
+ className="absolute top-4 right-4 text-text-muted hover:text-text-primary p-1 rounded hover:bg-glass transition-colors"
+ title="Close modal"
+ >
+ <X className="w-4 h-4" />
+ </button>
  <h3 className="text-[11px] font-display font-bold tracking-[0.1em] uppercase text-text-primary">Add New Class</h3>
  <input 
  type="text"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
-import { Anchor, ShieldAlert, Lock, Mail, User, RefreshCw, Wand2, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Anchor, ShieldAlert, Lock, Mail, User, RefreshCw, Wand2, CheckCircle2, ShieldCheck, X } from 'lucide-react';
 
 const generateCaptcha = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
@@ -472,6 +472,13 @@ export default function LoginPage() {
           {showResetModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-md animate-in fade-in duration-200">
               <div className="bg-glass border border-glass-border p-6 rounded-2xl max-w-sm w-full shadow-[0_16px_48px_rgba(0,0,0,0.8)] relative">
+                <button
+                  onClick={() => setShowResetModal(false)}
+                  className="absolute top-4 right-4 text-text-muted hover:text-text-primary p-1 rounded-lg hover:bg-glass transition-colors"
+                  title="Close modal"
+                >
+                  <X className="w-4 h-4" />
+                </button>
                 <h3 className="text-base font-display font-medium text-text-primary mb-1">Set New Password</h3>
                 <p className="text-[11px] text-text-muted font-mono mb-4">
                   Reset password for {email} using verification code ({operatorInfo?.verificationToken || '259764'}).
