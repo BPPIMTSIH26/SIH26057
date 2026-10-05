@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     
     # AI/Model Settings
     MODEL_PROVIDER: str = "demo"
-    CONFIDENCE_THRESHOLD: float = 0.5
+    CONFIDENCE_THRESHOLD: float = 0.25
     
     # Celery / Redis
     REDIS_URL: str = "redis://localhost:6379/0"

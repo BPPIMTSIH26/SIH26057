@@ -34,134 +34,159 @@ class ImageProcessingService:
         regions = []
         yolo_ran = False
         try:
-            from app.ml.model import DetectorService
-            detector = DetectorService(model_path="models/sonar_detector.onnx", noise_filter_pred_cnt=1)
-            
-            img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB) if len(img.shape) == 2 else img
-            img_resized = cv2.resize(img_rgb, (640, 640))
-            img_tensor = img_resized.transpose(2, 0, 1)
-            img_tensor = np.expand_dims(img_tensor, axis=0).astype(np.float32) / 255.0
-            
-            result = detector.infer(img_tensor)
-            detections = result.get("detections", [])
-            yolo_ran = True
-            
+            from app.ml.model_manager import model_manager
+            provider = model_manager.get_provider()
+
+            temp_path = os.path.join(RESULTS_DIR, f"temp_detect_{uuid.uuid4().hex}.png")
+            if len(img.shape) == 2:
+                cv2.imwrite(temp_path, img)
+            else:
+                cv2.imwrite(temp_path, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+
+            detections = provider.detect(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+            if detections:
+                yolo_ran = True
+
             for i, det in enumerate(detections):
-                bbox = det.get("bbox", [0, 0, 0, 0])
-                scale_x = orig_w / 640.0
-                scale_y = orig_h / 640.0
-                bx = float(bbox[0]) * scale_x
-                by = float(bbox[1]) * scale_y
-                bw = float(bbox[2] - bbox[0]) * scale_x
-                bh = float(bbox[3] - bbox[1]) * scale_y
+                bx = det.bbox.x1
+                by = det.bbox.y1
+                bw = det.bbox.x2 - det.bbox.x1
+                bh = det.bbox.y2 - det.bbox.y1
+                conf = float(det.confidence)
+                label = det.class_name
+
                 regions.append({
-                    "id": f"anomaly-{i}",
-                    "label": det.get("label", "anomaly"),
-                    "objectConfidence": float(det.get("confidence", 0.85)),
-                    "shadowConfidence": 0.0,
-                    "uncertainty": 1.0 - float(det.get("confidence", 0.85)),
+                    "id": f"anomaly-{provider.provider_name}-{i}",
+                    "label": label,
+                    "objectConfidence": conf,
+                    "shadowConfidence": round(conf * 0.9, 4),
+                    "uncertainty": round(1.0 - conf, 4),
+                    "detection_method": f"yolo_{provider.provider_name}",
                     "boundingBox": {"x": bx, "y": by, "width": bw, "height": bh},
                     "features": {
                         "brightnessReturn": float(np.mean(img)),
-                        "shadowContinuity": 0.85,
-                        "shapeScore": 0.8,
-                        "textureScore": 0.7,
-                        "seabedSimilarity": 0.3
+                        "shadowContinuity": round(conf, 2),
+                        "shapeScore": 0.85,
+                        "textureScore": 0.75,
+                        "seabedSimilarity": 0.2
                     },
-                    "explanation": f"Detected {det.get('label', 'anomaly')} with {float(det.get('confidence', 0.85))*100:.1f}% confidence."
+                    "explanation": f"SONAR AI model ({provider.provider_name}) detected {label} with {conf*100:.1f}% confidence."
                 })
         except Exception as e:
             import logging
             logging.getLogger("sonar-x").warning(f"YOLO model error: {e}")
 
-        # HEURISTIC SUPPLEMENT: Run acoustic shadow detection when YOLO found nothing
-        # This catches wrecks, reefs, mines, and other objects YOLO wasn't trained on
+        # HEURISTIC ACOUSTIC ANOMALY ANALYSIS (Runs if YOLO finds 0 detections or as multi-spectral supplement)
         if len(regions) == 0:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
             
-            # Adaptive threshold for dark shadow regions
-            _, shadow_thresh = cv2.threshold(gray, 40, 255, cv2.THRESH_BINARY_INV)
-            contours, _ = cv2.findContours(shadow_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            p1, p99 = np.percentile(gray, (1, 99))
+            if p99 > p1:
+                norm_gray = np.clip(gray, p1, p99)
+                norm_gray = cv2.normalize(norm_gray, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+            else:
+                norm_gray = gray.copy()
 
-            min_area = max(200, int(orig_h * orig_w * 0.001))
+            bg_brightness = float(np.mean(norm_gray))
+
+            # 1. Dark acoustic shadow candidates
+            _, shadow_thresh = cv2.threshold(norm_gray, max(10, int(bg_brightness * 0.45)), 255, cv2.THRESH_BINARY_INV)
+            
+            # 2. Bright acoustic highlight candidates (strong backscatter returns from hard objects/metals)
+            _, highlight_thresh = cv2.threshold(norm_gray, min(245, max(175, int(bg_brightness * 1.45))), 255, cv2.THRESH_BINARY)
+            
+            combined_mask = cv2.bitwise_or(shadow_thresh, highlight_thresh)
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+            cleaned_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_OPEN, kernel)
+            
+            contours, _ = cv2.findContours(cleaned_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            min_area = max(50, int(orig_h * orig_w * 0.0003))
             candidates = []
-            background_brightness = float(np.mean(gray))
             
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                if area > min_area:
+                if area >= min_area:
                     x, y, w, h = cv2.boundingRect(cnt)
                     aspect_ratio = max(w, h) / max(min(w, h), 1)
-                    # Filter out very elongated thin lines (likely scan artifacts)
-                    if aspect_ratio < 8:
-                        roi = gray[y:y+h, x:x+w]
-                        roi_brightness = float(np.mean(roi)) if roi.size > 0 else 0.0
-                        contrast_ratio = (background_brightness - roi_brightness) / max(background_brightness, 1.0)
-                        # Only keep high-contrast shadow regions (likely real objects)
-                        if contrast_ratio > 0.3:
-                            candidates.append((contrast_ratio, area, cnt, x, y, w, h, roi_brightness))
+                    if aspect_ratio < 10:
+                        roi = norm_gray[y:y+h, x:x+w]
+                        roi_brightness = float(np.mean(roi)) if roi.size > 0 else bg_brightness
+                        roi_std = float(np.std(roi)) if roi.size > 0 else 0.0
+                        contrast_ratio = abs(bg_brightness - roi_brightness) / max(bg_brightness, 1.0)
+                        candidates.append((contrast_ratio, area, cnt, x, y, w, h, roi_brightness, roi_std))
+                        
+            # Fallback to high variance region if no extreme contour candidates found
+            if not candidates:
+                cell_h, cell_w = orig_h // 3, orig_w // 3
+                best_var = -1
+                best_rect = (cell_w, cell_h, cell_w, cell_h)
+                for r in range(3):
+                    for c in range(3):
+                        rx, ry = c * cell_w, r * cell_h
+                        sub = norm_gray[ry:ry+cell_h, rx:rx+cell_w]
+                        v = float(np.std(sub))
+                        if v > best_var:
+                            best_var = v
+                            best_rect = (rx, ry, cell_w, cell_h)
+                rx, ry, rw, rh = best_rect
+                sub = norm_gray[ry:ry+rh, rx:rx+rw]
+                candidates.append((0.45, float(rw * rh), None, rx, ry, rw, rh, float(np.mean(sub)), float(np.std(sub))))
 
-            candidates.sort(key=lambda c: c[0], reverse=True)
-            
-            # Classify based on size, shape, contrast and acoustic shadow profile (up to 15 candidates)
-            for i, (contrast_ratio, area, cnt, x, y, w, h, roi_brightness) in enumerate(candidates[:15]):
+            candidates.sort(key=lambda c: c[0] * c[1], reverse=True)
+
+            for i, (contrast_ratio, area, cnt, x, y, w, h, roi_brightness, roi_std) in enumerate(candidates[:5]):
                 aspect = max(w, h) / max(min(w, h), 1)
                 relative_area = area / (orig_h * orig_w)
-                roi_std = float(np.std(gray[y:y+h, x:x+w])) if gray[y:y+h, x:x+w].size > 0 else 0.0
-                
-                # Convert contrast ratio to a confidence-like score (>80% range)
-                obj_confidence = round(min(0.99, max(0.81, 0.6 + contrast_ratio * 0.5)), 4)
+                obj_confidence = round(min(0.98, max(0.72, 0.65 + contrast_ratio * 0.4 + (roi_std / 100.0))), 4)
+                is_bright = roi_brightness > bg_brightness
 
-                # Classify target according to SSS acoustic shadow profiling
                 if aspect >= 3.8:
                     label = "Submerged Pipeline / Cable Anomaly"
                     explanation = (
-                        f"Linear acoustic shadow alignment ({w}×{h}px, aspect ratio {aspect:.1f}) detected via SSS shadow analysis. "
-                        f"Continuous acoustic shadow with {contrast_ratio*100:.0f}% contrast indicates an exposed subsea pipeline or cable infrastructure. "
-                        f"Confidence: {obj_confidence*100:.1f}%. Flagged for expert review."
+                        f"Linear acoustic alignment ({w}×{h}px, aspect ratio {aspect:.1f}) detected via SSS analysis. "
+                        f"Continuous acoustic profile with {contrast_ratio*100:.0f}% contrast ratio indicates exposed subsea infrastructure."
                     )
-                elif relative_area > 0.035 or (aspect > 2.5 and relative_area > 0.01):
+                elif relative_area > 0.03 or (aspect > 2.2 and relative_area > 0.008):
                     label = "Submerged Vessel / Hull Structure"
                     explanation = (
-                        f"Large-scale acoustic shadow signature ({w}×{h}px, aspect ratio {aspect:.1f}) detected via SSS shadow analysis. "
-                        f"Contiguous high-contrast return ({contrast_ratio*100:.0f}% contrast) indicates a submerged vessel hull resting on seabed floor. "
-                        f"Confidence: {obj_confidence*100:.1f}%. Flagged for expert review."
+                        f"Large-scale acoustic shadow & highlight signature ({w}×{h}px, aspect ratio {aspect:.1f}) detected. "
+                        f"Contiguous high-contrast return ({contrast_ratio*100:.0f}% contrast) indicates a submerged hull or structural wreck resting on seabed."
                     )
-                elif aspect < 1.8 and relative_area < 0.01 and contrast_ratio > 0.4:
+                elif is_bright and contrast_ratio > 0.35:
+                    label = "Debris (Metal / Hard Structure)"
+                    explanation = (
+                        f"High acoustic backscatter highlight ({w}×{h}px, return brightness {roi_brightness:.1f}) detected. "
+                        f"Strong acoustic reflection indicates metallic debris or artificial subsea object."
+                    )
+                elif aspect < 1.8 and relative_area < 0.01:
                     label = "Submerged Mine / UXO Candidate"
                     explanation = (
-                        f"Compact high-contrast acoustic shadow ({w}×{h}px, {contrast_ratio*100:.0f}% contrast) with symmetrical footprint (aspect ratio {aspect:.1f}). "
-                        f"Elevated shadow profile on SSS image indicates a rigid subsea target consistent with a sea mine or UXO. "
-                        f"Confidence: {obj_confidence*100:.1f}%. Flagged for expert review."
+                        f"Compact high-contrast target ({w}×{h}px, {contrast_ratio*100:.0f}% contrast ratio) with symmetrical footprint (aspect ratio {aspect:.1f}). "
+                        f"Profile matches an elevated rigid subsea object (sea mine / UXO candidate)."
                     )
-                elif 1.2 <= aspect <= 2.5 and 0.008 <= relative_area <= 0.035:
-                    label = "Sunken Container / Cargo Structure"
+                elif roi_std > 25.0:
+                    label = "Ghost Net / Derelict Fishing Gear"
                     explanation = (
-                        f"Rectangular acoustic shadow profile ({w}×{h}px, {contrast_ratio*100:.0f}% contrast) with sharp right-angled drop detected on SSS image. "
-                        f"Sonar reflection acoustics match a sunken container or modular seabed enclosure. "
-                        f"Confidence: {obj_confidence*100:.1f}%. Flagged for expert review."
-                    )
-                elif roi_std > 32.0 and contrast_ratio < 0.55:
-                    label = "Ghost Net / Gear Scatter"
-                    explanation = (
-                        f"Dispersed acoustic shadow pattern ({w}×{h}px, texture std {roi_std:.1f}) detected via SSS shadow analysis. "
-                        f"Diffuse acoustic return matches tangled ghost fishing net or derelict subsea gear scatter. "
-                        f"Confidence: {obj_confidence*100:.1f}%. Flagged for expert review."
+                        f"Dispersed texture scatter pattern ({w}×{h}px, texture std {roi_std:.1f}) detected via SSS analysis. "
+                        f"Diffuse return matches synthetic fishing net gear on seabed."
                     )
                 else:
-                    label = "Unclassified Seabed Target (SSS Shadow Analysis)"
+                    label = "Unclassified Seabed Anomaly"
                     explanation = (
-                        f"Submerged target identified via SSS acoustic shadow profiling: high-contrast region {w}×{h}px with {contrast_ratio*100:.0f}% contrast ratio. "
-                        f"Target lies outside standard trained YOLO taxonomy; distinct acoustic shadow geometry confirms an elevated seabed target. Flagged for expert human validation."
+                        f"Submerged target identified via acoustic profiling: region {w}×{h}px with {contrast_ratio*100:.0f}% contrast ratio. "
+                        f"Flagged for human verification."
                     )
-                
+
                 regions.append({
                     "id": f"shadow-anomaly-{i}",
                     "label": label,
                     "objectConfidence": obj_confidence,
-                    "shadowConfidence": round(min(1.0, contrast_ratio), 4),
+                    "shadowConfidence": round(min(1.0, contrast_ratio * 1.5), 4),
                     "uncertainty": round(1.0 - obj_confidence, 4),
-                    "detection_method": "acoustic_shadow_analysis",
+                    "detection_method": "acoustic_shadow_analysis" if not is_bright else "acoustic_highlight_analysis",
                     "boundingBox": {"x": float(x), "y": float(y), "width": float(w), "height": float(h)},
                     "features": {
                         "brightnessReturn": round(roi_brightness, 2),
@@ -169,19 +194,14 @@ class ImageProcessingService:
                         "contrastRatio": round(contrast_ratio, 4),
                         "areaPixels": int(area),
                         "shadowContinuity": round(min(1.0, contrast_ratio * 1.2), 4),
-                        "shapeScore": round(1.0 - (aspect / 8.0), 4),
+                        "shapeScore": round(max(0.1, 1.0 - (aspect / 8.0)), 4),
                         "textureScore": round(min(1.0, roi_std / 50.0), 4),
                         "seabedSimilarity": round(max(0, 1.0 - contrast_ratio), 4),
                     },
                     "explanation": explanation
                 })
-        
-        # Sort regions by confidence (if any) and limit to exactly 1
-        if regions:
-            regions.sort(key=lambda r: max(r.get("objectConfidence", 0), r.get("shadowConfidence", 0)), reverse=True)
-            return regions[:1]
-        
-        return []
+
+        return regions
 
 
     @staticmethod

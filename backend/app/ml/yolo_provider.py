@@ -27,7 +27,11 @@ class RealYOLOProvider(BaseDetectionProvider):
         if not self.model:
             raise RuntimeError("YOLO model is not loaded")
             
-        results = self.model(image_path)
+        from app.core.config import get_settings
+        settings = get_settings()
+        conf_threshold = getattr(settings, "CONFIDENCE_THRESHOLD", 0.25)
+
+        results = self.model(image_path, conf=conf_threshold, verbose=False)
         
         detections = []
         for r in results:
@@ -36,7 +40,7 @@ class RealYOLOProvider(BaseDetectionProvider):
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
                 conf = float(box.conf[0])
                 cls = int(box.cls[0])
-                class_name = self.model.names[cls] if hasattr(self.model, 'names') else str(cls)
+                class_name = self.model.names[cls] if hasattr(self.model, 'names') and cls in self.model.names else str(cls)
                 
                 detections.append(
                     DetectionResult(
@@ -47,3 +51,4 @@ class RealYOLOProvider(BaseDetectionProvider):
                     )
                 )
         return detections
+

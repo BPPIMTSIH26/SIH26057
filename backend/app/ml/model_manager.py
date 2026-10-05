@@ -40,11 +40,20 @@ class ModelManager:
 
             else:
                 # YOLO provider — requires torch + ultralytics
-                model_path = os.path.join(settings.MODEL_DIR, "aquascan_model", "weights", "best.pt")
-                if not os.path.exists(model_path):
-                    model_path = os.path.join(settings.MODEL_DIR, "yolov8n.pt")
-                if not os.path.exists(model_path):
-                    model_path = os.path.join(settings.MODEL_DIR, "best.pt")
+                candidate_paths = [
+                    os.path.join(settings.MODEL_DIR, "unified_run", "weights", "best.pt"),
+                    os.path.join(settings.MODEL_DIR, "sagar_run", "weights", "best.pt"),
+                    os.path.join(settings.MODEL_DIR, "aquascan_model", "weights", "best.pt"),
+                    os.path.join(settings.MODEL_DIR, "yolov8n.pt"),
+                    os.path.join(settings.MODEL_DIR, "best.pt"),
+                ]
+                model_path = None
+                for p in candidate_paths:
+                    if os.path.exists(p) and os.path.getsize(p) > 100000:
+                        model_path = p
+                        break
+                if not model_path:
+                    model_path = candidate_paths[0]
 
                 from app.ml.yolo_provider import RealYOLOProvider
                 self._provider = RealYOLOProvider(model_path)
@@ -84,12 +93,19 @@ class ModelManager:
             "SONAR-X ONNX Model" if provider_name == "onnx"
             else "SONAR-X YOLO Model"
         )
+        classes = ["human", "metal_debris", "ghost_net", "unknown_man_made_object", "crab_pot", "submarine_pipeline", "shipwreck", "mine_cylinder", "reef"]
+        if hasattr(self._provider, 'model') and hasattr(self._provider.model, 'names'):
+            classes = list(self._provider.model.names.values())
+        elif hasattr(self._provider, 'classes') and self._provider.classes:
+            classes = self._provider.classes
+
         return {
             "provider": provider_name,
             "model_name": model_name,
             "version": "1.0",
-            "classes": ["human", "metal_debris", "ghost_net", "unknown_man_made_object"],
+            "classes": classes,
             "loaded": True,
         }
 
 model_manager = ModelManager()
+

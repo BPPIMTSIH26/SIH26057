@@ -1,13 +1,15 @@
 import os
 import urllib.request
 import logging
+import shutil
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("fetch_model")
 
-MODEL_URL = "https://huggingface.co/PINGEcosystem/gv-yolo12/resolve/main/sonar_detector.onnx"
+MODEL_URL = "https://huggingface.co/Narayan-nkj/sagar-sonar-detector/resolve/main/sonar_detector.onnx"
 MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
 MODEL_PATH = os.path.join(MODEL_DIR, "sonar_detector.onnx")
+SAGAR_MODEL_PATH = os.path.join(MODEL_DIR, "sagar_run", "weights", "best.onnx")
 
 def create_dummy_onnx_model():
     """Generates a minimal valid ONNX graph that ONNX Runtime can load if download fails."""
@@ -19,9 +21,9 @@ def create_dummy_onnx_model():
         import numpy as np
         
         input_tensor = helper.make_tensor_value_info('images', TensorProto.FLOAT, [1, 3, 640, 640])
-        output_tensor = helper.make_tensor_value_info('output0', TensorProto.FLOAT, [1, 6, 8400])
+        output_tensor = helper.make_tensor_value_info('output0', TensorProto.FLOAT, [1, 9, 8400])
         
-        dummy_data = np.random.rand(1, 6, 8400).astype(np.float32)
+        dummy_data = np.random.rand(1, 9, 8400).astype(np.float32)
         dummy_data[:, 4:, :] *= 0.1
         dummy_data[:, 4:, :10] = 0.9 
         dummy_data[:, 0, :] = 320 
@@ -58,13 +60,25 @@ def create_dummy_onnx_model():
 def main():
     os.makedirs(MODEL_DIR, exist_ok=True)
     
+    # Check if local sagar_run best.onnx exists first
+    if os.path.exists(SAGAR_MODEL_PATH) and os.path.getsize(SAGAR_MODEL_PATH) > 100000:
+        logger.info(f"Copying trained SAGAR ONNX model from {SAGAR_MODEL_PATH} to {MODEL_PATH}")
+        shutil.copyfile(SAGAR_MODEL_PATH, MODEL_PATH)
+        return
+
     logger.info(f"Downloading GhostVision ONNX model from {MODEL_URL}...")
     try:
         urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-        logger.info(f"Successfully downloaded model to {MODEL_PATH}")
+        if os.path.exists(MODEL_PATH) and os.path.getsize(MODEL_PATH) < 100000:
+            logger.warning(f"Downloaded model file is invalid or too small ({os.path.getsize(MODEL_PATH)} bytes).")
+            os.remove(MODEL_PATH)
+            create_dummy_onnx_model()
+        else:
+            logger.info(f"Successfully downloaded model to {MODEL_PATH}")
     except Exception as e:
         logger.error(f"Failed to download model: {e}")
         create_dummy_onnx_model()
 
 if __name__ == "__main__":
     main()
+

@@ -1,28 +1,52 @@
+import os
 import onnxruntime as ort
 import numpy as np
 import uuid
 
 class DetectorService:
-    def __init__(self, model_path="models/sonar_detector.onnx", alpha=0.7, noise_filter_pred_cnt=3):
-        self.model_path = model_path
+    def __init__(self, model_path="models/sonar_detector.onnx", alpha=0.7, noise_filter_pred_cnt=1):
         self.alpha = alpha
         self.noise_filter_pred_cnt = noise_filter_pred_cnt
+        self.model_path = self._resolve_model_path(model_path)
         self.session = ort.InferenceSession(self.model_path, providers=['CPUExecutionProvider'])
         self.input_name = self.session.get_inputs()[0].name
         
         self.labels = {
-            0: "human",
-            1: "metal_debris",
-            2: "ghost_net",
-            3: "unknown_man_made_object",
-            4: "crab_pot",
-            5: "submarine_pipeline",
-            6: "shipwreck",
-            7: "mine_cylinder",
-            8: "reef"
+            0: "crab_pot",
+            1: "submarine_pipeline",
+            2: "shipwreck",
+            3: "ghost_net",
+            4: "mine_cylinder",
+            5: "metal_debris",
+            6: "human",
+            7: "unknown_man_made_object"
         }
         
         self.temporal_state = {}
+
+    def _resolve_model_path(self, path: str) -> str:
+        candidates = [
+            path,
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "models", "sonar_detector.onnx"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "models", "sagar_run", "weights", "best.onnx"),
+            "models/sonar_detector.onnx",
+            "models/sagar_run/weights/best.onnx",
+            "backend/models/sonar_detector.onnx",
+            "backend/models/sagar_run/weights/best.onnx"
+        ]
+        for c in candidates:
+            if os.path.exists(c) and os.path.getsize(c) > 100000:
+                return c
+        # If no valid large model found, run fetch_model main
+        try:
+            from scripts.fetch_model import main as fetch_main
+            fetch_main()
+        except Exception:
+            pass
+        for c in candidates:
+            if os.path.exists(c):
+                return c
+        return path
 
     def _calculate_iou(self, box1, box2):
         x1 = max(box1[0], box2[0])
@@ -73,7 +97,7 @@ class DetectorService:
             
         return keep
 
-    def postprocess(self, output_data, confidence_threshold=0.45):
+    def postprocess(self, output_data, confidence_threshold=0.25):
         raw_detections = []
         for row in output_data:
             scores = row[4:]
@@ -93,7 +117,7 @@ class DetectorService:
                 raw_detections.append({
                     "bbox": [float(x1), float(y1), float(x2), float(y2)],
                     "confidence": conf,
-                    "label": self.labels.get(cls_idx, "unknown")
+                    "label": self.labels.get(cls_idx, f"anomaly_{cls_idx}")
                 })
                 
         # Apply NMS
@@ -121,8 +145,7 @@ class DetectorService:
                 new_pred_cnt = prev_state["pred_cnt"] + 1
                 
                 combined_conf = (self.alpha * det["confidence"]) + ((1 - self.alpha) * prev_state["conf"])
-                
-                final_label = det["label"] if combined_conf > 0.75 else f"Maybe-{det['label']}"
+                final_label = det["label"] if combined_conf > 0.60 else f"Maybe-{det['label']}"
                 
                 new_state[matched_id] = {
                     "bbox": det["bbox"],
@@ -167,3 +190,4 @@ class DetectorService:
             "ping_timestamp": ping_timestamp,
             "detections": detections
         }
+
